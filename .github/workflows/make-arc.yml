@@ -1,0 +1,36 @@
+name: arc
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+        with:
+          fetch-depth: 1
+      - name: Install dev packages
+        run: sudo apt-get install tar
+        
+      - name: Install Toolchain
+        run: |
+           wget "https://github.com/lordrasmus/toolchains/blob/main/arc_gnu_2022.09-rc1_prebuilt_glibc_le_archs_linux_install.tar.xz?raw=true" -O arc_gnu_2022.09-rc1_prebuilt_glibc_le_archs_linux_install.tar.xz
+           tar -xaf arc_gnu_2022.09-rc1_prebuilt_glibc_le_archs_linux_install.tar.xz
+      - name: add PATH
+        run: echo "arc_gnu_2022.09-rc1_prebuilt_glibc_le_archs_linux_install/bin/" >> $GITHUB_PATH
+
+      - name: Extract Kernel Headers
+        run: wget https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.19.56.tar.xz && tar -xaf linux-4.19.56.tar.xz
+      - name: Install Kernel Headers
+        run: make -C linux-4.19.56/ INSTALL_HDR_PATH=$(pwd)/linux-headers/ headers_install ARCH=arc CROSS_COMPILE=arc-linux-gnu-
+
+      - name: Run Makefile
+        run: |
+           arc-linux-gnu-gcc -v
+           arc-linux-gnu-ld -v
+           arc-linux-gnu-ld -V
+           cp .github/workflows/config.arc .config
+           CROSS_COMPILE=arc-linux-gnu- make

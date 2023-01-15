@@ -1,0 +1,24 @@
+name: alpha
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+        with:
+          fetch-depth: 1
+      - name: Install dev packages
+        run: sudo apt-get install gcc-alpha-linux-gnu
+
+      - name: Extract Kernel Headers
+        run: wget https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.19.56.tar.xz && tar -xaf linux-4.19.56.tar.xz
+      - name: Install Kernel Headers
+        run: make -C linux-4.19.56/ INSTALL_HDR_PATH=$(pwd)/linux-headers/ headers_install ARCH=alpha
+
+      - name: Run Makefile
+        run: cp .github/workflows/config.alpha .config && CROSS_COMPILE=alpha-linux-gnu- make

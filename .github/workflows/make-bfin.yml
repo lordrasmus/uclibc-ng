@@ -1,0 +1,36 @@
+name: bfin
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+        with:
+          fetch-depth: 1
+      - name: Install dev packages
+        run: sudo apt-get install tar
+        
+      - name: Install Toolchain
+        run: |
+           wget "https://github.com/lordrasmus/toolchains/blob/main/blackfin-toolchain-elf-gcc-4.5-2014R1_45-RC2.x86_64.tar.bz2?raw=true" -O blackfin-toolchain-elf-gcc-4.5-2014R1_45-RC2.x86_64.tar.bz2
+           tar -xaf blackfin-toolchain-elf-gcc-4.5-2014R1_45-RC2.x86_64.tar.bz2
+           mv opt/uClinux/bfin-elf .
+           rm -rf opt
+      - name: add PATH
+        run: echo "$(pwd)/bfin-elf/bin/" >> $GITHUB_PATH
+
+      - name: Extract Kernel Headers
+        run: wget https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.9.156.tar.xz && tar -xaf linux-4.9.156.tar.xz
+      - name: Install Kernel Headers
+        run: |
+          make -C linux-4.9.156/ INSTALL_HDR_PATH=$(pwd)/linux-headers/ headers_install ARCH=blackfin CROSS_COMPILE=bfin-elf-
+
+      - name: Run Build
+        run: cp .github/workflows/config.bfin .config && PATH=$PATH:bfin-elf/bin CROSS_COMPILE=bfin-elf- make
+      
+      
