@@ -1,0 +1,34 @@
+name: bfin
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+        with:
+          fetch-depth: 1
+      - name: Install dev packages
+        run: sudo apt-get install tar
+        
+      - name: Install Toolchain
+        run: |
+           wget "https://github.com/lordrasmus/toolchains/blob/main/toolchain_generic-c6x_uclibc-ng_nommu.tar.xz?raw=true" -O toolchain_generic-c6x_uclibc-ng_nommu.tar.xz
+           tar -xaf toolchain_generic-c6x_uclibc-ng_nommu.tar.xz
+      - name: add PATH
+        run: echo "$(pwd)/toolchain_generic-c6x_uclibc-ng_nommu/usr/bin/" >> $GITHUB_PATH
+
+      - name: Extract Kernel Headers
+        run: wget https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.9.156.tar.xz && tar -xaf linux-4.9.156.tar.xz
+      - name: Install Kernel Headers
+        run: |
+          make -C linux-4.9.156/ INSTALL_HDR_PATH=$(pwd)/linux-headers/ headers_install ARCH=c6x CROSS_COMPILE=tic6x-openadk-uclinux-
+
+      - name: Run Build
+        run: cp .github/workflows/config.bfin .config && CROSS_COMPILE=tic6x-openadk-uclinux- make
+      
+      
