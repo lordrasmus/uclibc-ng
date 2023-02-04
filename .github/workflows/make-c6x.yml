@@ -29,6 +29,6 @@ jobs:
           make -C linux-4.9.156/ INSTALL_HDR_PATH=$(pwd)/linux-headers/ headers_install ARCH=c6x CROSS_COMPILE=tic6x-openadk-uclinux-
 
       - name: Run Build
-        run: cp .github/workflows/config.bfin .config && CROSS_COMPILE=tic6x-openadk-uclinux- make
+        run: cp .github/workflows/config.c6x .config && CROSS_COMPILE=tic6x-openadk-uclinux- make
       
       
