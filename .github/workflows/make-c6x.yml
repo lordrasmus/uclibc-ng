@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.10
     steps:
       - uses: actions/checkout@master
         with:
@@ -23,7 +23,7 @@ jobs:
         run: echo "$(pwd)/toolchain_generic-c6x_uclibc-ng_nommu/usr/bin/" >> $GITHUB_PATH
 
       - name: Extract Kernel Headers
-        run: wget https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.9.156.tar.xz && tar -xaf linux-4.9.156.tar.xz
+        run: wget "https://github.com/lordrasmus/toolchains/blob/main/linux-4.9.156.tar.xz?raw=true" -O linux-4.9.156.tar.xz && tar -xaf linux-4.9.156.tar.xz
       - name: Install Kernel Headers
         run: |
           make -C linux-4.9.156/ INSTALL_HDR_PATH=$(pwd)/linux-headers/ headers_install ARCH=c6x CROSS_COMPILE=tic6x-openadk-uclinux-
