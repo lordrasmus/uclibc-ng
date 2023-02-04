@@ -1,4 +1,4 @@
-name: bfin
+name: c6x
 
 on:
   push:
