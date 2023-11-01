@@ -1,0 +1,37 @@
+name: arm-cortex-a7
+
+on:
+  push:
+    branches:
+      - master
+      - qemu_test
+
+jobs:
+      
+      
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-arm_cortex_a5-gcc-9_hard_eabihf_arm
+      gcc_prefix: arm-openadk-linux-uclibceabihf-
+      kernel_vers: 4.19.56
+      kernel_dir: v4.x
+      kernel_arch: arm
+      config_file: config.arm
+      # cat linux-6.1.60/arch/arm/boot/zImage  linux-6.1.60/arch/arm/boot/dts/bcm2836-rpi-2-b.dtb > zImage
+      qemu_kernel: kernel-arm-pi2b.img
+      qemu_cmd: qemu-system-arm -m 1G -M raspi2b -append 'root=/dev/mem serial=ttyAMA0'  -nographic -kernel kernel.img -initrd rootfs.img.xz
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+
+  call_qemu:
+    permissions:
+     checks: write
+     pull-requests: write
+     
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit

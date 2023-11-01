@@ -1,0 +1,82 @@
+name: z_qemu_test_run
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    #runs-on: self-hosted
+    
+  
+    steps:
+    
+      - name: Install qemu / python3 junit_xml
+        run: |
+          sudo apt-get -y update; sudo apt-get install -y qemu-system python3-junit.xml libnfs13
+          pip3 install pybadges
+      
+      # wird bei xtensa für den cpio hack gebraucht
+      - uses: actions/checkout@master
+        with:
+          fetch-depth: 1
+      
+      - name: upload Artifacts
+        uses: actions/upload-artifact@master
+        with:
+          name: artifacts
+          path: |
+            .github/tools/run_qemu.py
+      
+      - name: Download a single artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: artifacts
+       
+      - name: Infos
+        run: |
+           jq '.' infos.json
+      
+      - name: parse Config JSON
+        id: parse-json
+        run: |
+          json=$(cat infos.json)
+          for key in $(echo "$json" | jq -r 'keys[]'); do
+            value=$(echo "$json" | jq -r ".$key")
+            echo "$key=$value" >> "$GITHUB_ENV"
+          done
+  
+      - name: install Qemu
+        run: |
+          wget -nv  "https://github.com/lordrasmus/uclibc-ng-qemu-imgs/blob/main/qemu-inst.tar.xz?raw=true" -O qemu-inst.tar.xz
+          tar -xaf qemu-inst.tar.xz
+          ./qemu-inst/bin/qemu-system-aarch64 --version
+      
+          
+      - name: run Qemu
+        run: |
+          if [[ $CONFIG_KERNEL_ARCH == "xtensa" ]] ;  then python3 .github/tools/xtensa-cpio-hack.py; fi
+          echo "Qemu Command : $CONFIG_QEMU_CMD"
+          python3 .github/tools/run_qemu.py
+           
+      - name: analyse Test
+        env:
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }} 
+        run: |
+           python3 .github/tools/read_test_log.py
+           cat test_summary.md >> $GITHUB_STEP_SUMMARY
+           
+           python3 .github/tools/post_badge.py ${{ github.workflow }}_test_result.svg badge.svg
+           python3 .github/tools/post_badge.py ${{ github.workflow }}_test_result.txt log_text.txt
+           
+  
+
+      - name: upload 
+        uses: actions/upload-artifact@master
+        if: always()
+        with:
+          name: Test_Result
+          path: |
+             log.txt
+ 
+

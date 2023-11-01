@@ -1,0 +1,36 @@
+name: nios2
+
+on:
+  push:
+    branches:
+      - master
+
+
+
+jobs:
+
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-nios2-gcc-13
+      gcc_prefix: nios2-openadk-linux-uclibc-
+      kernel_vers: 6.1.53
+      kernel_dir: v6.x
+      kernel_arch: nios2
+      config_file: config.nios2
+      qemu_kernel: kernel-nios2.img
+      qemu_cmd: qemu-system-nios2 -M 10m50-ghrd -nographic -kernel kernel.img -initrd rootfs.img.xz
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+    
+  call_qemu:
+    permissions:
+     checks: write
+     pull-requests: write
+
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit

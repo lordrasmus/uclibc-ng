@@ -1,0 +1,175 @@
+name: z_build_workflow
+
+on:
+  workflow_call:
+    inputs:
+      toolchain:
+        description: 'Toolchain name'
+        required: true
+        type: string
+      gcc_prefix:
+        description: 'GCC prefix'
+        required: true
+        type: string
+      kernel_vers:
+        description: 'Kernel version'
+        required: true
+        type: string
+      kernel_dir:
+        description: 'Kernel directory'
+        required: true
+        type: string
+      kernel_arch:
+        description: 'Kernel architecture'
+        required: true
+        type: string
+      config_file:
+        description: 'Config file name'
+        required: true
+        type: string
+      qemu_kernel:
+        description: 'Qemu Kernel Image for Testsuite execution'
+        required: true
+        type: string
+      qemu_cmd:
+        description: 'Qemu Command for Testsuite execution'
+        required: true
+        type: string
+      
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      
+      - uses: actions/checkout@master
+        with:
+          fetch-depth: 1
+          
+      - name: Setup
+        run: |
+          echo "CONFIG_TOOLCHAIN=${{ inputs.toolchain }}" >> "$GITHUB_ENV"
+          echo "CONFIG_GCC_PREFIX=${{ inputs.gcc_prefix }}" >> "$GITHUB_ENV"
+          echo "CONFIG_KERNEL_VERS=${{ inputs.kernel_vers }}" >> "$GITHUB_ENV"
+          echo "CONFIG_KERNEL_DIR=${{ inputs.kernel_dir }}" >> "$GITHUB_ENV"
+          echo "CONFIG_KERNEL_ARCH=${{ inputs.kernel_arch }}" >> "$GITHUB_ENV"
+          echo "CONFIG_FILE=${{ inputs.config_file }}" >> "$GITHUB_ENV"
+          echo "CONFIG_QEMU_KERNEL=${{ inputs.qemu_kernel }}" >> "$GITHUB_ENV"
+          echo "CONFIG_QEMU_CMD=${{ inputs.qemu_cmd }}" >> "$GITHUB_ENV"
+
+
+      - name: check uClibc-ng config
+        run: |
+          cp .github/configs/$CONFIG_FILE .config
+          #if grep -q '# UCLIBC_HAS_OBSOLETE_BSD_SIGNAL is not set' .config;  then echo "UCLIBC_HAS_OBSOLETE_BSD_SIGNAL must be activated for tests"; exit 1; fi
+          #if grep -q '# UCLIBC_HAS_OBSOLETE_SYSV_SIGNAL is not set' .config; then echo "UCLIBC_HAS_OBSOLETE_SYSV_SIGNAL must be activated for tests"; exit 1; fi
+          if grep -q 'DODEBUG=y' .config;                                    then echo "DODEBUG should be deactivated"; exit 1; fi
+
+
+      - name: Install dev packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install tar
+
+      - name: Install Toolchain
+        run: |
+           wget -nv "https://github.com/lordrasmus/toolchains/blob/main/$CONFIG_TOOLCHAIN.tar.xz?raw=true" -O $CONFIG_TOOLCHAIN.tar.xz
+           tar -xaf $CONFIG_TOOLCHAIN.tar.xz
+
+      - name: check Toolchain files
+        run: |
+           if [ ! -e ${CONFIG_TOOLCHAIN}/config ] ;     then echo "Toolchain config not found" ; exit 1 ; fi
+           if [ ! -e ${CONFIG_TOOLCHAIN}/os-release ] ; then echo "Toolchain os-release not found" ; exit 1 ; fi
+           if [ ! -e ${CONFIG_TOOLCHAIN}/sysroot ] ;    then echo "Toolchain sysroot not found" ; exit 1 ; fi
+
+      - name: add PATH
+        run: echo "$(pwd)/$CONFIG_TOOLCHAIN/usr/bin/" >> $GITHUB_PATH
+      
+      
+      - name: gen Infos
+        run: |
+          ./.github/workflows/build_infos.sh .config
+          jq '.' artifacts/infos.json
+          echo "### Build Config :bulb:" >> $GITHUB_STEP_SUMMARY
+          json=$(cat artifacts/infos.json)
+          for key in $(echo "$json" | jq -r 'keys[]'); do
+            value=$(echo "$json" | jq -r ".$key")
+            echo "$key=$value" >> "$GITHUB_STEP_SUMMARY"
+          done
+
+      - name: Extract Kernel Headers
+        run: |
+          if [[ $CONFIG_KERNEL_VERS == "kvx" ]] ; then
+            wget -nv https://media.githubusercontent.com/media/lordrasmus/toolchains/main/linux-kvx.tar.xz && tar -xaf linux-kvx.tar.xz
+          else
+            wget -nv "https://cdn.kernel.org/pub/linux/kernel/$CONFIG_KERNEL_DIR/linux-$CONFIG_KERNEL_VERS.tar.xz" -O linux-$CONFIG_KERNEL_VERS.tar.xz && tar -xaf linux-$CONFIG_KERNEL_VERS.tar.xz
+          fi
+     
+      
+           
+      - name: copy Artifacts
+        run: |
+          mkdir -p artifacts
+          cp .config artifacts/uclibc-ng-config 
+          cp $CONFIG_TOOLCHAIN.tar.xz artifacts
+          cp linux-$CONFIG_KERNEL_VERS.tar.xz artifacts
+        
+      - name: upload prebuild Artifacts
+        uses: actions/upload-artifact@master
+        with:
+          name: artifacts
+          path: artifacts
+          
+      
+     
+         
+      
+      - name: Install Kernel Headers
+        run: |
+          echo "\nKernel : $CONFIG_KERNEL_VERS   Arch : $CONFIG_KERNEL_ARCH \n" > build.log
+          make -C linux-$CONFIG_KERNEL_VERS/ INSTALL_HDR_PATH=$(pwd)/artifacts/sysroot/usr/ headers_install ARCH=$CONFIG_KERNEL_ARCH 2>&1 | tee -a build.log
+          
+      - name: Copy GCC Libs
+        run: |
+          mkdir -p artifacts/sysroot/usr/lib/
+          #find $CONFIG_TOOLCHAIN/sysroot
+          if [ -e $CONFIG_TOOLCHAIN/sysroot/usr/lib/libatomic.a ] ; then cp $CONFIG_TOOLCHAIN/sysroot/usr/lib/libatomic* artifacts/sysroot/usr/lib/ ; fi
+          if [ -e $CONFIG_TOOLCHAIN/sysroot/usr/lib/libgcc_s.so ] ; then cp $CONFIG_TOOLCHAIN/sysroot/usr/lib/libgcc* artifacts/sysroot/usr/lib/ ; fi
+          ls artifacts/sysroot/
+          if [ -e artifacts/sysroot/lib ] ; then find artifacts/sysroot/lib; fi
+          if [ -e artifacts/sysroot/usr/lib ] ; then find artifacts/sysroot/usr/lib ; fi
+
+      - name: Build
+        run: |
+          sed -i 's|KERNEL_HEADERS=.*|KERNEL_HEADERS="artifacts/sysroot/usr/include"|g'  .config
+          echo "\n----------------- uClibc-ng log -------------------------- \n" > build.log
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX make 2>&1 | tee -a build.log
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX make install DESTDIR=artifacts/sysroot
+
+
+      
+
+      - name: copy Sysroot
+        run: |
+          ( cd artifacts ; tar -cf sysroot.tar sysroot ; rm -rf sysroot )
+
+      - name: upload Artifacts
+        uses: actions/upload-artifact@master
+        with:
+          name: artifacts
+          path: artifacts
+      
+      - name: upload build.log
+        uses: actions/upload-artifact@master
+        with:
+          name: build.log
+          path: build.log
+      
+      - name: upload uClibc-ng Config
+        uses: actions/upload-artifact@master
+        with:
+          name: config
+          path: .config
+          
+       
+

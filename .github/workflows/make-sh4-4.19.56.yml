@@ -1,0 +1,38 @@
+name: sh4-4.19.56
+
+# https://app.assembla.com/wiki/show/qemu-sh4/BuildingEnvironment/31
+
+on:
+  push:
+    branches:
+      - master
+
+      
+jobs:
+
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-sh4_sh4-gcc-13
+      gcc_prefix: sh4-openadk-linux-uclibc-
+      kernel_vers: 4.19.56
+      kernel_dir: v4.x
+      kernel_arch: sh
+      config_file: config.sh4
+      qemu_kernel: kernel-sh4.img
+      qemu_cmd: qemu-system-sh4 -M r2d -m 1024M -kernel kernel.img -initrd rootfs.img.xz -nographic -serial vc
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+
+
+  call_qemu:
+    permissions:
+     checks: write
+     pull-requests: write
+     
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit

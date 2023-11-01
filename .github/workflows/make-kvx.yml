@@ -1,0 +1,26 @@
+name: kvx
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+      
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-kvx-gcc-kvx
+      gcc_prefix: kvx-openadk-linux-uclibc-
+      kernel_vers: kvx
+      kernel_dir: v6.x
+      kernel_arch: kvx
+      config_file: config.kvx
+      qemu_kernel: 
+      qemu_cmd: 
+
+#  call_images:
+#    needs: call_build
+#    uses: ./.github/workflows/z_images_workflow.yml
+#    secrets: inherit
+    

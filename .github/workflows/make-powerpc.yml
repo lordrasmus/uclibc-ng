@@ -1,0 +1,42 @@
+name: powerpc
+
+on:
+  push:
+    branches:
+      - master
+
+      
+
+#config.powerpc-vdso
+#config.powerpc-no-vdso
+
+jobs:
+
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-ppc-gcc-12_soft
+      gcc_prefix: ppc-openadk-linux-uclibc-
+      kernel_vers: 4.19.56
+      kernel_dir: v4.x
+      kernel_arch: powerpc
+      config_file: config.powerpc
+      qemu_kernel: kernel-ppc-mac99.img
+      qemu_cmd: qemu-system-ppc -m 1G -L pc-bios -M mac99,via=pmu  -nographic -append 'console=ttyS0' -kernel kernel.img -initrd rootfs.img.xz -audiodev id=none,driver=none
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+
+
+# https://community.mnt.re/t/old-mac-os-on-reform-with-qemu/881/9
+
+  call_qemu:
+    permissions:
+     checks: write
+     pull-requests: write
+
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit

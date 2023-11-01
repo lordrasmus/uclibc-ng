@@ -1,0 +1,37 @@
+name: or1k
+
+on:
+  push:
+    branches:
+      - master
+
+
+
+jobs:
+
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-or1k-gcc-10
+      gcc_prefix: or1k-openadk-linux-uclibc-
+      kernel_vers: 6.1.53
+      kernel_dir: v6.x
+      kernel_arch: openrisc
+      config_file: config.or1k
+      qemu_kernel: kernel-or1k.img
+      qemu_cmd: qemu-system-or1k -cpu or1200 -M or1k-sim -kernel kernel.img -initrd rootfs.img.xz -m 512M -nographic
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+    
+
+  call_qemu:
+    permissions:
+     checks: write
+     pull-requests: write
+     
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit
