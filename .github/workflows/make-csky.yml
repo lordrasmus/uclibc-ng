@@ -1,0 +1,26 @@
+name: csky
+
+on:
+  push:
+    branches:
+      - master
+
+
+jobs:
+      
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-csky-gcc-12_soft
+      gcc_prefix: csky-openadk-linux-uclibcabiv2-
+      kernel_vers: 5.4.259
+      kernel_dir: v5.x
+      kernel_arch: csky
+      config_file: config.csky
+      qemu_kernel: 
+      qemu_cmd: 
+
+#  call_images:
+#    needs: call_build
+#    uses: ./.github/workflows/z_images_workflow.yml
+    

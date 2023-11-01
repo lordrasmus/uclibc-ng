@@ -1,0 +1,138 @@
+name: z_images_workflow
+
+on:
+  workflow_call:
+    
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download a single artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: artifacts
+    
+      # Use the output from the reusable workflow to upload the artifacts
+      - name: Infos
+        run: |
+           jq '.' infos.json
+      
+      - name: parse Config JSON
+        id: parse-json
+        run: |
+          json=$(cat infos.json)
+          for key in $(echo "$json" | jq -r 'keys[]'); do
+            value=$(echo "$json" | jq -r ".$key")
+            echo "$key=$value" >> "$GITHUB_ENV"
+          done
+          
+
+#      - name: Install dev packages
+#        run: |
+#          sudo apt-get update
+#          sudo apt-get install tar
+
+      - name: Install Toolchain
+        run: |
+           tar -xaf $CONFIG_TOOLCHAIN.tar.xz
+
+      - name: add PATH
+        run: echo "$(pwd)/$CONFIG_TOOLCHAIN/usr/bin/" >> $GITHUB_PATH
+
+      - name: extract Sysroot
+        run: |
+          tar -xf sysroot.tar
+          rm -rf sysroot.tar
+
+
+      - name: init RootFS
+        run: |
+          mkdir rootfs
+          ( cd rootfs ; ln -s /sbin/init init )
+          ( cd rootfs ; mkdir dev; mkdir etc; mkdir proc; mkdir sys ; mkdir tmp )
+          echo "::sysinit:/bin/mount -t devtmpfs none /dev" >  rootfs/etc/inittab
+          echo "::sysinit:/bin/mount -t proc none /proc" >> rootfs/etc/inittab
+          echo "::sysinit:/bin/mount -t sysfs none /sys" >> rootfs/etc/inittab
+          echo "console::respawn:/bin/sh" >> rootfs/etc/inittab
+          echo "root:x:0:" > rootfs/etc/group
+          echo "root:x:0:0:root:/root:/bin/sh" > rootfs/etc/passwd
+          #           shared libs copy          #
+          mkdir -p rootfs/usr/lib/
+          cp -r sysroot/lib/ rootfs/ 
+          if ls sysroot/usr/lib/*.so* 1>/dev/null 2>&1; then
+              cp -a sysroot/usr/lib/*.so* rootfs/usr/lib/
+          else
+              echo "Keine .so Dateien in sysroot/usr/lib/ gefunden."
+          fi
+          
+      
+      - name: Build Testsuite
+        run: |
+          echo "08:00:20:00:61:CA  pal" > rootfs/etc/ethers
+          echo "08:00:20:00:61:CB  192.168.11.2" >> rootfs/etc/ethers
+          echo "08:00:20:00:61:CC  teeth" >> rootfs/etc/ethers
+          git clone https://cgit.uclibc-ng.org/cgi/cgit/uclibc-ng-test.git/
+          echo "" > tests_disable
+          if grep -q '# UCLIBC_HAS_LOCALE is not set' uclibc-ng-config; then echo "export NO_LOCALE=1 " >> tests_disable; fi
+          if grep -q 'HAS_NO_THREADS=y' uclibc-ng-config;               then echo "export NO_THREADS=1  NO_NPTL=1  NO_TLS=1 "  >> tests_disable ; fi
+          if grep -q 'CONFIG_SH2=y' uclibc-ng-config;                   then echo "export NO_MATH=1" >> tests_disable; fi
+          if grep -q 'TARGET_alpha=y' uclibc-ng-config;                 then echo "export NO_MATH=1" >> tests_disable; fi
+          if grep -q '# UCLIBC_HAS_OBSOLETE_BSD_SIGNAL is not set' uclibc-ng-config;  then echo "export  NO_NPTL=1 "  >> tests_disable ; fi
+          echo "### Disabled Tests :bulb:" >> $GITHUB_STEP_SUMMARY
+          cat tests_disable >> "$GITHUB_STEP_SUMMARY"
+          . tests_disable
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/" LDFLAGS="--sysroot=$(pwd)/sysroot/ "   make -C uclibc-ng-test -j20
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/" LDFLAGS="--sysroot=$(pwd)/sysroot/ "   make -C uclibc-ng-test install DESTDIR=../rootfs > /dev/null
+      
+      
+      - name: Build Busybox
+        run: |
+          wget -nv https://busybox.net/downloads/busybox-1.36.1.tar.bz2
+          tar -xaf busybox-1.36.1.tar.bz2
+          make -C busybox-1.36.1/ defconfig
+          sed -i 's/CONFIG_CROSS_COMPILER_PREFIX=""/CONFIG_CROSS_COMPILER_PREFIX="'$CONFIG_GCC_PREFIX'"/' busybox-1.36.1/.config
+          sed -i 's|CONFIG_SYSROOT=""|CONFIG_SYSROOT="'$(pwd)'/sysroot/"|' busybox-1.36.1/.config
+          sed -i 's|CONFIG_PREFIX="./_install"|CONFIG_PREFIX="../rootfs"|'  busybox-1.36.1/.config
+          sed -i 's|CONFIG_FEATURE_EJECT_SCSI=y|# CONFIG_FEATURE_EJECT_SCSI is not set|'  busybox-1.36.1/.config
+          sed -i 's|# CONFIG_STATIC is not set|CONFIG_STATIC=y|'  busybox-1.36.1/.config
+          # no MMU fixes
+          if [[ $UCLIBC_MMU == "No" ]] ; then
+            sed -i 's|CONFIG_SHELL_ASH=y|# CONFIG_SHELL_ASH is not set|'  busybox-1.36.1/.config
+            sed -i 's|CONFIG_ASH=y|# CONFIG_ASH is not set|'  busybox-1.36.1/.config
+            sed -i 's|CONFIG_SH_IS_ASH=y|# CONFIG_SH_IS_ASH is not set|'  busybox-1.36.1/.config
+            sed -i 's|# CONFIG_SH_IS_HUSH is not set|CONFIG_SH_IS_HUSH=y|'  busybox-1.36.1/.config
+            sed -i 's|# CONFIG_NOMMU is not set|CONFIG_NOMMU=y|'  busybox-1.36.1/.config
+          fi
+          
+          make -C busybox-1.36.1 -j20
+          make -C busybox-1.36.1/ install
+          
+          
+      - name: Build RootFS Image
+        run: |
+          ( cd rootfs ; find . | sort | cpio -o -H newc ) > rootfs.img
+          xz --check=crc32 -k rootfs.img
+
+      - name: Fetch Qemu Kernel Image
+        run: |
+          wget -nv  "https://github.com/lordrasmus/uclibc-ng-qemu-imgs/blob/main/${CONFIG_QEMU_KERNEL}?raw=true" -O kernel.img
+          
+      - name: Qemu Testsiute run command
+        run: |
+          echo "### Qemu run command :bulb:" >> $GITHUB_STEP_SUMMARY
+          echo "$CONFIG_QEMU_CMD" >> $GITHUB_STEP_SUMMARY
+
+      - name: upload RootFS Image
+        uses: actions/upload-artifact@master
+        with:
+          name: Qemu_Images
+          path: |
+            kernel.img
+            rootfs.img
+            rootfs.img.xz
+          
+     
+
+
+

@@ -1,0 +1,24 @@
+name: alpha-4.19.56
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-alpha-gcc-11
+      gcc_prefix: alpha-openadk-linux-uclibc-
+      kernel_vers: 4.19.56
+      kernel_dir: v4.x
+      kernel_arch: alpha
+      config_file: config.alpha
+      qemu_kernel: kernel-alpha.img
+      qemu_cmd:  qemu-system-alpha -nographic -m 512M -append console=ttyS0 -kernel kernel.img -initrd rootfs.img.xz
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml

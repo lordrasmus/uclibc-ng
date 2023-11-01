@@ -1,0 +1,25 @@
+name: hppa
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+      
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-hppa-gcc-13
+      gcc_prefix: hppa-openadk-linux-uclibc-
+      kernel_vers: 6.1.53
+      kernel_dir: v6.x
+      kernel_arch: parisc
+      config_file: config.hppa
+      qemu_kernel: 
+      qemu_cmd: 
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    
