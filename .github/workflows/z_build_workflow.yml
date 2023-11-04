@@ -60,7 +60,7 @@ jobs:
 
       - name: check uClibc-ng config
         run: |
-          cp .github/workflows/$CONFIG_FILE .config
+          cp .github/configs/$CONFIG_FILE .config
           #if grep -q '# UCLIBC_HAS_OBSOLETE_BSD_SIGNAL is not set' .config;  then echo "UCLIBC_HAS_OBSOLETE_BSD_SIGNAL must be activated for tests"; exit 1; fi
           #if grep -q '# UCLIBC_HAS_OBSOLETE_SYSV_SIGNAL is not set' .config; then echo "UCLIBC_HAS_OBSOLETE_SYSV_SIGNAL must be activated for tests"; exit 1; fi
           if grep -q 'DODEBUG=y' .config;                                    then echo "DODEBUG should be deactivated"; exit 1; fi
