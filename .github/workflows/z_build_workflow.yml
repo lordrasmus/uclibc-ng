@@ -66,6 +66,17 @@ jobs:
           if grep -q 'DODEBUG=y' .config;                                    then echo "DODEBUG should be deactivated"; exit 1; fi
 
 
+      - name: gen Infos
+        run: |
+          ./.github/workflows/build_infos.sh .config
+          jq '.' artifacts/infos.json
+          echo "### Build Config :bulb:" >> $GITHUB_STEP_SUMMARY
+          json=$(cat artifacts/infos.json)
+          for key in $(echo "$json" | jq -r 'keys[]'); do
+            value=$(echo "$json" | jq -r ".$key")
+            echo "$key=$value" >> "$GITHUB_STEP_SUMMARY"
+          done
+
       - name: Install dev packages
         run: |
           sudo apt-get update
@@ -94,7 +105,9 @@ jobs:
           else
             wget -nv "https://cdn.kernel.org/pub/linux/kernel/$CONFIG_KERNEL_DIR/linux-$CONFIG_KERNEL_VERS.tar.xz" -O linux-$CONFIG_KERNEL_VERS.tar.xz && tar -xaf linux-$CONFIG_KERNEL_VERS.tar.xz
           fi
+     
       
+           
       - name: copy Artifacts
         run: |
           mkdir -p artifacts
@@ -109,16 +122,7 @@ jobs:
           path: artifacts
           
       
-      - name: gen Infos
-        run: |
-          ./.github/workflows/build_infos.sh .config
-          jq '.' artifacts/infos.json
-          echo "### Build Config :bulb:" >> $GITHUB_STEP_SUMMARY
-          json=$(cat artifacts/infos.json)
-          for key in $(echo "$json" | jq -r 'keys[]'); do
-            value=$(echo "$json" | jq -r ".$key")
-            echo "$key=$value" >> "$GITHUB_STEP_SUMMARY"
-          done
+     
          
       
       - name: Install Kernel Headers
