@@ -3,27 +3,28 @@ name: powerpc
 on:
   push:
     branches:
-      - disabled
+      - master
+
+      
+
+#config.powerpc-vdso
+#config.powerpc-no-vdso
 
 jobs:
-  build:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@master
-        with:
-          fetch-depth: 1
-      - name: Install dev packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install gcc-powerpc-linux-gnu
 
-      - name: Extract Kernel Headers
-        run: wget "https://github.com/lordrasmus/toolchains/blob/main/linux-4.19.56.tar.xz?raw=true" -O linux-4.19.56.tar.xz && tar -xaf linux-4.19.56.tar.xz
-      - name: Install Kernel Headers
-        run: make -C linux-4.19.56/ INSTALL_HDR_PATH=$(pwd)/linux-headers/ headers_install ARCH=powerpc
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-ppc-gcc-12_soft
+      gcc_prefix: ppc-openadk-linux-uclibc-
+      kernel_vers: 4.19.56
+      kernel_dir: v4.x
+      kernel_arch: powerpc
+      config_file: config.powerpc
+      qemu_kernel: 
+      qemu_cmd: 
 
-      - name: Run Build no vdso
-        run: cp .github/workflows/config.powerpc-no-vdso .config && CROSS_COMPILE=powerpc-linux-gnu- make
-      
-      - name: Run Build vdso
-        run: cp .github/workflows/config.powerpc-vdso .config && CROSS_COMPILE=powerpc-linux-gnu- make
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    
