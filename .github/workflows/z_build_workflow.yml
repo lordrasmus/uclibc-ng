@@ -94,11 +94,6 @@ jobs:
           else
             wget -nv "https://cdn.kernel.org/pub/linux/kernel/$CONFIG_KERNEL_DIR/linux-$CONFIG_KERNEL_VERS.tar.xz" -O linux-$CONFIG_KERNEL_VERS.tar.xz && tar -xaf linux-$CONFIG_KERNEL_VERS.tar.xz
           fi
-
-      - name: Install Kernel Headers
-        run: |
-          echo "\nKernel : $CONFIG_KERNEL_VERS   Arch : $CONFIG_KERNEL_ARCH \n" > build.log
-          make -C linux-$CONFIG_KERNEL_VERS/ INSTALL_HDR_PATH=$(pwd)/artifacts/sysroot/usr/ headers_install ARCH=$CONFIG_KERNEL_ARCH 2>&1 | tee -a build.log
       
       - name: copy Artifacts
         run: |
@@ -112,6 +107,11 @@ jobs:
         with:
           name: artifacts
           path: artifacts
+      
+      - name: Install Kernel Headers
+        run: |
+          echo "\nKernel : $CONFIG_KERNEL_VERS   Arch : $CONFIG_KERNEL_ARCH \n" > build.log
+          make -C linux-$CONFIG_KERNEL_VERS/ INSTALL_HDR_PATH=$(pwd)/artifacts/sysroot/usr/ headers_install ARCH=$CONFIG_KERNEL_ARCH 2>&1 | tee -a build.log
           
       - name: Copy GCC Libs
         run: |
