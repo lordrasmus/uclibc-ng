@@ -107,6 +107,19 @@ jobs:
         with:
           name: artifacts
           path: artifacts
+          
+      
+      - name: gen Infos
+        run: |
+          ./.github/workflows/build_infos.sh .config
+          jq '.' artifacts/infos.json
+          echo "### Build Config :bulb:" >> $GITHUB_STEP_SUMMARY
+          json=$(cat artifacts/infos.json)
+          for key in $(echo "$json" | jq -r 'keys[]'); do
+            value=$(echo "$json" | jq -r ".$key")
+            echo "$key=$value" >> "$GITHUB_STEP_SUMMARY"
+          done
+         
       
       - name: Install Kernel Headers
         run: |
@@ -131,10 +144,7 @@ jobs:
           CROSS_COMPILE=$CONFIG_GCC_PREFIX make install DESTDIR=artifacts/sysroot
 
 
-      - name: Infos
-        run: |
-          ./.github/workflows/build_infos.sh .config
-          jq '.' artifacts/infos.json
+      
 
       - name: copy Sysroot
         run: |
@@ -158,14 +168,5 @@ jobs:
           name: config
           path: .config
           
-      - name: gen Config Summary
-        id: parse-json
-        run: |
-          echo "### Build Config :bulb:" >> $GITHUB_STEP_SUMMARY
-          json=$(cat artifacts/infos.json)
-          for key in $(echo "$json" | jq -r 'keys[]'); do
-            value=$(echo "$json" | jq -r ".$key")
-            echo "$key=$value" >> "$GITHUB_STEP_SUMMARY"
-          done
-          
+       
 
