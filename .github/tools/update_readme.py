@@ -19,7 +19,9 @@ for f in matching_files:
     with open(f, 'r') as f2:
         data = yaml.safe_load(f2)
     
-    if not "master" in data[True]["push"]["branches"]: continue
+    if not "master" in data[True]["push"]["branches"]: 
+        print("disabled : " + f )
+        continue
         
     #print(f_base)
     #print(data.keys())
