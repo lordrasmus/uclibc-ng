@@ -87,6 +87,7 @@ jobs:
       
       - name: copy Artifacts
         run: |
+          mkdir -p artifacts
           cp .config artifacts/uclibc-ng-config 
           cp $CONFIG_TOOLCHAIN.tar.xz artifacts
           cp linux-$CONFIG_KERNEL_VERS.tar.xz artifacts
