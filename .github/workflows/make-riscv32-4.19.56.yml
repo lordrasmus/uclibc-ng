@@ -12,7 +12,7 @@ jobs:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
       toolchain: toolchain-riscv32-gcc-10_nommu
-      gcc_prefix: riscv32-openadk-linux-
+      gcc_prefix: riscv32-openadk-linux-uclibc-
       kernel_vers: 4.19.56
       kernel_dir: v4.x
       kernel_arch: riscv

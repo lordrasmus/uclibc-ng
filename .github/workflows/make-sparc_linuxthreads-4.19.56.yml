@@ -3,35 +3,24 @@ name: sparc_linuxthreads-4.19.56
 on:
   push:
     branches:
-      - disabled
-
-jobs:
-  build:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@master
-        with:
-          fetch-depth: 1
-      - name: Install dev packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install tar
-
-      - name: Install Toolchain
-        run: |
-           wget "https://github.com/lordrasmus/toolchains/blob/main/toolchain_generic-sparc_uclibc-ng_v8.tar.xz?raw=true" -O toolchain_generic-sparc_uclibc-ng_v8.tar.xz
-           tar -xaf toolchain_generic-sparc_uclibc-ng_v8.tar.xz
-
-      - name: add PATH
-        run: echo "$(pwd)/toolchain_generic-sparc_uclibc-ng_v8/usr/bin/" >> $GITHUB_PATH
-
-      - name: Extract Kernel Headers
-        run: wget "https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.19.56.tar.xz" -O linux-4.19.56.tar.xz && tar -xaf linux-4.19.56.tar.xz
-
-      - name: Install Kernel Headers
-        run: make -C linux-4.19.56/ INSTALL_HDR_PATH=$(pwd)/linux-headers/ headers_install ARCH=sparc
-
-      - name: Run shared
-        run: cp .github/workflows/config.sparc_linuxthreads .config && CROSS_COMPILE=sparc-openadk-linux-uclibc- make
+      - master
 
       
+jobs:
+
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-sparc_v8-gcc-10
+      gcc_prefix: sparc-openadk-linux-uclibc-
+      kernel_vers: 4.19.56
+      kernel_dir: v4.x
+      kernel_arch: sparc
+      config_file: config.sparc_linuxthreads
+      qemu_kernel: 
+      qemu_cmd: 
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    
