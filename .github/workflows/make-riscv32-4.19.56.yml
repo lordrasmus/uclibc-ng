@@ -3,43 +3,24 @@ name: riscv32-4.19.56
 on:
   push:
     branches:
-      - disabled
+      - master
+
 
 jobs:
-  build:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@master
-        with:
-          fetch-depth: 1
-      - name: Install dev packages
-        run: |
-          sudo apt-get update
-          sudo apt install tar
-          
-      - name: Install Toolchain
-        run: |
-           wget "https://github.com/lordrasmus/toolchains/blob/main/toolchain_generic-riscv32_uclibc-ng_nommu.tar.xz?raw=true" -O toolchain_generic-riscv32_uclibc-ng_nommu.tar.xz
-           tar -xaf toolchain_generic-riscv32_uclibc-ng_nommu.tar.xz
 
-      - name: add PATH
-        run: echo "$(pwd)/toolchain_generic-riscv32_uclibc-ng_nommu/usr/bin/" >> $GITHUB_PATH
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-riscv32-gcc-10_nommu
+      gcc_prefix: riscv32-openadk-linux-
+      kernel_vers: 4.19.56
+      kernel_dir: v4.x
+      kernel_arch: riscv
+      config_file: config.riscv32
+      qemu_kernel: 
+      qemu_cmd: 
 
-      - name: Extract Kernel Headers
-        run: |
-          wget "https://github.com/lordrasmus/toolchains/blob/main/linux-4.19.56.tar.xz?raw=true" -O linux-4.19.56.tar.xz
-          tar -xaf linux-4.19.56.tar.xz
-      - name: Install Kernel Headers
-        run: make -C linux-4.19.56/ INSTALL_HDR_PATH=$(pwd)/linux-headers/ headers_install ARCH=riscv
-
-      - name: Build
-        run: |
-          cp .github/workflows/config.riscv32 .config
-          CROSS_COMPILE=riscv32-openadk-linux-uclibc- make
-
-      - name: Infos
-        run: |
-          ./.github/workflows/build_infos.sh .config
-          riscv32-openadk-linux-uclibc-gcc -v
-
-
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    
