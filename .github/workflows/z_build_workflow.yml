@@ -85,18 +85,7 @@ jobs:
       - name: add PATH
         run: echo "$(pwd)/$CONFIG_TOOLCHAIN/usr/bin/" >> $GITHUB_PATH
       
-      - name: copy Artifacts
-        run: |
-          mkdir -p artifacts
-          cp .config artifacts/uclibc-ng-config 
-          cp $CONFIG_TOOLCHAIN.tar.xz artifacts
-          cp linux-$CONFIG_KERNEL_VERS.tar.xz artifacts
-        
-      - name: upload prebuild Artifacts
-        uses: actions/upload-artifact@master
-        with:
-          name: artifacts
-          path: artifacts
+      
 
       - name: Extract Kernel Headers
         run: |
@@ -110,7 +99,19 @@ jobs:
         run: |
           echo "\nKernel : $CONFIG_KERNEL_VERS   Arch : $CONFIG_KERNEL_ARCH \n" > build.log
           make -C linux-$CONFIG_KERNEL_VERS/ INSTALL_HDR_PATH=$(pwd)/artifacts/sysroot/usr/ headers_install ARCH=$CONFIG_KERNEL_ARCH 2>&1 | tee -a build.log
-          
+      
+      - name: copy Artifacts
+        run: |
+          mkdir -p artifacts
+          cp .config artifacts/uclibc-ng-config 
+          cp $CONFIG_TOOLCHAIN.tar.xz artifacts
+          cp linux-$CONFIG_KERNEL_VERS.tar.xz artifacts
+        
+      - name: upload prebuild Artifacts
+        uses: actions/upload-artifact@master
+        with:
+          name: artifacts
+          path: artifacts
           
       - name: Copy GCC Libs
         run: |
