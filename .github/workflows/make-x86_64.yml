@@ -3,33 +3,33 @@ name: x86_64
 on:
   push:
     branches:
-      - disabled
+      - master
+
+
+#      - name: Run shared
+#        run: cp .github/workflows/config.x86_64_shared .config && make
+
+#      - name: Run static
+#        run: cp .github/workflows/config.x86_64_static .config && make
+
+#      - name: Run shared vdso
+#        run: cp .github/workflows/config.x86_64_static_vdso .config && make
+
 
 jobs:
-  build:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@master
-        with:
-          fetch-depth: 1
-      - name: Install dev packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install gcc
 
-      - name: Extract Kernel Headers
-        run: wget "https://github.com/lordrasmus/toolchains/blob/main/linux-4.19.56.tar.xz?raw=true" -O linux-4.19.56.tar.xz && tar -xaf linux-4.19.56.tar.xz
-      - name: Install Kernel Headers
-        run: make -C linux-4.19.56/ INSTALL_HDR_PATH=$(pwd)/linux-headers/ headers_install ARCH=x86_64
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-x86_64-gcc-13
+      gcc_prefix: x86_64-openadk-linux-uclibc-
+      kernel_vers: 4.19.56
+      kernel_dir: v4.x
+      kernel_arch: x86_64
+      config_file: config.x86_64_shared_vdso
+      qemu_kernel: 
+      qemu_cmd: 
 
-      - name: Run shared
-        run: cp .github/workflows/config.x86_64_shared .config && make
-
-      - name: Run static
-        run: cp .github/workflows/config.x86_64_static .config && make
-
-      - name: Run shared vdso
-        run: cp .github/workflows/config.x86_64_shared_vdso .config && make
-
-      - name: Run shared vdso
-        run: cp .github/workflows/config.x86_64_static_vdso .config && make
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
