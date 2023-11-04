@@ -1,4 +1,4 @@
-name: xtensa-4.14.311
+name: tile-4.14.311
 
 on:
   push:
