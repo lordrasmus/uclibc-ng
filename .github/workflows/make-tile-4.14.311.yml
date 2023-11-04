@@ -3,35 +3,23 @@ name: xtensa-4.14.311
 on:
   push:
     branches:
-      - disabled
+      - master
+
 
 jobs:
-  build:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@master
-        with:
-          fetch-depth: 1
-      - name: Install dev packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install tar
 
-      - name: Install Toolchain
-        run: |
-           wget "https://github.com/lordrasmus/toolchains/blob/main/toolchain_generic-tile_uclibc-ng.tar.xz?raw=true" -O toolchain_generic-tile_uclibc-ng.tar.xz
-           tar -xaf toolchain_generic-tile_uclibc-ng.tar.xz
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-tilegx-gcc-10
+      gcc_prefix: tilegx-openadk-linux-uclibc-
+      kernel_vers: 4.14.311
+      kernel_dir: v4.x
+      kernel_arch: tile
+      config_file: config.tile
+      qemu_kernel: 
+      qemu_cmd: 
 
-      - name: add PATH
-        run: echo "$(pwd)/toolchain_generic-tile_uclibc-ng/usr/bin/" >> $GITHUB_PATH
-
-      - name: Extract Kernel Headers
-        run: wget "https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.14.311.tar.xz" -O linux-4.14.311.tar.xz && tar -xaf linux-4.14.311.tar.xz
-
-      - name: Install Kernel Headers
-        run: make -C linux-4.14.311/ INSTALL_HDR_PATH=$(pwd)/linux-headers/ headers_install ARCH=tile
-
-      - name: Run shared
-        run: cp .github/workflows/config.tile .config && CROSS_COMPILE=tilegx-openadk-linux-uclibc- make
-
-      
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
