@@ -82,7 +82,7 @@ jobs:
           echo "### Disabled Tests :bulb:" >> $GITHUB_STEP_SUMMARY
           cat tests_disable >> "$GITHUB_STEP_SUMMARY"
           . tests_disable
-          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/" LDFLAGS="--sysroot=$(pwd)/sysroot/ "   make -C uclibc-ng-test -j20
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/" LDFLAGS="--sysroot=$(pwd)/sysroot/ "   make -C uclibc-ng-test -j20 2>&1  | tee  testsuite_build.log
           CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/" LDFLAGS="--sysroot=$(pwd)/sysroot/ "   make -C uclibc-ng-test install DESTDIR=../rootfs > /dev/null
       
       
@@ -133,6 +133,10 @@ jobs:
             rootfs.img.xz
           
      
-
+      - name: upload testsuite_build.log
+        uses: actions/upload-artifact@master
+        with:
+          name: testsuite_build.log
+          path: testsuite_build.log
 
 

@@ -95,7 +95,8 @@ jobs:
 
       - name: Install Kernel Headers
         run: |
-          make -C linux-$CONFIG_KERNEL_VERS/ INSTALL_HDR_PATH=$(pwd)/artifacts/sysroot/usr/ headers_install ARCH=$CONFIG_KERNEL_ARCH
+          echo "\nKernel : $CONFIG_KERNEL_VERS   Arch : $CONFIG_KERNEL_ARCH \n" > build.log
+          make -C linux-$CONFIG_KERNEL_VERS/ INSTALL_HDR_PATH=$(pwd)/artifacts/sysroot/usr/ headers_install ARCH=$CONFIG_KERNEL_ARCH 2>&1 | tee -a build.log
           
           
       - name: Copy GCC Libs
@@ -111,7 +112,8 @@ jobs:
       - name: Build
         run: |
           sed -i 's|KERNEL_HEADERS=.*|KERNEL_HEADERS="artifacts/sysroot/usr/include"|g'  .config
-          CROSS_COMPILE=$CONFIG_GCC_PREFIX make
+          echo "\n----------------- uClibc-ng log -------------------------- \n" > build.log
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX make 2>&1 | tee -a build.log
           CROSS_COMPILE=$CONFIG_GCC_PREFIX make install DESTDIR=artifacts/sysroot
 
 
@@ -132,6 +134,12 @@ jobs:
         with:
           name: artifacts
           path: artifacts
+      
+      - name: upload build.log
+        uses: actions/upload-artifact@master
+        with:
+          name: build.log
+          path: build.log
       
       - name: upload uClibc-ng Config
         uses: actions/upload-artifact@master
