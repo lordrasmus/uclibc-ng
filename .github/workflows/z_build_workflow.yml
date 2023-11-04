@@ -84,6 +84,18 @@ jobs:
 
       - name: add PATH
         run: echo "$(pwd)/$CONFIG_TOOLCHAIN/usr/bin/" >> $GITHUB_PATH
+      
+      - name: copy Artifacts
+        run: |
+          cp .config artifacts/uclibc-ng-config 
+          cp $CONFIG_TOOLCHAIN.tar.xz artifacts
+          cp linux-$CONFIG_KERNEL_VERS.tar.xz artifacts
+        
+      - name: upload prebuild Artifacts
+        uses: actions/upload-artifact@master
+        with:
+          name: artifacts
+          path: artifacts
 
       - name: Extract Kernel Headers
         run: |
@@ -122,11 +134,8 @@ jobs:
           ./.github/workflows/build_infos.sh .config
           jq '.' artifacts/infos.json
 
-      - name: copy Artifacts
+      - name: copy Sysroot
         run: |
-          cp .config artifacts/uclibc-ng-config 
-          cp $CONFIG_TOOLCHAIN.tar.xz artifacts
-          cp linux-$CONFIG_KERNEL_VERS.tar.xz artifacts
           ( cd artifacts ; tar -cf sysroot.tar sysroot ; rm -rf sysroot )
 
       - name: upload Artifacts
