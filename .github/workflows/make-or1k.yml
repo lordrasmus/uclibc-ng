@@ -13,7 +13,7 @@ jobs:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
       toolchain: toolchain-or1k-gcc-10
-      gcc_prefix: nios2-openadk-linux-uclibc-
+      gcc_prefix: or1k-openadk-linux-uclibc-
       kernel_vers: 6.1.53
       kernel_dir: v6.x
       kernel_arch: openrisc
