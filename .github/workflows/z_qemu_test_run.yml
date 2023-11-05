@@ -10,7 +10,7 @@ jobs:
       - name: Download a single artifact
         uses: actions/download-artifact@v3
         with:
-          name: artifacts
+          name: Qemu_Images
        # Use the output from the reusable workflow to upload the artifacts
       - name: Infos
         run: |
@@ -27,6 +27,7 @@ jobs:
           
       - name: run Qemu
         run: |
+           find .
            python3 .github/tools/run_qemu.py
 
       - name: upload 
