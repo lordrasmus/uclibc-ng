@@ -8,6 +8,7 @@ on:
 
 jobs:
 
+
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
@@ -23,6 +24,7 @@ jobs:
   call_images:
     needs: call_build
     uses: ./.github/workflows/z_images_workflow.yml
+
 
   call_qemu:
     permissions:
