@@ -61,9 +61,9 @@ jobs:
           
           echo "#!/bin/sh"                                                           >  rootfs/bin/run_tests.sh
           echo "cd /usr/lib/uclibc-ng-test/test/"                                    >> rootfs/bin/run_tests.sh
-          echo "echo '-------------------- tests_start' ------------------------"    >> rootfs/bin/run_tests.sh
+          echo "echo '-------------------- tests_start ------------------------'"    >> rootfs/bin/run_tests.sh
           echo "sh uclibcng-testrunner.sh"                                           >> rootfs/bin/run_tests.sh
-          echo "echo '-------------------- tests_end' --------------------------"    >> rootfs/bin/run_tests.sh
+          echo "echo '-------------------- tests_end --------------------------'"    >> rootfs/bin/run_tests.sh
           chmod 777 rootfs/bin/run_tests.sh
           
           #           shared libs copy          #
