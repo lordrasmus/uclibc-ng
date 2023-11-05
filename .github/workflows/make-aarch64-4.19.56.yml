@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - qemu_test
 
 jobs:
 

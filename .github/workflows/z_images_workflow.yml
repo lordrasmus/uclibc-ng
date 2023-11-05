@@ -48,7 +48,7 @@ jobs:
 
       - name: init RootFS
         run: |
-          mkdir rootfs
+          mkdir -p rootfs/bin
           ( cd rootfs ; ln -s /sbin/init init )
           ( cd rootfs ; mkdir dev; mkdir etc; mkdir proc; mkdir sys ; mkdir tmp )
           echo "::sysinit:/bin/mount -t devtmpfs none /dev" >  rootfs/etc/inittab
