@@ -137,6 +137,7 @@ jobs:
         with:
           name: Qemu_Images
           path: |
+            infos.json
             kernel.img
             rootfs.img
             rootfs.img.xz
