@@ -25,3 +25,6 @@ jobs:
     uses: ./.github/workflows/z_images_workflow.yml
 
 
+  call_qemu:
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
