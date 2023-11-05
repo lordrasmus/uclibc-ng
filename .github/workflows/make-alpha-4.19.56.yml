@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - qemu_test
 
 jobs:
 
@@ -22,3 +23,11 @@ jobs:
   call_images:
     needs: call_build
     uses: ./.github/workflows/z_images_workflow.yml
+
+  call_qemu:
+    permissions:
+     checks: write
+     pull-requests: write
+     
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
