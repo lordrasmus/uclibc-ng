@@ -44,7 +44,8 @@ jobs:
     
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2.7.0
-        id: test-results-${{ github.workflow }}
+        job_summary: false
+        id: test-results
         if: always()
         with:
           files: "test_result.xml"
@@ -52,6 +53,8 @@ jobs:
       - name: Set badge color
         shell: bash
         run: |
+            echo "Workflow1 ${{ github.workflow }}"
+            echo "Workflow2 "${{ github.workflow }}
             case ${{ fromJSON( steps.test-results.outputs.json ).conclusion }} in
                 success)
                     echo "BADGE_COLOR=31c653" >> $GITHUB_ENV
