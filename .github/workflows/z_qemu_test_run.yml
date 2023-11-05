@@ -8,6 +8,12 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     
+      - name: Install qemu
+        run: sudo apt-get -y update; sudo apt-get install -y qemu-system
+        
+      - name: Install python3 junit_xml module
+        run: sudo apt-get -y update; sudo apt-get install -y python3-junit.xml
+        
       - uses: actions/checkout@master
         with:
           fetch-depth: 1
@@ -34,6 +40,12 @@ jobs:
         run: |
            find .
            python3 .github/tools/run_qemu.py
+           python3 .github/tools/read_test_log.py
+    
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2.7.0
+        with:
+          files: "test_result.xml"
 
       - name: upload 
         uses: actions/upload-artifact@master
