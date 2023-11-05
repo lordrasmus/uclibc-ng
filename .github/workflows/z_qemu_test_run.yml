@@ -42,6 +42,7 @@ jobs:
            python3 .github/tools/run_qemu.py
            python3 .github/tools/read_test_log.py
     
+      # https://github.blog/2022-05-09-supercharging-github-actions-with-job-summaries/
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2.7.0
         id: test-results
@@ -85,13 +86,31 @@ jobs:
              log.txt
              badge.svg
 
-      - name: Upload badge to Gist
+      #- name: Upload badge to Gist
         # Upload only for master branch
         #if: >
         #  github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'master' ||
         #  github.event_name != 'workflow_run' && github.ref == 'refs/heads/master'
-        uses: andymckay/append-gist-action@1fbfbbce708a39bd45846f0955ed5521f2099c6d
-        with:
-            token: ${{ secrets.GIST_TOKEN }}
-            gistURL: https://gist.githubusercontent.com/lordrasmus/${{ github.workflow }}_test_result.svg
-            file: badge.svg
+        #uses: andymckay/append-gist-action@1fbfbbce708a39bd45846f0955ed5521f2099c6d
+        #with:
+        #    token: ${{ secrets.GIST_TOKEN }}
+        #    gistURL: https://gist.githubusercontent.com/lordrasmus/${{ github.workflow }}_test_result.svg
+        #    file: badge.svg
+
+      - name: Create Gist
+        id: create_gist
+        run: |
+            FILE_CONTENT=$(cat badge.svg)  # Hier ersetzen Sie "generated_file.txt" durch den Dateinamen Ihrer generierten Datei.
+            GIST_RESPONSE=$(curl -X POST -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -d '{
+              "description": "Test Result",
+              "public": true,
+              "files": {
+                "${{ github.workflow }}_test_result.svg": {
+                  "content": "'"$FILE_CONTENT"'"
+                }
+              }
+            }' "https://api.github.com/gists")
+
+            GIST_ID=$(echo "$GIST_RESPONSE" | jq -r .id)
+            echo "Created Gist ID: $GIST_ID"
+            echo "Gist URL: https://gist.github.com/$GITHUB_REPOSITORY/$GIST_ID"
