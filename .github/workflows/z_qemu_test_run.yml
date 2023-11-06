@@ -41,10 +41,13 @@ jobs:
           done
           
       - name: run Qemu
+        run: |
+           python3 .github/tools/run_qemu.py
+           
+      - name: analyse Test
         env:
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }} 
         run: |
-           python3 .github/tools/run_qemu.py
            python3 .github/tools/read_test_log.py
            python3 .github/tools/post_badge.py ${{ github.workflow }}_test_result.svg
            

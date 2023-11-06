@@ -33,3 +33,4 @@ jobs:
      
     needs: call_images
     uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit
