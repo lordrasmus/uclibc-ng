@@ -4,9 +4,10 @@ on:
   push:
     branches:
       - master
-      - workflow_test
+      - qemu_test
 
 jobs:
+
       
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
@@ -24,3 +25,12 @@ jobs:
     needs: call_build
     uses: ./.github/workflows/z_images_workflow.yml
     
+    
+  call_qemu:
+    permissions:
+     checks: write
+     pull-requests: write
+     
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit
