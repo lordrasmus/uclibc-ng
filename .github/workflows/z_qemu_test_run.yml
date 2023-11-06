@@ -13,7 +13,9 @@ jobs:
     steps:
     
       - name: Install qemu / python3 junit_xml
-        run: sudo apt-get -y update; sudo apt-get install -y qemu-system python3-junit.xml
+        run: |
+          sudo apt-get -y update; sudo apt-get install -y qemu-system python3-junit.xml
+          pip3 install pybadges
         
       - uses: actions/checkout@master
         with:

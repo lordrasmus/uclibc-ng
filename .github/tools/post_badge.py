@@ -55,6 +55,12 @@ else:
     
 """
 
+"""
+
+ eine gist id kann aus mehreren dateien bestehen
+ darum hier die id für die testresults angeben in der alle testresult.svg's abgelegt werden
+ 
+"""
 gist_id = "867aa95ade60fa5b1ad098fa6c6a1968"
 
 print( "ID: " + gist_id )
