@@ -8,6 +8,7 @@ import subprocess
 import select
 import time
 
+from pprint import pprint
 
 with open('infos.json', 'r') as json_file:
     data = json.load(json_file)
@@ -66,9 +67,9 @@ while True:
         #print( rlist )
         if rlist:
             # Wenn Daten verfügbar sind, lesen Sie sie aus der Pipe
-            data = os.read(pipe_out, 4096)  # Sie können die Puffergröße anpassen
+            pipe_data = os.read(pipe_out, 4096)  # Sie können die Puffergröße anpassen
             
-            out_txt = data.decode()
+            out_txt = pipe_data.decode()
             log_file.write( out_txt )
             log_file.flush()
             
@@ -91,7 +92,11 @@ os.write( pipe_in, "reboot\n".encode())
 #pipe_in.write("reboot")
 
 
-command_thread.join()
+command_thread.join(10)
+if command_thread.is_alive():
+    kill_cmd = "killall -9 " + data["CONFIG_QEMU_CMD"].split(" ")[0]
+    print("kill_cmd: " + kill_cmd );
+    os.system( kill_cmd )
 
 os.remove("guest_pipe.in")
 os.remove("guest_pipe.out")
