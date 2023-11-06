@@ -22,10 +22,10 @@ https://uclibc-ng.org/
 
 https://cgit.uclibc-ng.org/cgi/cgit/uclibc-ng.git/
 
-|Arch  |Status|Testsuite Image|
-|------|------|------|
-|aarch64-4.19.56|[![aarch64-4.19.56](https://img.shields.io/github/actions/workflow/status/lordrasmus/uclibc-ng/make-aarch64-4.19.56.yml?style=flat)](https://github.com/lordrasmus/uclibc-ng/actions/workflows/make-aarch64-4.19.56.yml)|:white_check_mark:|https://gist.githubusercontent.com/lordrasmus/867aa95ade60fa5b1ad098fa6c6a1968/raw/aarch64-4.19.56_test_result.svg
-|alpha-4.19.56|[![alpha-4.19.56](https://img.shields.io/github/actions/workflow/status/lordrasmus/uclibc-ng/make-alpha-4.19.56.yml?style=flat)](https://github.com/lordrasmus/uclibc-ng/actions/workflows/make-alpha-4.19.56.yml)|:white_check_mark:|https://gist.githubusercontent.com/lordrasmus/867aa95ade60fa5b1ad098fa6c6a1968/raw/alpha-4.19.56_test_result.svg
+|Arch  |Status|Testsuite Image|Test Result|
+|------|------|------|------|
+|aarch64-4.19.56|[![aarch64-4.19.56](https://img.shields.io/github/actions/workflow/status/lordrasmus/uclibc-ng/make-aarch64-4.19.56.yml?style=flat)](https://github.com/lordrasmus/uclibc-ng/actions/workflows/make-aarch64-4.19.56.yml)|:white_check_mark:|![aarch64-4.19.56test](https://gist.githubusercontent.com/lordrasmus/867aa95ade60fa5b1ad098fa6c6a1968/raw/aarch64-4.19.56_test_result.svg)
+|alpha-4.19.56|[![alpha-4.19.56](https://img.shields.io/github/actions/workflow/status/lordrasmus/uclibc-ng/make-alpha-4.19.56.yml?style=flat)](https://github.com/lordrasmus/uclibc-ng/actions/workflows/make-alpha-4.19.56.yml)|:white_check_mark:|![alpha-4.19.56test](https://gist.githubusercontent.com/lordrasmus/867aa95ade60fa5b1ad098fa6c6a1968/raw/alpha-4.19.56_test_result.svg)
 |arc|[![arc](https://img.shields.io/github/actions/workflow/status/lordrasmus/uclibc-ng/make-arc.yml?style=flat)](https://github.com/lordrasmus/uclibc-ng/actions/workflows/make-arc.yml)|:white_check_mark:|:x:
 |arm-cortex-a7|[![arm-cortex-a7](https://img.shields.io/github/actions/workflow/status/lordrasmus/uclibc-ng/make-arm.yml?style=flat)](https://github.com/lordrasmus/uclibc-ng/actions/workflows/make-arm.yml)|:white_check_mark:|:x:
 |bfin|[![bfin](https://img.shields.io/github/actions/workflow/status/lordrasmus/uclibc-ng/make-bfin.yml?style=flat)](https://github.com/lordrasmus/uclibc-ng/actions/workflows/make-bfin.yml)|:x:|:x:
@@ -51,7 +51,7 @@ https://cgit.uclibc-ng.org/cgi/cgit/uclibc-ng.git/
 |riscv64-shared|[![riscv64-shared](https://img.shields.io/github/actions/workflow/status/lordrasmus/uclibc-ng/make-riscv64-shared.yml?style=flat)](https://github.com/lordrasmus/uclibc-ng/actions/workflows/make-riscv64-shared.yml)|:white_check_mark:|:x:
 |riscv64-static|[![riscv64-static](https://img.shields.io/github/actions/workflow/status/lordrasmus/uclibc-ng/make-riscv64-static.yml?style=flat)](https://github.com/lordrasmus/uclibc-ng/actions/workflows/make-riscv64-static.yml)|:x:|:x:
 |sh2-4.19.56|[![sh2-4.19.56](https://img.shields.io/github/actions/workflow/status/lordrasmus/uclibc-ng/make-sh2-4.19.56.yml?style=flat)](https://github.com/lordrasmus/uclibc-ng/actions/workflows/make-sh2-4.19.56.yml)|:white_check_mark:|:x:
-|sparc64-4.19.56|[![sparc64-4.19.56](https://img.shields.io/github/actions/workflow/status/lordrasmus/uclibc-ng/make-sparc64-4.19.56.yml?style=flat)](https://github.com/lordrasmus/uclibc-ng/actions/workflows/make-sparc64-4.19.56.yml)|:white_check_mark:|https://gist.githubusercontent.com/lordrasmus/867aa95ade60fa5b1ad098fa6c6a1968/raw/sparc64-4.19.56_test_result.svg
+|sparc64-4.19.56|[![sparc64-4.19.56](https://img.shields.io/github/actions/workflow/status/lordrasmus/uclibc-ng/make-sparc64-4.19.56.yml?style=flat)](https://github.com/lordrasmus/uclibc-ng/actions/workflows/make-sparc64-4.19.56.yml)|:white_check_mark:|![sparc64-4.19.56test](https://gist.githubusercontent.com/lordrasmus/867aa95ade60fa5b1ad098fa6c6a1968/raw/sparc64-4.19.56_test_result.svg)
 |sparc_linuxthreads-4.19.56|[![sparc_linuxthreads-4.19.56](https://img.shields.io/github/actions/workflow/status/lordrasmus/uclibc-ng/make-sparc_linuxthreads-4.19.56.yml?style=flat)](https://github.com/lordrasmus/uclibc-ng/actions/workflows/make-sparc_linuxthreads-4.19.56.yml)|:white_check_mark:|:x:
 |sparc_nptl-4.19.56|[![sparc_nptl-4.19.56](https://img.shields.io/github/actions/workflow/status/lordrasmus/uclibc-ng/make-sparc_nptl-4.19.56.yml?style=flat)](https://github.com/lordrasmus/uclibc-ng/actions/workflows/make-sparc_nptl-4.19.56.yml)|:white_check_mark:|:x:
 |tile-4.14.311|[![tile-4.14.311](https://img.shields.io/github/actions/workflow/status/lordrasmus/uclibc-ng/make-tile-4.14.311.yml?style=flat)](https://github.com/lordrasmus/uclibc-ng/actions/workflows/make-tile-4.14.311.yml)|:white_check_mark:|:x:
