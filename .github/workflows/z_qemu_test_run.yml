@@ -40,10 +40,12 @@ jobs:
           done
           
       - name: run Qemu
+        env:
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }} 
         run: |
            python3 .github/tools/run_qemu.py
            python3 .github/tools/read_test_log.py
-           python3 .github/tools/post_badge.py ${{ secrets.GIST_TOKEN }} ${{ github.workflow }}_test_result.svg
+           python3 .github/tools/post_badge.py ${{ github.workflow }}_test_result.svg
            
            cat test_summary.md >> $GITHUB_STEP_SUMMARY
     

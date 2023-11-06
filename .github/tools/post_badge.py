@@ -2,6 +2,7 @@
 
 # pip3 install pybadges
 
+import os
 import sys
 import requests
 import json
@@ -12,9 +13,16 @@ import requests
 
 from pprint import pprint
 
-github_token = sys.argv[1]
-file_name = sys.argv[2]
+
+if not "GIST_TOKEN" in os.environ:
+    print("GIST_TOKEN env not set")
+    sys.exit(1)
+    
+github_token = os.environ["GIST_TOKEN"]
+file_name = sys.argv[1]
 gist_id = "None"
+
+
 
 """
 
