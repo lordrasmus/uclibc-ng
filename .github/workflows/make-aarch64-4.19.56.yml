@@ -33,6 +33,5 @@ jobs:
      
     needs: call_images
     uses: ./.github/workflows/z_qemu_test_run.yml
-    secrets:
-      GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+    secrets: inherit 
     
