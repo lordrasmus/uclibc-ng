@@ -42,6 +42,12 @@ for f in matching_files:
         line +="|:white_check_mark:"
     else:
         line +="|:x:"
+    
+    if "call_qemu" in data["jobs"]:
+        tmp = data["name"]+ "_test_result.svg"
+        line +="|https://gist.githubusercontent.com/lordrasmus/867aa95ade60fa5b1ad098fa6c6a1968/raw/" + tmp
+    else:
+        line +="|:x:"
         
     line +="\n"
     
