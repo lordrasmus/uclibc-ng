@@ -11,6 +11,8 @@ from junit_xml import TestSuite, TestCase
 test_cases = []
 
 test_results = {"TOTAL": 0, "PASS": 0 , "FAIL":0 , "SKIP": 0 }
+tests_failed = []
+tests_skip = []
 
 with open("log.txt","r") as f:
     for line in f.readlines():
@@ -28,12 +30,17 @@ with open("log.txt","r") as f:
         if 'FAIL ' in line:
             test_results["TOTAL"] += 1
             test_results["FAIL"] += 1
+            
             r = re.match("FAIL (.*)", line)
             if r:
                 failure_line = r.group(1).split(' ', 1)
                 test_name = failure_line[0]
+                failure_msg = ""
                 if len(failure_line) > 1:
                     failure_msg = failure_line[1]
+                
+                tests_failed.append([test_name ,failure_msg ] );
+                
                 test = TestCase(test_name, '', time.time())
                 test.add_failure_info(message="FAIL {}".format(failure_msg))
                 test_cases.append(test)
@@ -47,6 +54,8 @@ with open("log.txt","r") as f:
                 test = TestCase(test_name, '', time.time())
                 test.add_skipped_info(message="SKIP")
                 test_cases.append(test)
+                
+                tests_skip.append(test_name );
 
         if 'Total passed:' in line:
             print("uClibc-ng testsuite run is over, writing test results and exiting.")
@@ -86,7 +95,7 @@ with open("badge.svg","w") as f:
 
 """
 
-summary_text = "### Test Summary :bulb:\n\n"
+summary_text = "## Test Summary :bulb:\n\n"
 summary_text += "|  |  |\n"
 summary_text += "| ---- | ---- |\n"
 summary_text += "|Total: {0} |:hash:|\n".format( test_results["TOTAL"] )
@@ -94,6 +103,24 @@ summary_text += "|Pass: {0}  |:white_check_mark:|\n".format( test_results["PASS"
 summary_text += "|Fail: {0}  |:x:|\n".format( test_results["FAIL"] )
 summary_text += "|skip: {0}  |:warning:|\n".format( test_results["SKIP"] )
 
+
+summary_text += "\n"
+summary_text += "#### Test Failed :x:\n\n"
+summary_text += "| Test  | Message  |\n"
+summary_text += "| ---- | ---- |\n"
+
+
+for fa in tests_failed:
+    summary_text += "|" + fa[0] + "|" + fa[1] + "|\n"
+
+
+summary_text += "\n"
+summary_text += "#### Test Skiped :warning:\n\n"
+summary_text += "| Test  |\n"
+summary_text += "| ----  |\n"
+
+for fa in tests_skip:
+    summary_text += "|" + fa + "|\n"
 
 with open("test_summary.md","w") as f:
     f.write( summary_text )
