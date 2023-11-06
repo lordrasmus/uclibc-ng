@@ -158,3 +158,5 @@ else:
     else:
         print(f"Fehler bei der Erstellung des Gists. Statuscode: {response.status_code}")
         print(response.text)
+        print(payload)
+        print("github_token: " + github_token[0:10] + " ... " + github_token[-10:] )

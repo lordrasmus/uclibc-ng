@@ -36,7 +36,7 @@ time.sleep(1)
 
 log_file = open("log.txt","w")
 
-os.system("ls")
+#os.system("ls")
 
 #pipe_in = open("guest_pipe.in", "w")
 pipe_out = os.open("guest_pipe.out", os.O_RDONLY | os.O_NONBLOCK)
