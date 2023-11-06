@@ -66,17 +66,6 @@ jobs:
           if grep -q 'DODEBUG=y' .config;                                    then echo "DODEBUG should be deactivated"; exit 1; fi
 
 
-      - name: gen Infos
-        run: |
-          ./.github/workflows/build_infos.sh .config
-          jq '.' artifacts/infos.json
-          echo "### Build Config :bulb:" >> $GITHUB_STEP_SUMMARY
-          json=$(cat artifacts/infos.json)
-          for key in $(echo "$json" | jq -r 'keys[]'); do
-            value=$(echo "$json" | jq -r ".$key")
-            echo "$key=$value" >> "$GITHUB_STEP_SUMMARY"
-          done
-
       - name: Install dev packages
         run: |
           sudo apt-get update
@@ -97,6 +86,16 @@ jobs:
         run: echo "$(pwd)/$CONFIG_TOOLCHAIN/usr/bin/" >> $GITHUB_PATH
       
       
+      - name: gen Infos
+        run: |
+          ./.github/workflows/build_infos.sh .config
+          jq '.' artifacts/infos.json
+          echo "### Build Config :bulb:" >> $GITHUB_STEP_SUMMARY
+          json=$(cat artifacts/infos.json)
+          for key in $(echo "$json" | jq -r 'keys[]'); do
+            value=$(echo "$json" | jq -r ".$key")
+            echo "$key=$value" >> "$GITHUB_STEP_SUMMARY"
+          done
 
       - name: Extract Kernel Headers
         run: |

@@ -86,12 +86,13 @@ with open("badge.svg","w") as f:
 
 """
 
-summary_text = "### Test Summary :bulb:\n"
-summary_text += "|--- |----|\n"
-summary_text += "|Total: {0} |:white_check_mark:|\n".format( test_results["TOTAL"] )
-summary_text += "|Pass: {0} |:white_check_mark:|\n".format( test_results["PASS"] )
-summary_text += "|Fail: {0} |:x:|\n".format( test_results["FAIL"] )
-summary_text += "|skip: {0} |:zzz:|\n".format( test_results["SKIP"] )
+summary_text = "### Test Summary :bulb:\n\n"
+summary_text += "|  |  |\n"
+summary_text += "| ---- | ---- |\n"
+summary_text += "|Total: {0} |:hash:|\n".format( test_results["TOTAL"] )
+summary_text += "|Pass: {0}  |:white_check_mark:|\n".format( test_results["PASS"] )
+summary_text += "|Fail: {0}  |:x:|\n".format( test_results["FAIL"] )
+summary_text += "|skip: {0}  |:warning:|\n".format( test_results["SKIP"] )
 
 
 with open("test_summary.md","w") as f:
