@@ -41,41 +41,44 @@ jobs:
         run: |
            python3 .github/tools/run_qemu.py
            python3 .github/tools/read_test_log.py
+           python3 .github/tools/post_badge.py ${{ secrets.GIST_TOKEN }} ${{ github.workflow }}_test_result.svg
+           
+           cat test_summary.md >> $GITHUB_STEP_SUMMARY
     
       # https://github.blog/2022-05-09-supercharging-github-actions-with-job-summaries/
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2.7.0
-        id: test-results
-        if: always()
-        with:
-          files: "test_result.xml"
-          job_summary: true
-          compare_to_earlier_commit: false
-          
-      - name: Set badge color
-        shell: bash
-        run: |
-            echo "Workflow1 ${{ github.workflow }}"
-            echo "Workflow2 "${{ github.workflow }}
-            case ${{ fromJSON( steps.test-results.outputs.json ).conclusion }} in
-                success)
-                    echo "BADGE_COLOR=31c653" >> $GITHUB_ENV
-                    ;;
-                failure)
-                    echo "BADGE_COLOR=800000" >> $GITHUB_ENV
-                    ;;
-                neutral)
-                    echo "BADGE_COLOR=696969" >> $GITHUB_ENV
-                    ;;
-            esac
+#      - name: Publish Test Results
+#        uses: EnricoMi/publish-unit-test-result-action@v2.7.0
+#        id: test-results
+#        if: always()
+#        with:
+#          files: "test_result.xml"
+#          job_summary: true
+#          compare_to_earlier_commit: false
+#          
+#      - name: Set badge color
+#        shell: bash
+#        run: |
+#            echo "Workflow1 ${{ github.workflow }}"
+#            echo "Workflow2 "${{ github.workflow }}
+#            case ${{ fromJSON( steps.test-results.outputs.json ).conclusion }} in
+#                success)
+#                    echo "BADGE_COLOR=31c653" >> $GITHUB_ENV
+#                    ;;
+#               failure)
+#                    echo "BADGE_COLOR=800000" >> $GITHUB_ENV
+#                    ;;
+#                neutral)
+#                    echo "BADGE_COLOR=696969" >> $GITHUB_ENV
+#                    ;;
+#            esac
 
-      - name: Create badge
-        uses: emibcn/badge-action@d6f51ff11b5c3382b3b88689ae2d6db22d9737d1
-        with:
-          label: Tests
-          status: '${{ fromJSON( steps.test-results.outputs.json ).formatted.stats.tests }} tests, ${{ fromJSON( steps.test-results.outputs.json ).formatted.stats.runs }} runs: ${{ fromJSON( steps.test-results.outputs.json ).conclusion }}'
-          color: ${{ env.BADGE_COLOR }}
-          path: badge.svg
+#      - name: Create badge
+#        uses: emibcn/badge-action@d6f51ff11b5c3382b3b88689ae2d6db22d9737d1
+#        with:
+#          label: Tests
+#          status: '${{ fromJSON( steps.test-results.outputs.json ).formatted.stats.tests }} tests, ${{ fromJSON( steps.test-results.outputs.json ).formatted.stats.runs }} runs: ${{ fromJSON( steps.test-results.outputs.json ).conclusion }}'
+#          color: ${{ env.BADGE_COLOR }}
+#          path: badge.svg
 
       - name: upload 
         uses: actions/upload-artifact@master
@@ -84,8 +87,7 @@ jobs:
           name: Test_Result
           path: |
              log.txt
-             badge.svg
-
+ 
       #- name: Upload badge to Gist
         # Upload only for master branch
         #if: >
@@ -97,20 +99,20 @@ jobs:
         #    gistURL: https://gist.githubusercontent.com/lordrasmus/${{ github.workflow }}_test_result.svg
         #    file: badge.svg
 
-      - name: Create Gist
-        id: create_gist
-        run: |
-            FILE_CONTENT=$(cat badge.svg)  # Hier ersetzen Sie "generated_file.txt" durch den Dateinamen Ihrer generierten Datei.
-            GIST_RESPONSE=$(curl -X POST -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -d '{
-              "description": "Test Result",
-              "public": true,
-              "files": {
-                "${{ github.workflow }}_test_result.svg": {
-                  "content": "'"$FILE_CONTENT"'"
-                }
-              }
-            }' "https://api.github.com/gists")
-
-            GIST_ID=$(echo "$GIST_RESPONSE" | jq -r .id)
-            echo "Created Gist ID: $GIST_ID"
-            echo "Gist URL: https://gist.github.com/$GITHUB_REPOSITORY/$GIST_ID"
+#      - name: Create Gist
+#        id: create_gist
+#        run: |
+#            FILE_CONTENT=$(cat badge.svg)  # Hier ersetzen Sie "generated_file.txt" durch den Dateinamen Ihrer generierten Datei.
+#            GIST_RESPONSE=$(curl -X POST -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -d '{
+#              "description": "Test Result",
+#              "public": true,
+#              "files": {
+#                "${{ github.workflow }}_test_result.svg": {
+#                  "content": "'"$FILE_CONTENT"'"
+#                }
+#              }
+#            }' "https://api.github.com/gists")
+#
+#            GIST_ID=$(echo "$GIST_RESPONSE" | jq -r .id)
+#            echo "Created Gist ID: $GIST_ID"
+#            echo "Gist URL: https://gist.github.com/$GITHUB_REPOSITORY/$GIST_ID"
