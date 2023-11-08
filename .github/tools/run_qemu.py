@@ -10,6 +10,8 @@ import time
 
 from pprint import pprint
 
+print("\nQemu Runner starting\n")
+
 with open('infos.json', 'r') as json_file:
     data = json.load(json_file)
 
@@ -63,7 +65,7 @@ test_log = ""
 
 while True:
     try:
-        rlist, _, _ = select.select([pipe_out], [], [], 30)
+        rlist, _, _ = select.select([pipe_out], [], [], 60) # mit 30 gabs timeouts beim powerpc
         #print( rlist )
         if rlist:
             # Wenn Daten verfügbar sind, lesen Sie sie aus der Pipe
@@ -81,13 +83,14 @@ while True:
             #break
     except Exception as e:
         print("Fehler beim Lesen aus der Named Pipe:", str(e))
+        break
         
     if "-------------------- tests_end --------------------------" in test_log:
         break;
 
 #os.close(pipe_out)
  
-print("shutdown")
+print("\nshutdown Qemu")
 os.write( pipe_in, "reboot\n".encode())
 #pipe_in.write("reboot")
 
