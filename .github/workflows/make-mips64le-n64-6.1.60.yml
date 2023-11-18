@@ -3,28 +3,34 @@ name: mips64le-n64-6.1.60
 on:
   push:
     branches:
-      - disabled
+      - master
+
 
 jobs:
-  build:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@master2
-        with:
-          fetch-depth: 1
-      - name: Install dev packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install gcc-mips64el-linux-gnuabi64
+  
+     
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-mips64el_mips64-gcc_n64-13.2.0
+      gcc_prefix: mips64el-openadk-linux-uclibcabi64-
+      kernel_vers: 6.1.60
+      kernel_dir: v6.x
+      kernel_arch: mips
+      config_file: config.mips64le-n64
+      qemu_kernel: kernel-mips64le-n32.img
+      qemu_cmd: qemu-system-mips64el -kernel kernel.img -initrd rootfs.img -append "console=ttyS0" -m 512M -nographic
 
-      - name: Extract Kernel Headers
-        run: wget "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.1.60.tar.xz" -O linux-6.1.60.tar.xz && tar -xaf linux-6.1.60.tar.xz
-      - name: Install Kernel Headers
-        run: make -C linux-6.1.60/ INSTALL_HDR_PATH=$(pwd)/linux-headers/ headers_install ARCH=mips
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+    
 
-      - name: Run shared
-        run: |
-          cp .github/workflows/config.mips64le-n64 .config && CROSS_COMPILE=mips64el-linux-gnuabi64- make
-          readelf -A lib/libc.so.1  | head -n20
+  call_qemu:
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit     
+
 
       
