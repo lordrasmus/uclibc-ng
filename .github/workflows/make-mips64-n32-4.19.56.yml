@@ -3,7 +3,7 @@ name: mips64-n32-4.19.56
 on:
   push:
     branches:
-      - master
+      - master2
 
 
 

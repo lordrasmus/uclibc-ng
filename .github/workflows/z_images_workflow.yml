@@ -190,7 +190,7 @@ jobs:
           
           tar -cf $devel_name.tar $devel_name
           
-          #python3 .github/tools/upload.py $devel_name.tar
+          python3 .github/tools/upload.py $devel_name.tar
           
         
 
