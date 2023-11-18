@@ -18,8 +18,8 @@ jobs:
       kernel_dir: v6.x
       kernel_arch: mips
       config_file: config.mips64-n32
-      qemu_kernel: 
-      qemu_cmd: 
+      qemu_kernel: kernel-mips64-n32
+      qemu_cmd: qemu-system-mips64 -kernel kernel.img -initrd rootfs.img -append "console=ttyS0" -m 512M -nographic
 
   call_images:
     needs: call_build

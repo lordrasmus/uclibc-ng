@@ -92,7 +92,8 @@ jobs:
           git clone https://github.com/lordrasmus/uclibc-ng-test.git
           echo "" > tests_disable
           if grep -q '# UCLIBC_HAS_LOCALE is not set' uclibc-ng-config; then echo "export NO_LOCALE=1 " >> tests_disable; fi
-          if grep -q 'HAS_NO_THREADS=y' uclibc-ng-config;               then echo "export NO_THREADS=1  NO_NPTL=1  NO_TLS=1 "  >> tests_disable ; fi
+          if grep -q 'HAS_NO_THREADS=y' uclibc-ng-config;               then echo "export NO_THREADS=1  NO_NPTL=1  NO_TLS=1 " >> tests_disable ; fi
+          if grep -q 'UCLIBC_HAS_LINUXTHREADS=y' uclibc-ng-config;      then echo "export NO_THREADS=1  NO_NPTL=1  NO_TLS=1"  >> tests_disable ; fi
           if grep -q 'CONFIG_SH2=y' uclibc-ng-config;                   then echo "export NO_MATH=1" >> tests_disable; fi
           if grep -q '# UCLIBC_HAS_OBSOLETE_BSD_SIGNAL is not set' uclibc-ng-config;  then echo "export  NO_NPTL=1 "  >> tests_disable ; fi
           if grep -q 'ARCH_HAS_NO_SHARED=y' uclibc-ng-config;           then echo "export NO_DL=1 "  >> tests_disable ; fi
@@ -136,6 +137,12 @@ jobs:
           
       - name: Build RootFS Image
         run: |
+          ( cd rootfs ; ln -s lib lib32 )
+          ( cd rootfs ; ln -s lib lib64 )
+          ( cd rootfs ; ln -s lib libx32 )
+          ( cd rootfs/usr ; ln -s lib lib32 )
+          ( cd rootfs/usr ; ln -s lib lib64 )
+          ( cd rootfs/usr ; ln -s lib libx32 )
           ( cd rootfs ; find . | sort | cpio -o -H newc ) > rootfs.img
           xz --check=crc32 -k rootfs.img
 
@@ -183,7 +190,7 @@ jobs:
           
           tar -cf $devel_name.tar $devel_name
           
-          python3 .github/tools/upload.py $devel_name.tar
+          #python3 .github/tools/upload.py $devel_name.tar
           
         
 
