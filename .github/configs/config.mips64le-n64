@@ -257,7 +257,8 @@ UCLIBC_BUILD_NOEXECSTACK=y
 #
 CROSS_COMPILER_PREFIX=""
 UCLIBC_EXTRA_CFLAGS="-fworking-directory -fvar-tracking-assignments -frecord-gcc-switches -funwind-tables -ggdb3 -gdwarf-4  -Os -Wno-unused-variable  -Wno-shadow -Wno-old-style-definition -Wno-unused-but-set-variable -Wno-maybe-uninitialized -Wno-strict-aliasing -Wno-missing-prototypes -Wno-missing-declarations -Wno-pointer-to-int-cast -Wno-array-parameter -Wno-format -Wno-misleading-indentation -Wno-nonnull-compare -Wno-int-conversion -Wno-attribute-alias -Wno-suggest-attribute -Wno-restrict -Wno-undef -Wno-nested-externs -Wno-missing-braces -Wno-pointer-sign"
-DODEBUG=y
+DOSTRIP=y
+# DODEBUG is not set
 # DOASSERTS is not set
 # SUPPORT_LD_DEBUG is not set
 # SUPPORT_LD_DEBUG_EARLY is not set

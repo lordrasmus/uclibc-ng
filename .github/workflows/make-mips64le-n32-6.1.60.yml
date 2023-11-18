@@ -3,7 +3,7 @@ name: mips64el-n32-6.1.60
 on:
   push:
     branches:
-      - master
+      - master2
 
 
 
