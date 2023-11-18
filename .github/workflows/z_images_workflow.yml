@@ -149,6 +149,8 @@ jobs:
       - name: Fetch Qemu Kernel Image
         run: |
           wget -nv  "https://github.com/lordrasmus/uclibc-ng-qemu-imgs/blob/main/${CONFIG_QEMU_KERNEL}?raw=true" -O kernel.img
+          CONFIG_QEMU_KERNEL_CONF=${CONFIG_QEMU_KERNEL%.img}.config"
+          wget -nv  "https://github.com/lordrasmus/uclibc-ng-qemu-imgs/blob/main/${CONFIG_QEMU_KERNEL_CONF}?raw=true" -O kernel.config
           
       - name: Qemu Testsuite run command
         run: |
@@ -161,6 +163,7 @@ jobs:
           name: artifacts
           path: |
             kernel.img
+            kernel.config
             rootfs.img
             rootfs.img.xz
             
