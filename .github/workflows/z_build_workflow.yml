@@ -143,6 +143,7 @@ jobs:
         run: |
           sed -i 's|KERNEL_HEADERS=.*|KERNEL_HEADERS="artifacts/sysroot/usr/include"|g'  .config
           echo "\n----------------- uClibc-ng log -------------------------- \n" > build.log
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX make oldconfig
           CROSS_COMPILE=$CONFIG_GCC_PREFIX make 2>&1 | tee -a build.log
           CROSS_COMPILE=$CONFIG_GCC_PREFIX make install DESTDIR=artifacts/sysroot
 
