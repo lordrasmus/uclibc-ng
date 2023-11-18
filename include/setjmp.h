@@ -27,21 +27,7 @@
 __BEGIN_DECLS
 
 #include <bits/setjmp.h>		/* Get `__jmp_buf'.  */
-#include <bits/sigset.h>		/* Get `__sigset_t'.  */
-
-
-/* Calling environment, plus possibly a saved signal mask.  */
-struct __jmp_buf_tag
-  {
-    /* NOTE: The machine-dependent definitions of `__sigsetjmp'
-       assume that a `jmp_buf' begins with a `__jmp_buf' and that
-       `__mask_was_saved' follows it.  Do not move these members
-       or add others before it.  */
-    __jmp_buf __jmpbuf;		/* Calling environment.  */
-    int __mask_was_saved;	/* Saved the signal mask?  */
-    __sigset_t __saved_mask;	/* Saved signal mask.  */
-  };
-
+#include <bits/jmp_buf_tag.h>
 
 __BEGIN_NAMESPACE_STD
 
@@ -108,8 +94,10 @@ __END_DECLS
 #ifdef _LIBC
 extern void __longjmp(__jmp_buf __env, int __val) __THROWNL attribute_noreturn;
 libc_hidden_proto(__longjmp)
-extern __typeof(longjmp) __libc_longjmp __THROWNL attribute_noreturn;
-extern __typeof(siglongjmp) __libc_siglongjmp __THROWNL attribute_noreturn;
+extern void __libc_longjmp(struct __jmp_buf_tag __env[1], int __val)
+  __THROWNL attribute_noreturn;
+extern void __libc_siglongjmp(sigjmp_buf __env, int __val)
+  __THROWNL attribute_noreturn;
 extern void _longjmp_unwind(jmp_buf __env, int __val);
 libc_hidden_proto(_longjmp_unwind)
 extern int __sigjmp_save(sigjmp_buf __env, int __savemask) attribute_hidden;
