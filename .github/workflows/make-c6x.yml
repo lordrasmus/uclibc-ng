@@ -3,7 +3,7 @@ name: c6x
 on:
   push:
     branches:
-      - master
+      - master2
 
 
       

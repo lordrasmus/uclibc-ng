@@ -3,7 +3,7 @@ name: cris
 on:
   push:
     branches:
-      - master
+      - master2
 
 
 jobs:

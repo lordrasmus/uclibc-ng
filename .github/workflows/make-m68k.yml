@@ -3,7 +3,7 @@ name: m68k
 on:
   push:
     branches:
-      - master
+      - master2
 
 
 jobs:

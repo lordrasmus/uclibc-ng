@@ -3,7 +3,7 @@ name: h8300
 on:
   push:
     branches:
-      - master
+      - master2
 
 
 jobs:

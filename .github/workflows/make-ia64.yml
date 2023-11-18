@@ -3,7 +3,7 @@ name: ia64
 on:
   push:
     branches:
-      - master
+      - master2
 
 jobs:
       

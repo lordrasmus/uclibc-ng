@@ -3,7 +3,7 @@ name: x86_64
 on:
   push:
     branches:
-      - master
+      - master2
 
 
 #      - name: Run static

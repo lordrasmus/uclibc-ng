@@ -3,7 +3,7 @@ name: alpha-4.19.56
 on:
   push:
     branches:
-      - master
+      - master2
       - qemu_test
 
 jobs:

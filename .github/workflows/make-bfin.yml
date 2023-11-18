@@ -3,7 +3,7 @@ name: bfin
 on:
   push:
     branches:
-      - master
+      - master2
 
 
 #           wget "https://github.com/lordrasmus/toolchains/blob/main/blackfin-toolchain-elf-gcc-4.5-2014R1_45-RC2.x86_64.tar.bz2?raw=true" -O blackfin-toolchain-elf-gcc-4.5-2014R1_45-RC2.x86_64.tar.bz2

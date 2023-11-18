@@ -3,7 +3,7 @@ name: x86_64-vdso
 on:
   push:
     branches:
-      - master
+      - master2
 
 
 jobs:

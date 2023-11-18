@@ -3,7 +3,7 @@ name: powerpc
 on:
   push:
     branches:
-      - master
+      - master2
 
       
 

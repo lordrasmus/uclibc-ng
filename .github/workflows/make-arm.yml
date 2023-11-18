@@ -3,7 +3,7 @@ name: arm-cortex-a7
 on:
   push:
     branches:
-      - master
+      - master2
       - qemu_test
 
 jobs:

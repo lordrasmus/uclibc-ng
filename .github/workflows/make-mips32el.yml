@@ -4,7 +4,7 @@ name: mips32el
 on:
   push:
     branches:
-      - master
+      - master2
 
 
 #      - name: Run static
