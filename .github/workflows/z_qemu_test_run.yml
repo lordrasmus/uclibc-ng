@@ -13,7 +13,7 @@ jobs:
     
       - name: Install qemu / python3 junit_xml
         run: |
-          sudo apt-get -y update; sudo apt-get install -y qemu-system python3-junit.xml libnfs13
+          sudo apt-get -y update; sudo apt-get install -y qemu-system python3-junit.xml libnfs13 libssh-gcrypt-4
           pip3 install pybadges
       
       # wird bei xtensa für den cpio hack gebraucht
@@ -56,12 +56,14 @@ jobs:
       - name: run Qemu
         run: |
           if [[ $CONFIG_KERNEL_ARCH == "xtensa" ]] ;  then python3 .github/tools/xtensa-cpio-hack.py; fi
+          if [[ $CONFIG_KERNEL_ARCH == "kvx" ]] ;     then python3 .github/tools/xtensa-cpio-hack.py; fi
           echo "Qemu Command : $CONFIG_QEMU_CMD"
           python3 .github/tools/run_qemu.py
            
       - name: analyse Test
         env:
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }} 
+          UPLOAD_KEY: ${{ secrets.UPLOAD_KEY }} 
         run: |
            python3 .github/tools/read_test_log.py
            cat test_summary.md >> $GITHUB_STEP_SUMMARY
@@ -69,6 +71,8 @@ jobs:
            python3 .github/tools/post_badge.py ${{ github.workflow }}_test_result.svg badge.svg
            python3 .github/tools/post_badge.py ${{ github.workflow }}_test_result.txt log_text.txt
            
+           python3 .github/tools/upload.py badge.svg    tests ${{ github.workflow }}_test_result.svg
+           python3 .github/tools/upload.py log_text.txt tests ${{ github.workflow }}_test_result.txt
   
 
       - name: upload 

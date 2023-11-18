@@ -6,16 +6,6 @@ on:
       - master
 
 
-#           wget "https://github.com/lordrasmus/toolchains/blob/main/blackfin-toolchain-elf-gcc-4.5-2014R1_45-RC2.x86_64.tar.bz2?raw=true" -O blackfin-toolchain-elf-gcc-4.5-2014R1_45-RC2.x86_64.tar.bz2
-#           tar -xaf blackfin-toolchain-elf-gcc-4.5-2014R1_45-RC2.x86_64.tar.bz2
-#           mv opt/uClinux/bfin-elf .
-#           rm -rf opt
-#      - name: add PATH
-#        run: echo "$(pwd)/bfin-elf/bin/" >> $GITHUB_PATH
-
-#      - name: Run Build
-#        run: cp .github/workflows/config.bfin .config && PATH=$PATH:bfin-elf/bin CROSS_COMPILE=bfin-elf- make
-      
       
 jobs:
       
@@ -31,8 +21,9 @@ jobs:
       qemu_kernel: 
       qemu_cmd: 
 
-# call_images:
-#    needs: call_build
-#    uses: ./.github/workflows/z_images_workflow.yml
-#    secrets: inherit
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
     

@@ -6,21 +6,29 @@ on:
       - master
 
 
+
 jobs:
 
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-xtensa_dc233c-gcc-10_nommu
-      gcc_prefix: xtensa-openadk-linux-uclibc-
+      toolchain: toolchain-br-xtensa_dc233c-gcc-12.3.0_LITTLE_nommu_static
+      gcc_prefix: xtensa-buildroot-uclinux-uclibc-
       kernel_vers: 4.19.56
       kernel_dir: v4.x
       kernel_arch: xtensa
       config_file: config.xtensa
-      qemu_kernel: 
-      qemu_cmd: 
+      qemu_kernel: kernel-xtensa-nommu.img
+      qemu_cmd: qemu-system-xtensa -M lx60 -cpu dc233c -monitor null -nographic -kernel kernel.img
 
-#  call_images:
-#    needs: call_build
-#    uses: ./.github/workflows/z_images_workflow.yml
-#     secrets: inherit
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+
+
+  call_qemu:
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit

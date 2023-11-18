@@ -17,8 +17,8 @@ jobs:
       kernel_dir: v4.x
       kernel_arch: arc
       config_file: config.arc
-      qemu_kernel: kernel-sparc64.img
-      qemu_cmd: qemu-system-sparc64 -M sun4u -m 512M -nographic -kernel kernel.img -initrd rootfs.img.xz
+      qemu_kernel:
+      qemu_cmd:
 
   call_images:
     needs: call_build

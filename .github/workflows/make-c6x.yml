@@ -5,7 +5,6 @@ on:
     branches:
       - master
 
-
       
       
 jobs:
@@ -21,6 +20,7 @@ jobs:
       config_file: config.c6x
       qemu_kernel: 
       qemu_cmd: 
+
 
 #  call_images:
 #    needs: call_build

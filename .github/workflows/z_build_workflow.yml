@@ -88,7 +88,7 @@ jobs:
       
       - name: gen Infos
         run: |
-          ./.github/workflows/build_infos.sh .config
+          ./.github/workflows/build_infos.sh .config ${{ github.workflow }}
           jq '.' artifacts/infos.json
           echo "### Build Config :bulb:" >> $GITHUB_STEP_SUMMARY
           json=$(cat artifacts/infos.json)
@@ -136,13 +136,17 @@ jobs:
           if [ -e $CONFIG_TOOLCHAIN/sysroot/usr/lib/libatomic.a ] ; then cp $CONFIG_TOOLCHAIN/sysroot/usr/lib/libatomic* artifacts/sysroot/usr/lib/ ; fi
           if [ -e $CONFIG_TOOLCHAIN/sysroot/usr/lib/libgcc_s.so ] ; then cp $CONFIG_TOOLCHAIN/sysroot/usr/lib/libgcc* artifacts/sysroot/usr/lib/ ; fi
           ls artifacts/sysroot/
-          if [ -e artifacts/sysroot/lib ] ; then find artifacts/sysroot/lib; fi
-          if [ -e artifacts/sysroot/usr/lib ] ; then find artifacts/sysroot/usr/lib ; fi
+          ( cd artifacts/sysroot/; ln -s lib lib32; ln -s lib lib64; ln -s lib libx32; )
+          ( cd artifacts/sysroot/usr; ln -s lib lib32; ln -s lib lib64; ln -s lib libx32; )
+          #if [ -e artifacts/sysroot/lib ] ; then find artifacts/sysroot/lib; fi
+          #if [ -e artifacts/sysroot/usr/lib ] ; then find artifacts/sysroot/usr/lib ; fi
+          #find artifacts/sysroot/
 
       - name: Build
         run: |
           sed -i 's|KERNEL_HEADERS=.*|KERNEL_HEADERS="artifacts/sysroot/usr/include"|g'  .config
           echo "\n----------------- uClibc-ng log -------------------------- \n" > build.log
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX make oldconfig
           CROSS_COMPILE=$CONFIG_GCC_PREFIX make 2>&1 | tee -a build.log
           CROSS_COMPILE=$CONFIG_GCC_PREFIX make install DESTDIR=artifacts/sysroot
 

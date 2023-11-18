@@ -1,4 +1,4 @@
-name: ia64
+name: avr32-4.4.302
 
 on:
   push:
@@ -8,16 +8,16 @@ on:
 
 
 jobs:
-      
+
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-ia64-gcc-13
-      gcc_prefix: ia64-openadk-linux-uclibc-
-      kernel_vers: 6.1.53
-      kernel_dir: v6.x
-      kernel_arch: ia64
-      config_file: config.ia64
+      toolchain: toolchain-avr32-gcc-4.4.7
+      gcc_prefix: avr32-openadk-linux-uclibc-
+      kernel_vers: 4.4.302
+      kernel_dir: v4.x
+      kernel_arch: avr32
+      config_file: config.avr32
       qemu_kernel: 
       qemu_cmd: 
 
