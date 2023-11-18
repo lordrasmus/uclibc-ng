@@ -18,8 +18,8 @@ jobs:
       kernel_dir: v6.x
       kernel_arch: mips
       config_file: config.mips64le-n32
-      qemu_kernel: 
-      qemu_cmd: 
+      qemu_kernel: kernel-mips64le-n32.img
+      qemu_cmd: qemu-system-mips64el -kernel kernel.img -initrd rootfs.img -append "console=ttyS0" -m 512M -nographic
 
   call_images:
     needs: call_build
@@ -27,3 +27,7 @@ jobs:
     secrets: inherit
     
 
+  call_qemu:
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit 
