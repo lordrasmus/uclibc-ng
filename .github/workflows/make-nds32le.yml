@@ -3,7 +3,7 @@ name: nds32le
 on:
   push:
     branches:
-      - master
+      - master2
 
 
 
@@ -20,6 +20,7 @@ jobs:
       config_file: config.nds32le
       qemu_kernel: 
       qemu_cmd: 
+
 
   call_images:
     needs: call_build
