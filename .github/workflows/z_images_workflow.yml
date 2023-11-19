@@ -90,16 +90,7 @@ jobs:
           echo "08:00:20:00:61:CC  teeth" >> rootfs/etc/ethers
           #git clone https://cgit.uclibc-ng.org/cgi/cgit/uclibc-ng-test.git/
           git clone https://github.com/lordrasmus/uclibc-ng-test.git
-          echo "" > tests_disable
-          if grep -q '# UCLIBC_HAS_LOCALE is not set' uclibc-ng-config; then echo "export NO_LOCALE=1 " >> tests_disable; fi
-          if grep -q 'HAS_NO_THREADS=y' uclibc-ng-config;               then echo "export NO_THREADS=1  NO_NPTL=1  NO_TLS=1 " >> tests_disable ; fi
-          if grep -q 'UCLIBC_HAS_LINUXTHREADS=y' uclibc-ng-config;      then echo "export NO_THREADS=1  NO_NPTL=1  NO_TLS=1"  >> tests_disable ; fi
-          if grep -q 'CONFIG_SH2=y' uclibc-ng-config;                   then echo "export NO_MATH=1" >> tests_disable; fi
-          if grep -q '# UCLIBC_HAS_OBSOLETE_BSD_SIGNAL is not set' uclibc-ng-config;  then echo "export  NO_NPTL=1 "  >> tests_disable ; fi
-          if grep -q 'ARCH_HAS_NO_SHARED=y' uclibc-ng-config;           then echo "export NO_DL=1 "  >> tests_disable ; fi
-          
-          if grep -q 'TARGET_alpha=y' uclibc-ng-config;                 then echo "export NO_MATH=1" >> tests_disable; fi
-          if grep -q 'TARGET_sparc=y' uclibc-ng-config;                 then echo "export NO_MISC=1 NO_NPTL=1 " >> tests_disable; fi
+          eecho "export $(./uclibc-ng-test/get_disabled_tests.py uclibc-ng-config)" > tests_disable
           
           echo "### Disabled Tests :bulb:" >> $GITHUB_STEP_SUMMARY
           cat tests_disable >> "$GITHUB_STEP_SUMMARY"

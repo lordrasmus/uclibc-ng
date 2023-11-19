@@ -5,8 +5,9 @@ on:
     branches:
       - master2
 
-jobs:
 
+
+jobs:
 
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
@@ -20,17 +21,14 @@ jobs:
       qemu_kernel: kernel-riscv64.img
       qemu_cmd: qemu-system-riscv64 -M virt -m 512 -nographic -append console=ttyS0  -kernel kernel.img -initrd rootfs.img.xz
 
+
   call_images:
     needs: call_build
     uses: ./.github/workflows/z_images_workflow.yml
     secrets: inherit
 
 
-  call_qemu:
-    permissions:
-     checks: write
-     pull-requests: write
-     
+  call_qemu:    
     needs: call_images
     uses: ./.github/workflows/z_qemu_test_run.yml
     secrets: inherit
