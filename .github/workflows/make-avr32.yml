@@ -3,7 +3,7 @@ name: avr32-4.4.302
 on:
   push:
     branches:
-      - master
+      - master2
 
 
 
