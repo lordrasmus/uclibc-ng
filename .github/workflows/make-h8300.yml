@@ -6,12 +6,13 @@ on:
       - master2
 
 
+
 jobs:
       
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-h8300-gcc-13_nommu
+      toolchain: toolchain-h8300-gcc-13.2.0_nommu_static
       gcc_prefix: h8300-openadk-linux-uclibc-
       kernel_vers: 4.4.302
       kernel_dir: v4.x
@@ -20,6 +21,11 @@ jobs:
       qemu_kernel: 
       qemu_cmd: 
 
+#
+#   hier geht schon der compiler aus openadk nicht
+#
+#             cannot find -lgcc: Datei oder Verzeichnis nicht gefunden
+#
 #  call_images:
 #    needs: call_build
 #    uses: ./.github/workflows/z_images_workflow.yml

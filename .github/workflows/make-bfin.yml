@@ -3,7 +3,7 @@ name: bfin
 on:
   push:
     branches:
-      - master
+      - master2
 
 
       
