@@ -12,7 +12,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-nds32le_nds32-gcc-13
+      toolchain: toolchain-nds32le_nds32-gcc-13.2.0
       gcc_prefix: nds32le-openadk-linux-uclibc-
       kernel_vers: 5.15.128
       kernel_dir: v5.x
