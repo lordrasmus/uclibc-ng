@@ -1,9 +1,9 @@
-name: nds32le
+name: avr32-4.4.302
 
 on:
   push:
     branches:
-      - master2
+      - master
 
 
 
