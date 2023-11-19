@@ -90,7 +90,7 @@ jobs:
           echo "08:00:20:00:61:CC  teeth" >> rootfs/etc/ethers
           #git clone https://cgit.uclibc-ng.org/cgi/cgit/uclibc-ng-test.git/
           git clone https://github.com/lordrasmus/uclibc-ng-test.git
-          eecho "export $(./uclibc-ng-test/get_disabled_tests.py uclibc-ng-config)" > tests_disable
+          echo "export $(./uclibc-ng-test/get_disabled_tests.py uclibc-ng-config)" > tests_disable
           
           echo "### Disabled Tests :bulb:" >> $GITHUB_STEP_SUMMARY
           cat tests_disable >> "$GITHUB_STEP_SUMMARY"
