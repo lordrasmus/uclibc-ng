@@ -13,7 +13,7 @@ jobs:
     
       - name: Install qemu / python3 junit_xml
         run: |
-          sudo apt-get -y update; sudo apt-get install -y qemu-system python3-junit.xml libnfs13
+          sudo apt-get -y update; sudo apt-get install -y qemu-system python3-junit.xml libnfs13 libssh-gcrypt-4
           pip3 install pybadges
       
       # wird bei xtensa für den cpio hack gebraucht
