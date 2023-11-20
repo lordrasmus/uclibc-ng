@@ -18,8 +18,8 @@ jobs:
       kernel_dir: v4.x
       kernel_arch: riscv
       config_file: config.riscv32
-      qemu_kernel: 
-      qemu_cmd: 
+      qemu_kernel: kernel-riscv32.img
+      qemu_cmd: qemu-system-riscv32 -M virt -nographic -kernel kernel.img -initrd rootfs.img
 
 
   call_images:
