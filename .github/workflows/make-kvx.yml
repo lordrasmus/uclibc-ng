@@ -12,14 +12,14 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-kvx-gcc-kvx
+      toolchain: toolchain-kvx-gcc-9.4.1
       gcc_prefix: kvx-openadk-linux-uclibc-
       kernel_vers: kvx
       kernel_dir: v6.x
       kernel_arch: kvx
       config_file: config.kvx
-      qemu_kernel: 
-      qemu_cmd: 
+      qemu_kernel: kernel-kvx.img
+      qemu_cmd: qemu-system-kvx -kernel kernel.img -m 1024M  -nographic
 
 
   call_images:
@@ -27,3 +27,8 @@ jobs:
     uses: ./.github/workflows/z_images_workflow.yml
     secrets: inherit
     
+    
+  call_qemu:    
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit
