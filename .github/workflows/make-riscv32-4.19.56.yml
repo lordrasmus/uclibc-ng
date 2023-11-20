@@ -3,7 +3,8 @@ name: riscv32-4.19.56
 on:
   push:
     branches:
-      - master2
+      - master
+
 
 
 jobs:
@@ -19,6 +20,7 @@ jobs:
       config_file: config.riscv32
       qemu_kernel: 
       qemu_cmd: 
+
 
   call_images:
     needs: call_build
