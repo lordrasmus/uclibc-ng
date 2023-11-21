@@ -65,7 +65,7 @@ jobs:
           echo "console::respawn:/bin/sh" >> rootfs/etc/inittab
           
           
-          cp tests_disable rootfs
+          
           echo "#!/bin/sh"                                                           >  rootfs/bin/run_tests.sh
           echo "echo -n 'Disabled Tests :' ; cat /tests_disable"                     >> rootfs/bin/run_tests.sh
           echo "cd /usr/lib/uclibc-ng-test/test/"                                    >> rootfs/bin/run_tests.sh
@@ -103,6 +103,8 @@ jobs:
           CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/" LDFLAGS="--sysroot=$(pwd)/sysroot/ "   make -C uclibc-ng-test -j20 2>&1  | tee  testsuite_build.log
           CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/" LDFLAGS="--sysroot=$(pwd)/sysroot/ "   make -C uclibc-ng-test install DESTDIR=../rootfs > /dev/null 2>&1
           find rootfs -type f -name '*.gdb' -exec rm {} \;
+          
+          cp tests_disable rootfs
       
       
       - name: Build Busybox
