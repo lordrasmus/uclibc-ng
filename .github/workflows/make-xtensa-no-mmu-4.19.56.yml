@@ -18,7 +18,7 @@ jobs:
       kernel_dir: v4.x
       kernel_arch: xtensa
       config_file: config.xtensa
-      qemu_kernel: kernel-xtensa-nommu
+      qemu_kernel: kernel-xtensa-nommu.img
       qemu_cmd: qemu-system-xtensa -M lx60 -cpu dc233c -monitor null -nographic -kernel kernel.img
 
 
