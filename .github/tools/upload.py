@@ -8,6 +8,7 @@ import requests
 import secrets
 import string
 
+from pprint import pprint
 
 # Einstellungen
 url = 'https://uclibc-ng.tangotanzen.de/'
@@ -24,8 +25,15 @@ api_key = hash_object.hexdigest()
 #print( "Key : " + api_key )
 
 
+
 # Datei und Schlüssel als Daten für das Formular vorbereiten
 files = {'file': (file_path, data ), 'key': (None, api_key) }
+
+if len( sys.argv ) > 2:
+    files["path"] = ( None, sys.argv[2] )
+
+
+pprint( files )
 
 # HTTP-POST-Anfrage senden
 response = requests.post(url, files=files)
