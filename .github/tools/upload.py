@@ -35,7 +35,7 @@ if len( sys.argv ) > 2:
 if len( sys.argv ) > 3:
     files["file"] = ( sys.argv[3] , data )
 
-pprint( files )
+#pprint( files )
 
 # HTTP-POST-Anfrage senden
 response = requests.post(url, files=files)
