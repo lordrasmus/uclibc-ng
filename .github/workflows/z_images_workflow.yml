@@ -63,8 +63,7 @@ jobs:
           echo "::sysinit:/bin/echo 'test ttyS0' > /dev/ttyS0" >> rootfs/etc/inittab
           echo "console::sysinit:/bin/run_tests.sh" >> rootfs/etc/inittab
           echo "console::respawn:/bin/sh" >> rootfs/etc/inittab
-          echo "root:x:0:" > rootfs/etc/group
-          echo "root:x:0:0:root:/root:/bin/sh" > rootfs/etc/passwd
+          
           
           echo "#!/bin/sh"                                                           >  rootfs/bin/run_tests.sh
           echo "cd /usr/lib/uclibc-ng-test/test/"                                    >> rootfs/bin/run_tests.sh
@@ -85,9 +84,13 @@ jobs:
       
       - name: Build Testsuite
         run: |
-          echo "08:00:20:00:61:CA  pal" > rootfs/etc/ethers
+          echo "08:00:20:00:61:CA  pal"           > rootfs/etc/ethers
           echo "08:00:20:00:61:CB  192.168.11.2" >> rootfs/etc/ethers
-          echo "08:00:20:00:61:CC  teeth" >> rootfs/etc/ethers
+          echo "08:00:20:00:61:CC  teeth"        >> rootfs/etc/ethers
+          echo "127.0.0.1 localhost"              > rootfs/etc/hosts
+          echo "root:x:0:"                        > rootfs/etc/group
+          echo "root:x:0:0:root:/root:/bin/sh"    > rootfs/etc/passwd
+          
           #git clone https://cgit.uclibc-ng.org/cgi/cgit/uclibc-ng-test.git/
           git clone https://github.com/lordrasmus/uclibc-ng-test.git
           echo "export $(./uclibc-ng-test/get_disabled_tests.py uclibc-ng-config)" > tests_disable
