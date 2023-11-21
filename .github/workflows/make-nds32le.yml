@@ -3,7 +3,7 @@ name: nds32le
 on:
   push:
     branches:
-      - master2
+      - master
 
 
 

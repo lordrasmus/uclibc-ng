@@ -3,7 +3,7 @@ name: arc
 on:
   push:
     branches:
-      - master2
+      - master
 
 
 jobs:

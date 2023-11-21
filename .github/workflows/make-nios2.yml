@@ -3,7 +3,7 @@ name: nios2
 on:
   push:
     branches:
-      - master2
+      - master
 
 
 

@@ -3,7 +3,7 @@ name: kvx
 on:
   push:
     branches:
-      - master2
+      - master
 
 
 

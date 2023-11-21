@@ -3,7 +3,7 @@ name: h8300
 on:
   push:
     branches:
-      - master2
+      - master
 
 
 

@@ -3,7 +3,7 @@ name: microblazeel
 on:
   push:
     branches:
-      - master2
+      - master
 
 jobs:
       

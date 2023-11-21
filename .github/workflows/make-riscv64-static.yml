@@ -3,7 +3,7 @@ name: riscv64-static
 on:
   push:
     branches:
-      - master2
+      - master
 
 
 

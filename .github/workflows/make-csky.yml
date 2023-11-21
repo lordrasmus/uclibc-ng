@@ -3,7 +3,7 @@ name: csky
 on:
   push:
     branches:
-      - master2
+      - master
 
 
 

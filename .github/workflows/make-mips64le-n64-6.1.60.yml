@@ -3,7 +3,7 @@ name: mips64le-n64-6.1.60
 on:
   push:
     branches:
-      - master2
+      - master
 
 
 jobs:

@@ -3,7 +3,7 @@ name: ia64
 on:
   push:
     branches:
-      - master2
+      - master
 
 
 
