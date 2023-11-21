@@ -67,7 +67,7 @@ for f in matching_files:
         tmp = data["name"]+ "_test_result.svg"
         #line +="|[![" + data["name"] + "test](https://gist.githubusercontent.com/lordrasmus/867aa95ade60fa5b1ad098fa6c6a1968/raw/" + tmp + ")]"
         line +="|[![" + data["name"] + "test](https://uclibc-ng.tangotanzen.de/tests/" + tmp + ")]"
-        tmp = data["name"]+ "_test_result.txt"
+        tmp = data["name"]+ "_test_result.html"
         #line += "(https://gist.githubusercontent.com/lordrasmus/867aa95ade60fa5b1ad098fa6c6a1968/raw/" + tmp + ")"
         line += "(https://uclibc-ng.tangotanzen.de/tests/" + tmp + ")"
     else:
