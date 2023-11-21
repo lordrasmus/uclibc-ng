@@ -21,6 +21,7 @@ jobs:
       qemu_kernel: kernel-aarch64.img
       qemu_cmd: qemu-system-aarch64 -nographic -machine virt,gic-version=max -m 512M -cpu max -smp 4  -kernel kernel.img -initrd rootfs.img.xz
 
+
   call_images:
     needs: call_build
     uses: ./.github/workflows/z_images_workflow.yml

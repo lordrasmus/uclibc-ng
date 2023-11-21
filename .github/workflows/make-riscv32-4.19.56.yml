@@ -27,3 +27,10 @@ jobs:
     uses: ./.github/workflows/z_images_workflow.yml
     secrets: inherit
     
+#
+#  kernel startet aber es sieht so aus ob die uclibc-ng noch nicht richtig funnktioniert
+#
+#  call_qemu:
+#    needs: call_images
+#    uses: ./.github/workflows/z_qemu_test_run.yml
+#    secrets: inherit

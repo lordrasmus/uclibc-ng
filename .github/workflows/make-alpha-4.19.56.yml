@@ -21,6 +21,7 @@ jobs:
       qemu_kernel: kernel-alpha.img
       qemu_cmd:  qemu-system-alpha -nographic -m 512M -append console=ttyS0 -kernel kernel.img -initrd rootfs.img.xz
 
+
   call_images:
     needs: call_build
     uses: ./.github/workflows/z_images_workflow.yml
@@ -28,10 +29,6 @@ jobs:
 
 
   call_qemu:
-    permissions:
-     checks: write
-     pull-requests: write
-     
     needs: call_images
     uses: ./.github/workflows/z_qemu_test_run.yml
     secrets: inherit
