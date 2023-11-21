@@ -12,8 +12,8 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-xtensa_dc233c-gcc-10_nommu
-      gcc_prefix: xtensa-openadk-linux-uclibc-
+      toolchain: toolchain-br-xtensa_dc233c-gcc-12.3.0_LITTLE_nommu_static
+      gcc_prefix: xtensa-buildroot-uclinux-uclibc-
       kernel_vers: 4.19.56
       kernel_dir: v4.x
       kernel_arch: xtensa
