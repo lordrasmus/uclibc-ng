@@ -63,6 +63,7 @@ jobs:
       - name: analyse Test
         env:
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }} 
+          UPLOAD_KEY: ${{ secrets.UPLOAD_KEY }} 
         run: |
            python3 .github/tools/read_test_log.py
            cat test_summary.md >> $GITHUB_STEP_SUMMARY
