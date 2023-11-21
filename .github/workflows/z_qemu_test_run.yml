@@ -70,8 +70,8 @@ jobs:
            python3 .github/tools/post_badge.py ${{ github.workflow }}_test_result.svg badge.svg
            python3 .github/tools/post_badge.py ${{ github.workflow }}_test_result.txt log_text.txt
            
-           python3 .github/tools/upload.py ${{ github.workflow }}_test_result.svg badge.svg tests
-           python3 .github/tools/upload.py ${{ github.workflow }}_test_result.txt log_text.txt tests
+           python3 .github/tools/upload.py badge.svg    tests ${{ github.workflow }}_test_result.svg
+           python3 .github/tools/upload.py log_text.txt tests ${{ github.workflow }}_test_result.txt
   
 
       - name: upload 

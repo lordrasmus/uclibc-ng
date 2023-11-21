@@ -32,6 +32,8 @@ files = {'file': (file_path, data ), 'key': (None, api_key) }
 if len( sys.argv ) > 2:
     files["path"] = ( None, sys.argv[2] )
 
+if len( sys.argv ) > 3:
+    files["file"] = ( sys.argv[3] , data )
 
 pprint( files )
 
