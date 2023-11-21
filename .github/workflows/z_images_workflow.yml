@@ -97,6 +97,7 @@ jobs:
           . tests_disable
           CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/" LDFLAGS="--sysroot=$(pwd)/sysroot/ "   make -C uclibc-ng-test -j20 2>&1  | tee  testsuite_build.log
           CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/" LDFLAGS="--sysroot=$(pwd)/sysroot/ "   make -C uclibc-ng-test install DESTDIR=../rootfs > /dev/null 2>&1
+          find rootfs -type f -name '*.gdb' -exec rm {} \;
       
       
       - name: Build Busybox
@@ -125,8 +126,14 @@ jobs:
             sed -i 's|CONFIG_EXTRA_CFLAGS=".*"|CONFIG_EXTRA_CFLAGS="-mlongcalls"|g'  busybox-1.36.1/.config
           fi
           
-          make -C busybox-1.36.1 -j20
-          make -C busybox-1.36.1/ install
+          if [[ $UCLIBC_FORMAT_FLAT == "y" ]] ; then
+            echo "no strip"
+            SKIP_STRIP=y make -C busybox-1.36.1 -j20 busybox
+            SKIP_STRIP=y make -C busybox-1.36.1/ install > /dev/null
+          else
+            SKIP_STRIP=0 make -C busybox-1.36.1 -j20 busybox
+            SKIP_STRIP=0 make -C busybox-1.36.1/ install > /dev/null
+          fi
           
           
       - name: Build RootFS Image
