@@ -12,6 +12,12 @@ with open('kernel.img', 'r+b') as file:
     with open('rootfs.img', 'rb') as file2:
         # Binärdaten lesen
         new_string = file2.read()
+        
+    print("RootFS Size : " + str( len( new_string ) ))
+    
+    if len( new_string ) > 17825792:
+        print("   Size > 17825792")
+        exit(1)
 
     # Suchen nach dem zu ersetzenden String
     old_string = b'HIER_DAS_ECHTE_CPIO_HIN'
