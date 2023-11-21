@@ -77,9 +77,9 @@ flags="${flags/\"}"
 flags="${flags/\"}"
 
 flat=$(grep UCLIBC_FORMAT_FLAT= $1)
-flat="${flags/UCLIBC_EXTRA_CFLAGS=}"
-flat="${flags/\"}"
-flat="${flags/\"}"
+flat="${flat/UCLIBC_FORMAT_FLAT=}"
+flat="${flat/\"}"
+flat="${flat/\"}"
 
 
 
@@ -98,7 +98,7 @@ echo "THREADS : $threads"
 echo "LINKMODE: $shared"
 echo "VDSO    : $vdso"
 echo "FLAGS   : $flags"
-echo "Flat    : $flat"
+echo "FLAT    : $flat"
 
 
 
