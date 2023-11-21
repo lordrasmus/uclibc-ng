@@ -1,4 +1,4 @@
-
+<base target="_blank">
 
 # uClibc-ng Git Version Testing Fork
 
