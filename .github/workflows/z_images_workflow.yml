@@ -195,6 +195,7 @@ jobs:
           cp sysroot.tar.xz $devel_name/files/
           cp busybox-1.36.1.tar.bz2 $devel_name/files/
           cp rootfs.img* $devel_name/files/
+          cp uclibc-ng-config $devel_name/files/
           if [ -e kernel.img ] ; then cp kernel.img $devel_name/files/ ; fi
           if [ -e kernel.config ] ; then cp kernel.config $devel_name/files/ ; fi
           cp linux-$CONFIG_KERNEL_VERS.tar.xz $devel_name/files/
