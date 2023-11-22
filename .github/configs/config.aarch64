@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# uClibc-ng 1.0.42 C Library Configuration
+# uClibc-ng 1.0.44 C Library Configuration
 #
 TARGET_aarch64=y
 # TARGET_alpha is not set
@@ -61,7 +61,7 @@ UCLIBC_HAS_FPU=y
 DO_C99_MATH=y
 DO_XSI_MATH=y
 UCLIBC_HAS_LONG_DOUBLE_MATH=y
-KERNEL_HEADERS="linux-headers/include"
+KERNEL_HEADERS="../sysroot/usr/include"
 HAVE_DOT_CONFIG=y
 
 #
@@ -78,7 +78,6 @@ LDSO_PRELOAD_ENV_SUPPORT=y
 LDSO_BASE_FILENAME="ld.so"
 # LDSO_STANDALONE_SUPPORT is not set
 # LDSO_PRELINK_SUPPORT is not set
-# VDSO_SUPPORT is not set
 UCLIBC_STATIC_LDCONFIG=y
 LDSO_RUNPATH=y
 # LDSO_RUNPATH_OF_EXECUTABLE is not set
@@ -89,6 +88,7 @@ UCLIBC_CTOR_DTOR=y
 # LDSO_GNU_HASH_SUPPORT is not set
 HAS_NO_THREADS=y
 # UCLIBC_HAS_THREADS_NATIVE is not set
+PTHREADS_STACK_DEFAULT_SIZE=2097152
 UCLIBC_HAS_SYSLOG=y
 UCLIBC_HAS_LFS=y
 # MALLOC is not set
@@ -206,7 +206,7 @@ UCLIBC_HAS_SIGNUM_MESSAGES=y
 UCLIBC_HAS_GNU_GETOPT=y
 UCLIBC_HAS_GETOPT_LONG=y
 UCLIBC_HAS_GNU_GETSUBOPT=y
-# UCLIBC_HAS_ARGP is not set
+UCLIBC_HAS_ARGP=y
 
 #
 # Big and Tall
@@ -241,8 +241,8 @@ UCLIBC_BUILD_NOEXECSTACK=y
 #
 CROSS_COMPILER_PREFIX=""
 UCLIBC_EXTRA_CFLAGS="-fworking-directory -fvar-tracking-assignments -frecord-gcc-switches -funwind-tables -ggdb3 -gdwarf-4  -Os -Wno-unused-variable -Wno-suggest-attribute -Wno-shadow -Wno-old-style-definition -Wno-unused-but-set-variable -Wno-maybe-uninitialized -Wno-strict-aliasing -Wno-missing-prototypes -Wno-missing-declarations"
-DOSTRIP=y
 # DODEBUG is not set
+DOSTRIP=y
 # DOASSERTS is not set
 # SUPPORT_LD_DEBUG is not set
 # SUPPORT_LD_DEBUG_EARLY is not set
