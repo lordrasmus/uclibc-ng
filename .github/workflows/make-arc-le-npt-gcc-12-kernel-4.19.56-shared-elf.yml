@@ -1,0 +1,34 @@
+name: arc-le-npt-gcc-12-kernel-4.19.56-shared-elf
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+
+jobs:
+
+
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-arc_arc700-gcc-12
+      gcc_prefix: arc-openadk-linux-uclibc-
+      kernel_vers: 4.19.56
+      kernel_dir: v4.x
+      kernel_arch: arc
+      config_file: config.arc
+      qemu_kernel:
+      qemu_cmd:
+
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+
+
+

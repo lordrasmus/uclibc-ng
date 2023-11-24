@@ -1,0 +1,38 @@
+name: microblaze-le-npt-gcc-12-kernel-5.4.259-shared-elf
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+
+jobs:
+      
+      
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-microblazeel_gcc-12
+      gcc_prefix: microblazeel-openadk-linux-uclibc-
+      kernel_vers: 5.4.259
+      kernel_dir: v5.x
+      kernel_arch: microblaze
+      config_file: config.microblazeel
+      qemu_kernel: kernel-microblazeel.img
+      qemu_cmd: qemu-system-microblazeel -M petalogix-s3adsp1800 -nographic -kernel kernel.img -initrd rootfs.img.xz
+
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+    
+    
+  call_qemu:
+    needs: call_images
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit 

@@ -117,7 +117,11 @@ jobs:
           sed -i 's|CONFIG_SYSROOT=""|CONFIG_SYSROOT="'$(pwd)'/sysroot/"|' busybox-1.36.1/.config
           sed -i 's|CONFIG_PREFIX="./_install"|CONFIG_PREFIX="../rootfs"|'  busybox-1.36.1/.config
           sed -i 's|CONFIG_FEATURE_EJECT_SCSI=y|# CONFIG_FEATURE_EJECT_SCSI is not set|'  busybox-1.36.1/.config
-          sed -i 's|# CONFIG_STATIC is not set|CONFIG_STATIC=y|'  busybox-1.36.1/.config
+          
+          if [[ $UCLIBC_VDSO == "No" ]] ; then
+            sed -i 's|# CONFIG_STATIC is not set|CONFIG_STATIC=y|'  busybox-1.36.1/.config
+          fi
+          
           sed -i 's|CONFIG_MKSWAP=y|# CONFIG_MKSWAP is not set|'  busybox-1.36.1/.config
           sed -i 's|CONFIG_SWAPON=y|# CONFIG_SWAPON is not set|'  busybox-1.36.1/.config
           sed -i 's|CONFIG_SWAPOFF=y|# CONFIG_SWAPOFF is not set|'  busybox-1.36.1/.config
@@ -189,6 +193,7 @@ jobs:
           
       
       - name: create Devel Package
+        if: github.event_name == 'push'
         env:
           UPLOAD_KEY: ${{ secrets.UPLOAD_KEY }} 
         run: |

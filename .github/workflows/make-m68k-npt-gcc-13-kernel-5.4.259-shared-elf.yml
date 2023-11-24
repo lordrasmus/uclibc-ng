@@ -1,0 +1,37 @@
+name: m68k-npt-gcc-13-kernel-5.4.259-shared-elf
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+
+jobs:
+
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-m68k_68040-gcc-13
+      gcc_prefix: m68k-openadk-linux-uclibc-
+      kernel_vers: 5.4.259
+      kernel_dir: v5.x
+      kernel_arch: m68k
+      config_file: config.m68k
+      qemu_kernel: kernel-m68k.img
+      qemu_cmd: qemu-system-m68k -nographic -M virt -m 512M -kernel kernel.img  -initrd rootfs.img.xz 
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+    
+ 
+  call_qemu:
+    needs: call_images
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit
+

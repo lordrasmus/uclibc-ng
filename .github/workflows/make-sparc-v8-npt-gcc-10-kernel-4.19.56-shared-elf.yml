@@ -1,0 +1,36 @@
+name: sparc-v8-npt-gcc-10-kernel-4.19.56-shared-elf
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+
+jobs:
+
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-sparc_v8-gcc-10
+      gcc_prefix: sparc-openadk-linux-uclibc-
+      kernel_vers: 4.19.56
+      kernel_dir: v4.x
+      kernel_arch: sparc
+      config_file: config.sparc_nptl
+      qemu_kernel: kernel-sparc.img
+      qemu_cmd:  qemu-system-sparc -monitor none -parallel none -net none -M SS-20 -m 256 -kernel kernel.img  -initrd rootfs.img.xz -nographic
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+
+
+  call_qemu:
+    needs: call_images
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit

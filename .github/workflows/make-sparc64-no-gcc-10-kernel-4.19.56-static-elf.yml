@@ -1,0 +1,37 @@
+name: sparc64-no-gcc-10-kernel-4.19.56-static-elf
+
+on:
+  push:
+    branches:
+      - master
+      - qemu_test
+  pull_request:
+    branches:
+      - master
+
+jobs:
+
+      
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-sparc64_v9-gcc-10
+      gcc_prefix: sparc64-openadk-linux-uclibc-
+      kernel_vers: 4.19.56
+      kernel_dir: v4.x
+      kernel_arch: sparc64
+      config_file: config.sparc64
+      qemu_kernel: kernel-sparc64.img
+      qemu_cmd: qemu-system-sparc64 -M sun4u -m 512M -nographic -kernel kernel.img -initrd rootfs.img.xz
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+    
+    
+  call_qemu:
+    needs: call_images
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit

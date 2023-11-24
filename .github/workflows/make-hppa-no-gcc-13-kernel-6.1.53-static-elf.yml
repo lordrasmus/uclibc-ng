@@ -1,0 +1,34 @@
+name: hppa-no-gcc-13-kernel-6.1.53-static-elf
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+      
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-hppa-gcc-13
+      gcc_prefix: hppa-openadk-linux-uclibc-
+      kernel_vers: 6.1.53
+      kernel_dir: v6.x
+      kernel_arch: parisc
+      config_file: config.hppa
+      qemu_kernel: kernel-hppa.img
+      qemu_cmd:  qemu-system-hppa -kernel  kernel.img -initrd rootfs.img -nographic
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+    
+  call_qemu:
+    needs: call_images
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit

@@ -1,0 +1,47 @@
+name: mips32-le-npt-gcc-13-kernel-4.19.56-shared-elf
+
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+
+#      - name: Run static
+#        run: cp .github/workflows/config.mips_static .config && CROSS_COMPILE=mipsel-linux-gnu- make
+#
+#      - name: Run shared vdso
+#        run: cp .github/workflows/config.mips_shared_vdso .config && CROSS_COMPILE=mipsel-linux-gnu- make
+#
+#      - name: Run shared vdso
+#        run: cp .github/workflows/config.mips_static_vdso .config && CROSS_COMPILE=mipsel-linux-gnu- make
+
+
+jobs:
+      
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-mips32el-gcc-13_hard
+      gcc_prefix: mipsel-openadk-linux-uclibc-
+      kernel_vers: 4.19.56
+      kernel_dir: v4.x
+      kernel_arch: mips
+      config_file: config.mips_shared
+      qemu_kernel: kernel-mips32el.img
+      qemu_cmd: qemu-system-mipsel -M malta -nographic -kernel kernel.img -initrd rootfs.img
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+    
+
+  call_qemu:
+    needs: call_images
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit

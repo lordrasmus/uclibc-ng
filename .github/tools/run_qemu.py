@@ -47,8 +47,9 @@ pipe_out = os.open("guest_pipe.out", os.O_RDONLY | os.O_NONBLOCK)
 if not os.path.exists( "qemu-inst.tar.xz" ):
     os.system('wget -nv  "https://github.com/lordrasmus/uclibc-ng-qemu-imgs/blob/main/qemu-inst.tar.xz?raw=true" -O qemu-inst.tar.xz')
     os.system("tar -xaf qemu-inst.tar.xz")
-    
-ret = subprocess.getstatusoutput("./qemu-inst/bin/qemu-system-aarch64 --version")
+
+
+ret = subprocess.getstatusoutput("./qemu-inst/bin/" + cmd.split(" ")[0] + " --version")
 
 print( "Qemu Command : " + cmd )
 print( "Qemu Version : " + ret[1] )
