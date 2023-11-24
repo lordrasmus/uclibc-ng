@@ -31,3 +31,8 @@ with open('kernel.img', 'r+b') as file:
         
         # Den neuen String schreiben
         file.write(new_string)
+        print("rootfs.img written to kernel image")
+        exit(0)
+    
+    print("HIER_DAS_ECHTE_CPIO_HIN not found in kernel image")
+    exit(1)
