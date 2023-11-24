@@ -5,7 +5,9 @@ on:
     branches:
       - master
 
+
 jobs:
+      
       
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
@@ -16,11 +18,17 @@ jobs:
       kernel_dir: v5.x
       kernel_arch: microblaze
       config_file: config.microblazeel
-      qemu_kernel: 
-      qemu_cmd: 
+      qemu_kernel: kernel-microblazeel.img
+      qemu_cmd: qemu-system-microblazeel -M petalogix-s3adsp1800 -nographic -kernel kernel.img -initrd rootfs.img.xz
+
 
   call_images:
     needs: call_build
     uses: ./.github/workflows/z_images_workflow.yml
     secrets: inherit
     
+    
+  call_qemu:
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit 
