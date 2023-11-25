@@ -13,7 +13,7 @@ with open('kernel.img', 'r+b') as file:
         # Binärdaten lesen
         new_string = file2.read()
         
-    print("RootFS Size : " + str( len( new_string ) ))
+    print("  RootFS Size   : " + str( len( new_string ) ))
     
     if len( new_string ) > 17825792:
         print("   Size > 17825792")
@@ -23,7 +23,7 @@ with open('kernel.img', 'r+b') as file:
     old_string = b'HIER_DAS_ECHTE_CPIO_HIN'
     
     index = data.find(old_string)
-    print( index )
+    print( "  Kernel Offset : " + str( index ) )
     # Überprüfen, ob der zu ersetzende String gefunden wurde
     if index != -1:
         # Zur Position im File-Objekt springen
