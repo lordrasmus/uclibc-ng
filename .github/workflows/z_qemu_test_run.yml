@@ -57,6 +57,7 @@ jobs:
         run: |
           if [[ $CONFIG_KERNEL_ARCH == "xtensa" ]] ;  then python3 .github/tools/xtensa-cpio-hack.py; fi
           if [[ $CONFIG_KERNEL_ARCH == "kvx" ]] ;     then python3 .github/tools/xtensa-cpio-hack.py; fi
+          if [[ $CONFIG_KERNEL_ARCH == "csky" ]] ;    then python3 .github/tools/xtensa-cpio-hack.py; fi
           echo "Qemu Command : $CONFIG_QEMU_CMD"
           python3 .github/tools/run_qemu.py
            
