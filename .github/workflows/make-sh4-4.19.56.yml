@@ -28,11 +28,7 @@ jobs:
     secrets: inherit
 
 
-  call_qemu:
-    permissions:
-     checks: write
-     pull-requests: write
-     
+  call_qemu:     
     needs: call_images
     uses: ./.github/workflows/z_qemu_test_run.yml
     secrets: inherit
