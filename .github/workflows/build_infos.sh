@@ -43,7 +43,7 @@ if [[ $tmp == "UCLIBC_HAS_THREADS_NATIVE=y"* ]]; then
 fi
 
 
-tmp=$(grep VDSO_SUPPORT $1)
+tmp=$(grep ^VDSO_SUPPORT $1)
 if [[ $tmp == "VDSO_SUPPORT=y"* ]]; then
         vdso="Yes"
 else
