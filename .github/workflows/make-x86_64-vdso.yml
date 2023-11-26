@@ -17,8 +17,8 @@ jobs:
       kernel_dir: v4.x
       kernel_arch: x86_64
       config_file: config.x86_64_shared_vdso
-      qemu_kernel: 
-      qemu_cmd: 
+      qemu_kernel: kernel-x86_64.img
+      qemu_cmd: qemu-system-x86_64 -m 1G -smp 4 -append "console=ttyS0" -kernel kernel.img  -initrd rootfs.img.xz -nographic
 
 
   call_images:
