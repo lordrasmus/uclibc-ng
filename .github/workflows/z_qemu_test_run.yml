@@ -50,7 +50,7 @@ jobs:
         run: |
           wget -nv  "https://github.com/lordrasmus/uclibc-ng-qemu-imgs/blob/main/qemu-inst.tar.xz?raw=true" -O qemu-inst.tar.xz
           tar -xaf qemu-inst.tar.xz
-          ./qemu-inst/bin/qemu-system-aarch64 --version
+          #./qemu-inst/bin/qemu-system-aarch64 --version
       
           
       - name: run Qemu
