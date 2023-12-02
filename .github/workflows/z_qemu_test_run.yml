@@ -50,7 +50,6 @@ jobs:
         run: |
           wget -nv  "https://github.com/lordrasmus/uclibc-ng-qemu-imgs/blob/main/qemu-inst.tar.xz?raw=true" -O qemu-inst.tar.xz
           tar -xaf qemu-inst.tar.xz
-          #./qemu-inst/bin/qemu-system-aarch64 --version
       
           
       - name: run Qemu
@@ -62,18 +61,23 @@ jobs:
           python3 .github/tools/run_qemu.py
            
       - name: analyse Test
+        run: |
+           python3 .github/tools/read_test_log.py
+           cat test_summary.md >> $GITHUB_STEP_SUMMARY
+        
+           
+      - name: upload Test
+        if: github.event_name == 'push'
         env:
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }} 
           UPLOAD_KEY: ${{ secrets.UPLOAD_KEY }} 
         run: |
-           python3 .github/tools/read_test_log.py
-           cat test_summary.md >> $GITHUB_STEP_SUMMARY
-           
-           python3 .github/tools/post_badge.py ${{ github.workflow }}_test_result.svg badge.svg
-           python3 .github/tools/post_badge.py ${{ github.workflow }}_test_result.txt log_text.txt
+           #python3 .github/tools/post_badge.py ${{ github.workflow }}_test_result.svg badge.svg
+           #python3 .github/tools/post_badge.py ${{ github.workflow }}_test_result.txt log_text.txt
            
            python3 .github/tools/upload.py badge.svg    tests ${{ github.workflow }}_test_result.svg
            python3 .github/tools/upload.py log_text.txt tests ${{ github.workflow }}_test_result.txt
+  
   
 
       - name: upload 
