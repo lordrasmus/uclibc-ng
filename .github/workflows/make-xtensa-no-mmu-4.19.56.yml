@@ -1,4 +1,4 @@
-name: xtensa-no-mmu-4.19.56
+name: xtensa-le-gcc-12-kernel-4.19.56-static-nommu-flat
 
 on:
   push:
