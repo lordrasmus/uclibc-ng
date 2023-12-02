@@ -5,7 +5,7 @@
 
 #include <fenv.h>
 
-#error 2
+#error 3
 
 int fegetenv(fenv_t *envp)
 {
