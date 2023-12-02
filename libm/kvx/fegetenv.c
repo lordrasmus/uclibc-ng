@@ -5,6 +5,8 @@
 
 #include <fenv.h>
 
+#error
+
 int fegetenv(fenv_t *envp)
 {
   /* Get the current environment ($cs) */
