@@ -193,6 +193,7 @@ jobs:
           
       
       - name: create Devel Package
+        if: github.event_name == 'push'
         env:
           UPLOAD_KEY: ${{ secrets.UPLOAD_KEY }} 
         run: |
