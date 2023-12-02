@@ -371,10 +371,10 @@ for f in sorted(matching_files):
         print("\033[01;33m pull_request: fehlt in on:\033[00m")
         continue
     
-    #if "call_qemu" in data["jobs"] and not "if" in data["jobs"]["call_qemu"]:
-    #    print( f.ljust(80) ,  end='')
-    #    print("\033[01;33mif: github.event_name == 'push' fehlt im call_qemu:\033[00m")
-    #    continue
+    if "call_qemu" in data["jobs"] and not "if" in data["jobs"]["call_qemu"]:
+        print( f.ljust(80) ,  end='')
+        print("\033[01;33mif: github.event_name == 'push' fehlt im call_qemu:\033[00m")
+        continue
         
     
     # print( infos )
