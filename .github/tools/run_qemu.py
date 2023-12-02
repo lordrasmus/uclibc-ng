@@ -113,6 +113,10 @@ while True:
         
     if "-------------------- tests_end --------------------------" in test_log:
         break;
+        
+    
+    if "Kernel panic - not syncing: Attempted to kill init" in test_log:
+        break;
 
 #os.close(pipe_out)
  
