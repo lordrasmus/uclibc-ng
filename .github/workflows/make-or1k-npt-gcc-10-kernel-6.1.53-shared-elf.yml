@@ -1,7 +1,10 @@
-name: or1k
+name: or1k-npt-gcc-10-kernel-6.1.53-shared-elf
 
 on:
   push:
+    branches:
+      - master
+  pull_request:
     branches:
       - master
 

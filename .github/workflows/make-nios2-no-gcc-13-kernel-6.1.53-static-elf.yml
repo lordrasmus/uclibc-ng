@@ -1,7 +1,10 @@
-name: nios2
+name: nios2-no-gcc-13-kernel-6.1.53-static-elf
 
 on:
   push:
+    branches:
+      - master
+  pull_request:
     branches:
       - master
 

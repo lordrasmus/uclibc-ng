@@ -1,7 +1,10 @@
-name: kvx
+name: kvx-v1-npt-gcc-9-kernel-kvx-shared-elf
 
 on:
   push:
+    branches:
+      - master
+  pull_request:
     branches:
       - master
 

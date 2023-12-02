@@ -1,7 +1,10 @@
-name: hppa
+name: hppa-no-gcc-13-kernel-6.1.53-static-elf
 
 on:
   push:
+    branches:
+      - master
+  pull_request:
     branches:
       - master
 

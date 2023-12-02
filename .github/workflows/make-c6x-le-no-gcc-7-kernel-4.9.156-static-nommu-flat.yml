@@ -1,7 +1,10 @@
-name: c6x
+name: c6x-le-no-gcc-7-kernel-4.9.156-static-nommu-flat
 
 on:
   push:
+    branches:
+      - master
+  pull_request:
     branches:
       - master
 

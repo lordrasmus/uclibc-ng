@@ -1,7 +1,10 @@
-name: riscv32-4.19.56
+name: riscv32-no-gcc-10-kernel-4.19.56-static-nommu-flat
 
 on:
   push:
+    branches:
+      - master
+  pull_request:
     branches:
       - master
 

@@ -1,7 +1,10 @@
-name: mips64le-n64-6.1.60
+name: mips64-le-n64-npt-gcc-13-kernel-6.1.60-shared-elf
 
 on:
   push:
+    branches:
+      - master
+  pull_request:
     branches:
       - master
 

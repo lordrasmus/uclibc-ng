@@ -1,7 +1,10 @@
-name: avr32-4.4.302
+name: avr32-lt-gcc-4-kernel-4.4.302-shared-elf
 
 on:
   push:
+    branches:
+      - master
+  pull_request:
     branches:
       - master
 

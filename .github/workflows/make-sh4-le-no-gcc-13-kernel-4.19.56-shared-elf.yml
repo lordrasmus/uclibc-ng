@@ -1,9 +1,12 @@
-name: sh4-4.19.56
+name: sh4-le-no-gcc-13-kernel-4.19.56-shared-elf
 
 # https://app.assembla.com/wiki/show/qemu-sh4/BuildingEnvironment/31
 
 on:
   push:
+    branches:
+      - master
+  pull_request:
     branches:
       - master
 

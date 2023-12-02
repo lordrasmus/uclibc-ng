@@ -1,7 +1,10 @@
-name: h8300
+name: h8300h-no-gcc-13-kernel-4.4.302-static-nommu-flat
 
 on:
   push:
+    branches:
+      - master
+  pull_request:
     branches:
       - master
 

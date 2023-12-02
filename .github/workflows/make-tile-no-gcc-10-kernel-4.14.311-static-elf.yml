@@ -1,7 +1,10 @@
-name: tile-4.14.311
+name: tile-no-gcc-10-kernel-4.14.311-static-elf
 
 on:
   push:
+    branches:
+      - master
+  pull_request:
     branches:
       - master
 

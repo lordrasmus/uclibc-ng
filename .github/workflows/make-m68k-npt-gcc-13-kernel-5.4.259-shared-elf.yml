@@ -1,7 +1,10 @@
-name: m68k
+name: m68k-npt-gcc-13-kernel-5.4.259-shared-elf
 
 on:
   push:
+    branches:
+      - master
+  pull_request:
     branches:
       - master
 

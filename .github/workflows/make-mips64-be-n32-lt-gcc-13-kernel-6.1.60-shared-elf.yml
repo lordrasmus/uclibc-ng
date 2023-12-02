@@ -1,7 +1,10 @@
-name: mips64-n32-6.1.60
+name: mips64-be-n32-lt-gcc-13-kernel-6.1.60-shared-elf
 
 on:
   push:
+    branches:
+      - master
+  pull_request:
     branches:
       - master
 

@@ -1,7 +1,10 @@
-name: sparc_linuxthreads-4.19.56
+name: sparc-v8-lt-gcc-10-kernel-4.19.56-shared-elf
 
 on:
   push:
+    branches:
+      - master
+  pull_request:
     branches:
       - master
 

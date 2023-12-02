@@ -1,7 +1,10 @@
-name: sh2-4.19.56
+name: sh2-be-no-gcc-10-kernel-4.19.56-static-nommu-flat
 
 on:
   push:
+    branches:
+      - master
+  pull_request:
     branches:
       - master
 

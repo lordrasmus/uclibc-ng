@@ -1,7 +1,10 @@
-name: mips64-n32-4.19.56
+name: mips64-be-n32-lt-gcc-13-kernel-4.19.56-shared-elf
 
 on:
   push:
+    branches:
+      - master
+  pull_request:
     branches:
       - master
 

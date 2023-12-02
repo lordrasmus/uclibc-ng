@@ -1,7 +1,10 @@
-name: bfin
+name: bfin-no-gcc-13-kernel-4.9.156-static-nommu-flat
 
 on:
   push:
+    branches:
+      - master
+  pull_request:
     branches:
       - master
 
