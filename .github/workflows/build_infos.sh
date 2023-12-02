@@ -66,6 +66,13 @@ if [[ $arch == "sh" ]] ; then
         if [[ $(grep CONFIG_SH4= $1) == "CONFIG_SH4=y"* ]]; then  subarch="sh4";  fi
 fi
 
+if [[ $arch == "h8300" ]] ; then
+        
+        if [[ $(grep CONFIG_H8300H= $1) == "CONFIG_H8300H=y"* ]]; then  subarch="h8000h";  fi
+
+fi
+
+
 if [[ $subarch == "unkown" ]] ; then
         echo "Arch detect Error : ARCH $arch" ; exit 1
 fi

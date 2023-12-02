@@ -12,7 +12,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-h8300-gcc-13.2.0_nommu_static
+      toolchain: toolchain-h8300_h83000h-gcc-13.2.0_nommu_static
       gcc_prefix: h8300-openadk-linux-uclibc-
       kernel_vers: 4.4.302
       kernel_dir: v4.x
