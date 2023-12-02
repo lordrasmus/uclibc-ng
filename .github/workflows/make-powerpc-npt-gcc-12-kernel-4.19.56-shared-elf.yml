@@ -36,10 +36,7 @@ jobs:
 # https://community.mnt.re/t/old-mac-os-on-reform-with-qemu/881/9
 
   call_qemu:
-    permissions:
-     checks: write
-     pull-requests: write
-
     needs: call_images
+    if: github.event_name == 'push'
     uses: ./.github/workflows/z_qemu_test_run.yml
     secrets: inherit

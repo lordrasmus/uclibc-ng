@@ -33,5 +33,6 @@ jobs:
 
   call_qemu:    
     needs: call_images
+    if: github.event_name == 'push'
     uses: ./.github/workflows/z_qemu_test_run.yml
     secrets: inherit
