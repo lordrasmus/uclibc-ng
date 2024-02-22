@@ -900,7 +900,8 @@ struct elf_resolve *_dl_load_elf_shared_library(unsigned int rflags,
 		_dl_memset(*rpnt, 0, sizeof(struct dyn_elf));
 	}
 #endif
-	(*rpnt)->dyn = tpnt;
+	if (*rpnt)
+		(*rpnt)->dyn = tpnt;
 	tpnt->usage_count++;
 	if (tpnt->rtld_flags & RTLD_NODELETE)
 		tpnt->usage_count++;
@@ -1026,6 +1027,11 @@ int _dl_fixup(struct dyn_elf *rpnt, struct r_scope_elem *scope, int now_flag)
 		goof++;
 		return goof;
 	}
+
+#if !defined(__FDPIC__) && !defined(__DSBT__)
+	/* Process DT_RELR relative relocations */
+	DL_RELOCATE_RELR(tpnt);
+#endif
 
 	reloc_size = tpnt->dynamic_info[DT_RELOC_TABLE_SIZE];
 /* On some machines, notably SPARC & PPC, DT_REL* includes DT_JMPREL in its
