@@ -115,7 +115,7 @@ jobs:
           cp linux-$CONFIG_KERNEL_VERS.tar.xz artifacts
         
       - name: upload prebuild Artifacts
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: artifacts
           path: artifacts
@@ -159,20 +159,20 @@ jobs:
           ( cd artifacts ; tar -cf sysroot.tar sysroot ; rm -rf sysroot )
 
       - name: upload Artifacts
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: artifacts
           path: artifacts
           overwrite: true
       
       - name: upload build.log
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: build.log
           path: build.log
       
       - name: upload uClibc-ng Config
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: config
           path: .config
