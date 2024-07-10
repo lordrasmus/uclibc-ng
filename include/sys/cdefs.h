@@ -58,9 +58,15 @@
 #  define __NTH(fct)	__attribute__ ((__nothrow__ __LEAF)) fct
 # else
 #  if defined __cplusplus && __GNUC_PREREQ (2,8)
-#   define __THROW	throw ()
-#   define __THROWNL	throw ()
-#   define __NTH(fct)	__LEAF_ATTR fct throw ()
+/* Dynamic exception specification is deprecated since C++11, so
+   we only use it when compiling for an earlier standard.  */
+#   if __cplusplus < 201103UL
+#    define __THROW	throw ()
+#   else
+#    define __THROW	noexcept
+#   endif
+#   define __THROWNL	__THROW
+#   define __NTH(fct)	__LEAF_ATTR fct __THROW
 #  else
 #   define __THROW
 #   define __THROWNL
@@ -314,7 +320,7 @@
    inline semantics, unless -fgnu89-inline is used.
    For -std=gnu99, forcing gnu_inline attribute does not change behavior,
    but may silence spurious warnings (such as in GCC 4.2).  */
-#if !defined __cplusplus || __GNUC_PREREQ (4,3)
+#if !defined __cplusplus || __GNUC_PREREQ (4,3) || __CLANG_PREREQ(8,0)
 # if defined __GNUC_STDC_INLINE__ || defined __GNUC_GNU_INLINE__ || defined __cplusplus
 #  define __extern_inline extern __inline __attribute__ ((__gnu_inline__))
 #  if __GNUC_PREREQ (4,3)
