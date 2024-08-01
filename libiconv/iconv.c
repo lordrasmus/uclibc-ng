@@ -199,7 +199,7 @@ static void put_16(unsigned char *s, unsigned c, int e)
 static unsigned get_32(const unsigned char *s, int e)
 {
 	e &= 3;
-	return s[e]+0U<<24 | s[e^1]<<16 | s[e^2]<<8 | s[e^3];
+	return (s[e]+0U)<<24 | s[e^1]<<16 | s[e^2]<<8 | s[e^3];
 }
 
 static void put_32(unsigned char *s, unsigned c, int e)
@@ -242,7 +242,7 @@ static inline int utf8enc_wchar(char *outb, wchar_t c)
 	}
 }
 
-static inline int utf8seq_is_overlong(char *s, int n)
+static inline int utf8seq_is_overlong(unsigned char *s, int n)
 {
 	switch (n)
 	{
@@ -268,12 +268,12 @@ static inline int utf8seq_is_overlong(char *s, int n)
 	return 0;
 }
 
-static inline int utf8seq_is_surrogate(char *s, int n)
+static inline int utf8seq_is_surrogate(unsigned char *s, int n)
 {
 	return ((n == 3) && (*s == 0xED) && (*(s+1) >= 0xA0) && (*(s+1) <= 0xBF));
 }
 
-static inline int utf8seq_is_illegal(char *s, int n)
+static inline int utf8seq_is_illegal(unsigned char *s, int n)
 {
 	return ((n == 3) && (*s == 0xEF) && (*(s+1) == 0xBF) &&
 	        (*(s+2) >= 0xBE) && (*(s+2) <= 0xBF));
@@ -331,7 +331,7 @@ static unsigned legacy_map(const unsigned char *map, unsigned c)
 {
 	if (c < 4*map[-1]) return c;
 	unsigned x = c - 4*map[-1];
-	x = map[x*5/4]>>2*x%8 | map[x*5/4+1]<<8-2*x%8 & 1023;
+	x = map[x*5/4]>>(2*x%8) | (map[x*5/4+1]<<(8-2*x%8) & 1023);
 	return x < 256 ? x : legacy_chars[x-256];
 }
 
@@ -384,7 +384,7 @@ size_t iconv(iconv_t cd, char **restrict in, size_t *restrict inb, char **restri
 			if (c < 128) break;
 			else {
 				wchar_t wc;
-				l = utf8dec_wchar(&wc, *in, *inb);
+				l = utf8dec_wchar(&wc, (unsigned char*)(*in), *inb);
 				c = wc;
 			}
 			if (!l) l++;
