@@ -187,7 +187,7 @@ jobs:
             infos.json  
             linux-*
             sysroot.tar  
-            toolchain-*
+            toolchain-*.tar.xz
             uclibc-ng-config
             
      
