@@ -157,6 +157,7 @@ jobs:
       - name: copy Sysroot
         run: |
           ( cd artifacts ; tar -cf sysroot.tar sysroot ; rm -rf sysroot )
+          ls -all
 
       - name: upload Artifacts
         uses: actions/upload-artifact@v4
