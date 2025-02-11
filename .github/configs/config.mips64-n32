@@ -257,3 +257,4 @@ UCLIBC_EXTRA_CFLAGS="-Wno-pointer-to-int-cast -Wno-format"
 # UCLIBC_HAS_BACKTRACE is not set
 WARNINGS="-Wall"
 # EXTRA_WARNINGS is not set
+UCLIBC_USE_TIME64=n
