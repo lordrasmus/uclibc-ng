@@ -25,8 +25,18 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: artifacts
+          overwrite: true
           path: |
             .github/tools/run_qemu.py
+            kernel.img
+            kernel.config
+            rootfs.img
+            rootfs.img.xz
+            infos.json  
+            linux-*
+            sysroot.tar  
+            toolchain-*
+            uclibc-ng-config
       
       - name: Download a single artifact
         uses: actions/download-artifact@v4
