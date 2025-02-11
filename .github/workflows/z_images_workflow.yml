@@ -14,7 +14,7 @@ jobs:
           fetch-depth: 1
           
       - name: Download a single artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: artifacts
     
@@ -175,7 +175,7 @@ jobs:
           echo "$CONFIG_QEMU_CMD" >> $GITHUB_STEP_SUMMARY
 
       - name: upload RootFS Image
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: artifacts
           path: |
@@ -186,7 +186,7 @@ jobs:
             
      
       - name: upload testsuite_build.log
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: testsuite_build.log
           path: testsuite_build.log

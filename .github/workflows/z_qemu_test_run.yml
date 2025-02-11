@@ -22,14 +22,14 @@ jobs:
           fetch-depth: 1
       
       - name: upload Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: artifacts
           path: |
             .github/tools/run_qemu.py
       
       - name: Download a single artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: artifacts
        
