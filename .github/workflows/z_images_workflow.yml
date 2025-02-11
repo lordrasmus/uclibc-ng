@@ -178,11 +178,17 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: artifacts
+          overwrite: true
           path: |
             kernel.img
             kernel.config
             rootfs.img
             rootfs.img.xz
+            infos.json  
+            linux-*
+            sysroot.tar  
+            toolchain-*
+            uclibc-ng-config
             
      
       - name: upload testsuite_build.log
