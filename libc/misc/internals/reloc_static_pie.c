@@ -25,7 +25,9 @@
 #include <dl-startup.h>
 #endif
 
+#ifdef __UCLIBC_HAS_THREADS_NATIVE__
 extern ElfW(Addr) _dl_load_base;
+#endif
 
 void
 reloc_static_pie (ElfW(Addr) load_addr);
@@ -111,5 +113,7 @@ reloc_static_pie(ElfW(Addr) load_addr)
 			(void)rel_size;
 #endif
     }
+#ifdef __UCLIBC_HAS_THREADS_NATIVE__
     _dl_load_base = load_addr;
+#endif
 }
