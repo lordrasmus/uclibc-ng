@@ -22,14 +22,24 @@ jobs:
           fetch-depth: 1
       
       - name: upload Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: artifacts
+          overwrite: true
           path: |
             .github/tools/run_qemu.py
+            kernel.img
+            kernel.config
+            rootfs.img
+            rootfs.img.xz
+            infos.json  
+            linux-*
+            sysroot.tar  
+            toolchain-*.tar.xz
+            uclibc-ng-config
       
       - name: Download a single artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: artifacts
        
@@ -81,7 +91,7 @@ jobs:
   
 
       - name: upload 
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: Test_Result
