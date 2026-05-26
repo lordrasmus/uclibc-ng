@@ -1263,6 +1263,10 @@ extern int getentropy(void *__buf, size_t __len) __nonnull ((1)) __wur;
 extern __pid_t gettid(void);
 #endif
 
+#ifdef _GNU_SOURCE
+ssize_t copy_file_range(int, off_t *, int, off_t *, size_t, unsigned);
+#endif
+
 __END_DECLS
 
 
@@ -1272,7 +1276,6 @@ __END_DECLS
 #endif
 typedef signed smallint_type smallint;
 typedef unsigned smallint_type smalluint;
-extern size_t __pagesize attribute_hidden;
 #endif
 
 

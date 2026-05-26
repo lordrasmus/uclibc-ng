@@ -31,6 +31,20 @@ __dl_iterate_phdr (int (*callback) (struct dl_phdr_info *info, size_t size, void
 		info.dlpi_name = l->libname;
 		info.dlpi_phdr = l->ppnt;
 		info.dlpi_phnum = l->n_phent;
+		info.dlpi_adds = _dl_load_adds;
+		info.dlpi_subs = _dl_load_subs;
+#if defined(USE_TLS) && USE_TLS
+		info.dlpi_tls_modid = l->l_tls_modid;
+# ifdef SHARED
+		/* Resolves into ld.so at runtime; static libc has no DTV.  */
+		info.dlpi_tls_data = _dl_tls_get_addr_soft((struct link_map *) l);
+# else
+		info.dlpi_tls_data = NULL;
+# endif
+#else
+		info.dlpi_tls_modid = 0;
+		info.dlpi_tls_data = NULL;
+#endif
 		ret = callback (&info, sizeof (struct dl_phdr_info), data);
 		if (ret)
 			break;
@@ -69,6 +83,13 @@ dl_iterate_phdr (int (*callback) (struct dl_phdr_info *info,
       info.dlpi_name = "";
       info.dlpi_phdr = _dl_phdr;
       info.dlpi_phnum = _dl_phnum;
+      info.dlpi_adds = 0;
+      info.dlpi_subs = 0;
+      /* No easy access to TLS info on the static fallback path; report
+         0 / NULL.  libsanitizer will skip TLS tracking for this entry,
+         which is acceptable for a single statically linked program.  */
+      info.dlpi_tls_modid = 0;
+      info.dlpi_tls_data = NULL;
       ret = (*callback) (&info, sizeof (struct dl_phdr_info), data);
       if (ret)
         return ret;

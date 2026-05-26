@@ -23,28 +23,14 @@
  * Imported from musl C library, adapted to uClibc-ng
  */
 
-#ifndef _UCHAR_H
-#define _UCHAR_H
+#include <sys/syscall.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#if __cplusplus < 201103L
-typedef unsigned short char16_t;
-typedef unsigned char32_t;
-#endif
-
-#include <wchar.h>
-
-size_t c16rtomb(char *__restrict, char16_t, mbstate_t *__restrict);
-size_t mbrtoc16(char16_t *__restrict, const char *__restrict, size_t, mbstate_t *__restrict);
-
-size_t c32rtomb(char *__restrict, char32_t, mbstate_t *__restrict);
-size_t mbrtoc32(char32_t *__restrict, const char *__restrict, size_t, mbstate_t *__restrict);
-
-#ifdef __cplusplus
+#ifdef __NR_copy_file_range
+#include <fcntl.h>
+int copy_file_range(int fd_in, off_t *off_in, int fd_out, off_t *off_out,
+	size_t len, unsigned flags)
+{
+	return INLINE_SYSCALL(copy_file_range, 6, fd_in, off_in, fd_out,
+			      off_out, len, flags);
 }
-#endif
-
 #endif
