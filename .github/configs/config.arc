@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# uClibc-ng 1.0.43 C Library Configuration
+# uClibc-ng 1.0.58 C Library Configuration
 #
 # TARGET_aarch64 is not set
 # TARGET_alpha is not set
@@ -61,6 +61,7 @@ UCLIBC_HAS_FLOATS=y
 UCLIBC_HAS_FPU=y
 DO_C99_MATH=y
 DO_XSI_MATH=y
+# UCLIBC_HAS_FENV is not set
 UCLIBC_HAS_LONG_DOUBLE_MATH=y
 KERNEL_HEADERS="linux-headers/include"
 HAVE_DOT_CONFIG=y
@@ -69,6 +70,7 @@ HAVE_DOT_CONFIG=y
 # General Library Settings
 #
 DOPIC=y
+HAVE_LDSO=y
 HAVE_SHARED=y
 FORCE_SHAREABLE_TEXT_SEGMENTS=y
 LDSO_LDD_SUPPORT=y
@@ -92,6 +94,7 @@ UCLIBC_HAS_THREADS_NATIVE=y
 UCLIBC_HAS_THREADS=y
 UCLIBC_HAS_TLS=y
 PTHREADS_DEBUG_SUPPORT=y
+PTHREADS_STACK_DEFAULT_SIZE=2097152
 UCLIBC_HAS_SYSLOG=y
 UCLIBC_HAS_LFS=y
 # MALLOC is not set
@@ -120,6 +123,7 @@ UCLIBC_HAS_TZ_FILE=y
 UCLIBC_HAS_TZ_FILE_READ_MANY=y
 UCLIBC_TZ_FILE_PATH="/etc/TZ"
 UCLIBC_FALLBACK_TO_ETC_LOCALTIME=y
+# UCLIBC_USE_TIME64 is not set
 
 #
 # Advanced Library Settings
@@ -175,6 +179,7 @@ UCLIBC_HAS_CTYPE_SIGNED=y
 UCLIBC_HAS_CTYPE_CHECKED=y
 # UCLIBC_HAS_CTYPE_ENFORCED is not set
 UCLIBC_HAS_WCHAR=y
+# UCLIBC_HAS_UCHAR is not set
 UCLIBC_HAS_LIBICONV=y
 # UCLIBC_HAS_LIBINTL is not set
 UCLIBC_HAS_LOCALE=y
@@ -237,8 +242,6 @@ HARDWIRED_ABSPATH=y
 #
 UCLIBC_HAS_SSP=y
 # SSP_QUICK_CANARY is not set
-# PROPOLICE_BLOCK_ABRT is not set
-PROPOLICE_BLOCK_SEGV=y
 # UCLIBC_BUILD_SSP is not set
 UCLIBC_BUILD_RELRO=y
 # UCLIBC_BUILD_NOW is not set
@@ -249,8 +252,8 @@ UCLIBC_BUILD_NOEXECSTACK=y
 #
 CROSS_COMPILER_PREFIX=""
 UCLIBC_EXTRA_CFLAGS="-fworking-directory -fvar-tracking-assignments -frecord-gcc-switches -rdynamic -funwind-tables -ggdb3 -gdwarf-4  -Os -Wno-undef -Wno-array-parameter -Wno-unused-function -Wno-unused-variable -Wno-missing-prototypes -Wno-shift-count-overflow -Wno-missing-declarations -Wno-stringop-overflow -Wno-nonnull-compare -Wno-shadow -Wno-attribute-alias -Wno-old-style-definition -Wno-format -Wno-zero-length-bounds -Wno-pointer-sign -Wno-parentheses -Wno-missing-braces -Wno-int-conversion -Wno-misleading-indentation -Wno-restrict -Wno-suggest-attribute -Wno-nested-externs -Wno-shift-overflow -Wno-maybe-uninitialized -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast"
-DOSTRIP=y
 # DODEBUG is not set
+DOSTRIP=y
 DOASSERTS=y
 SUPPORT_LD_DEBUG=y
 # SUPPORT_LD_DEBUG_EARLY is not set
@@ -258,4 +261,3 @@ UCLIBC_MALLOC_DEBUGGING=y
 UCLIBC_HAS_BACKTRACE=y
 WARNINGS="-Wall -pipe -pipe"
 EXTRA_WARNINGS=y
-UCLIBC_USE_TIME64=n

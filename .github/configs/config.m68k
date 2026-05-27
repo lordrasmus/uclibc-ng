@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# uClibc-ng 1.0.44 C Library Configuration
+# uClibc-ng 1.0.58 C Library Configuration
 #
 # TARGET_aarch64 is not set
 # TARGET_alpha is not set
@@ -59,6 +59,7 @@ UCLIBC_HAS_FLOATS=y
 UCLIBC_HAS_FPU=y
 DO_C99_MATH=y
 DO_XSI_MATH=y
+# UCLIBC_HAS_FENV is not set
 UCLIBC_HAS_LONG_DOUBLE_MATH=y
 KERNEL_HEADERS="/home/ramin/openadk/target_qemu-m68k-virt_uclibc-ng_68040/usr/include"
 HAVE_DOT_CONFIG=y
@@ -67,6 +68,8 @@ HAVE_DOT_CONFIG=y
 # General Library Settings
 #
 DOPIC=y
+# STATIC_PIE is not set
+HAVE_LDSO=y
 HAVE_SHARED=y
 # FORCE_SHAREABLE_TEXT_SEGMENTS is not set
 LDSO_LDD_SUPPORT=y
@@ -90,6 +93,7 @@ UCLIBC_HAS_THREADS_NATIVE=y
 UCLIBC_HAS_THREADS=y
 UCLIBC_HAS_TLS=y
 PTHREADS_DEBUG_SUPPORT=y
+PTHREADS_STACK_DEFAULT_SIZE=2097152
 UCLIBC_HAS_SYSLOG=y
 UCLIBC_HAS_LFS=y
 # MALLOC is not set
@@ -118,6 +122,7 @@ UCLIBC_HAS_TZ_FILE=y
 UCLIBC_HAS_TZ_FILE_READ_MANY=y
 UCLIBC_TZ_FILE_PATH="/etc/TZ"
 UCLIBC_FALLBACK_TO_ETC_LOCALTIME=y
+UCLIBC_USE_TIME64=y
 
 #
 # Advanced Library Settings
@@ -173,6 +178,7 @@ UCLIBC_HAS_CTYPE_SIGNED=y
 UCLIBC_HAS_CTYPE_CHECKED=y
 # UCLIBC_HAS_CTYPE_ENFORCED is not set
 UCLIBC_HAS_WCHAR=y
+# UCLIBC_HAS_UCHAR is not set
 # UCLIBC_HAS_LIBICONV is not set
 # UCLIBC_HAS_LIBINTL is not set
 # UCLIBC_HAS_LOCALE is not set

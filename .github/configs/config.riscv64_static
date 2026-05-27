@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# uClibc-ng 1.0.43 C Library Configuration
+# uClibc-ng 1.0.58 C Library Configuration
 #
 # TARGET_aarch64 is not set
 # TARGET_alpha is not set
@@ -35,26 +35,19 @@ TARGET_riscv64=y
 # TARGET_x86_64 is not set
 # TARGET_xtensa is not set
 TARGET_LDSO_NAME="ld-uClibc"
-TARGET_ARCH_BITS=32
+TARGET_ARCH_BITS=64
 
 #
 # Target Architecture Features and Options
 #
 TARGET_ARCH="riscv64"
 FORCE_OPTIONS_FOR_ARCH=y
-# CONFIG_MIPS_O32_ABI is not set
-# CONFIG_MIPS_N32_ABI is not set
-# CONFIG_MIPS_N64_ABI is not set
-# CONFIG_MIPS_NAN_LEGACY is not set
-# CONFIG_MIPS_NAN_2008 is not set
 TARGET_SUBARCH=""
 
 #
 # Using ELF file format
 #
 ARCH_LITTLE_ENDIAN=y
-# ARCH_WANTS_BIG_ENDIAN is not set
-# ARCH_WANTS_LITTLE_ENDIAN is not set
 
 #
 # Using Little Endian
@@ -65,6 +58,7 @@ UCLIBC_HAS_FLOATS=y
 UCLIBC_HAS_FPU=y
 DO_C99_MATH=y
 DO_XSI_MATH=y
+# UCLIBC_HAS_FENV is not set
 UCLIBC_HAS_LONG_DOUBLE_MATH=y
 KERNEL_HEADERS="linux-headers/include"
 HAVE_DOT_CONFIG=y
@@ -73,13 +67,17 @@ HAVE_DOT_CONFIG=y
 # General Library Settings
 #
 DOPIC=y
+# STATIC_PIE is not set
+ARCH_HAS_UCONTEXT=y
 # HAVE_SHARED is not set
+UCLIBC_CTOR_DTOR=y
 # HAS_NO_THREADS is not set
 # UCLIBC_HAS_LINUXTHREADS is not set
 UCLIBC_HAS_THREADS_NATIVE=y
 UCLIBC_HAS_THREADS=y
 UCLIBC_HAS_TLS=y
 PTHREADS_DEBUG_SUPPORT=y
+PTHREADS_STACK_DEFAULT_SIZE=2097152
 UCLIBC_HAS_SYSLOG=y
 UCLIBC_HAS_LFS=y
 # MALLOC is not set
@@ -90,6 +88,7 @@ UCLIBC_HAS_UTMPX=y
 UCLIBC_HAS_UTMP=y
 # UCLIBC_SUSV2_LEGACY is not set
 UCLIBC_SUSV3_LEGACY=y
+# UCLIBC_HAS_CONTEXT_FUNCS is not set
 # UCLIBC_SUSV3_LEGACY_MACROS is not set
 UCLIBC_SUSV4_LEGACY=y
 # UCLIBC_STRICT_HEADERS is not set
@@ -163,6 +162,7 @@ UCLIBC_HAS_CTYPE_SIGNED=y
 UCLIBC_HAS_CTYPE_CHECKED=y
 # UCLIBC_HAS_CTYPE_ENFORCED is not set
 UCLIBC_HAS_WCHAR=y
+# UCLIBC_HAS_UCHAR is not set
 UCLIBC_HAS_LIBICONV=y
 # UCLIBC_HAS_LIBINTL is not set
 UCLIBC_HAS_LOCALE=y
@@ -225,8 +225,6 @@ HARDWIRED_ABSPATH=y
 #
 UCLIBC_HAS_SSP=y
 # SSP_QUICK_CANARY is not set
-# PROPOLICE_BLOCK_ABRT is not set
-PROPOLICE_BLOCK_SEGV=y
 UCLIBC_BUILD_SSP=y
 UCLIBC_BUILD_NOEXECSTACK=y
 
@@ -235,8 +233,8 @@ UCLIBC_BUILD_NOEXECSTACK=y
 #
 CROSS_COMPILER_PREFIX=""
 UCLIBC_EXTRA_CFLAGS="-fworking-directory -fvar-tracking-assignments -frecord-gcc-switches -funwind-tables -ggdb3 -gdwarf-4  -Os -Wno-unused-variable -Wno-suggest-attribute -Wno-shadow -Wno-old-style-definition -Wno-unused-but-set-variable -Wno-maybe-uninitialized -Wno-strict-aliasing -Wno-missing-prototypes -Wno-missing-declarations -Wno-undef"
-DOSTRIP=y
 # DODEBUG is not set
+DOSTRIP=y
 # DOASSERTS is not set
 # UCLIBC_MALLOC_DEBUGGING is not set
 WARNINGS="-Wall -pipe -pipe"
