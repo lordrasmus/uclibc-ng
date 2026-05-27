@@ -6,9 +6,13 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: [self-hosted, uclibc-build]
     steps:
-    
+
+      - name: Cleanup workspace (self-hosted)
+        run: |
+          sudo find "${{ github.workspace }}" -mindepth 1 -delete 2>/dev/null || true
+
       - uses: actions/checkout@master
         with:
           fetch-depth: 1

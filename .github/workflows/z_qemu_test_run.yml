@@ -5,12 +5,14 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
-    #runs-on: self-hosted
-    
-  
+    runs-on: [self-hosted, uclibc-build]
+
     steps:
-    
+
+      - name: Cleanup workspace (self-hosted)
+        run: |
+          sudo find "${{ github.workspace }}" -mindepth 1 -delete 2>/dev/null || true
+
       - name: Install qemu / python3 junit_xml
         run: |
           sudo apt-get -y update; sudo apt-get install -y qemu-system python3-junit.xml libnfs13 libssh-gcrypt-4
