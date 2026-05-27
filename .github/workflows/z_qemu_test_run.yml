@@ -15,8 +15,13 @@ jobs:
 
       - name: Install qemu / python3 junit_xml
         run: |
-          sudo apt-get -y update; sudo apt-get install -y qemu-system python3-junit.xml libnfs13 libssh-gcrypt-4
-          pip3 install pybadges
+          # self-hosted: qemu-system, python3-junit.xml, libnfs13, libssh-gcrypt-4
+          # and pybadges are pre-provisioned on the VM. apt/pip disabled because the
+          # 15 parallel runners share one apt lock + one HOME on the same VM.
+          # Re-enable the two lines below when switching back to GitHub-hosted.
+          #sudo apt-get -y update; sudo apt-get install -y qemu-system python3-junit.xml libnfs13 libssh-gcrypt-4
+          #pip3 install pybadges
+          echo "qemu/test deps pre-provisioned on self-hosted runner"
       
       # wird bei xtensa für den cpio hack gebraucht
       - uses: actions/checkout@master

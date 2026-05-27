@@ -72,8 +72,12 @@ jobs:
 
       - name: Install dev packages
         run: |
-          sudo apt-get update
-          sudo apt-get install tar
+          # self-hosted: deps pre-provisioned on the VM. apt disabled because the
+          # 15 parallel runners share one apt lock on the same VM (exit 100).
+          # Re-enable the two lines below when switching back to GitHub-hosted.
+          #sudo apt-get update
+          #sudo apt-get install tar
+          echo "dev packages pre-provisioned on self-hosted runner"
 
       - name: Install Toolchain
         run: |
