@@ -90,6 +90,8 @@ test_log = ""
 # mit 30  gabs timeouts beim powerpc
 # mit 120 gabs timeouts beim riscv64
 read_pipe_timeout = 240
+max_consecutive_timeouts = 3   # 3 x 240s = 12 min komplett stumm -> als haengend werten
+consecutive_timeouts = 0
 
 while True:
     try:
@@ -103,23 +105,27 @@ while True:
             log_file.write( pipe_data )
             log_file.flush()
             
-            try:
-                out_txt = pipe_data.decode()
-            except:
-                out_txt = ""
-            
+            # errors="replace": nie einen Chunk verwerfen -- sonst koennte die
+            # tests_end-Marke (oder Ausgabe ueberhaupt) durch nicht-UTF8-Bytes
+            # verloren gehen, sodass die Schleife trotz fertigem Test endlos
+            # weiterlaeuft und der GitHub-Log leer bleibt.
+            out_txt = pipe_data.decode(errors="replace")
+            consecutive_timeouts = 0
+
             test_log += out_txt
             sys.stdout.write( out_txt )
             sys.stdout.flush()
         else:
-            print("Timeout: Keine Daten verfügbar. timeout : {0}".format( read_pipe_timeout ) )
-            # Ist Qemu schon beendet, kommen keine Daten mehr -> nicht endlos weiterdrehen
-            # (z.B. wenn Qemu gecrasht ist oder -- vor diesem Fix -- von einem anderen
-            # Job per killall mit-gekillt wurde).
+            consecutive_timeouts += 1
+            print("Timeout: Keine Daten verfügbar. timeout : {0} (#{1})".format( read_pipe_timeout, consecutive_timeouts ) )
+            # Ist Qemu schon beendet, kommen keine Daten mehr -> nicht endlos weiterdrehen.
             if qemu_proc is not None and qemu_proc.poll() is not None:
                 print("Qemu-Prozess ist beendet, breche Lese-Schleife ab.")
                 break
-            #break
+            # Sicherheitsnetz: Qemu lebt zwar, ist aber dauerhaft stumm -> als haengend werten.
+            if consecutive_timeouts >= max_consecutive_timeouts:
+                print("Zu viele Timeouts in Folge, werte Qemu als haengend und breche ab.")
+                break
     except Exception as e:
         print("Fehler beim Lesen aus der Named Pipe:", str(e))
         break
