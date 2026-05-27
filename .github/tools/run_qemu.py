@@ -7,6 +7,7 @@ import threading
 import subprocess
 import select
 import time
+import signal
 
 from pprint import pprint
 
@@ -59,15 +60,21 @@ log_file.write( ( "Qemu Command : " + cmd + "\n").encode() )
 log_file.write( ( "Qemu Version : " + ret[1] + "\n").encode())
 log_file.flush()
 
+qemu_proc = None
+
 def run_command(command):
+    global qemu_proc
     command ="./qemu-inst/bin/" + command
     print("thread starting")
     sys.stdout.flush()
-    process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
+    # start_new_session: eigene Prozessgruppe, damit am Ende NUR dieses Job-Qemu
+    # gekillt wird. Auf der shared self-hosted VM wuerde "killall -9 qemu-system-X"
+    # sonst die gleichnamigen Qemus paralleler Runner mit-killen.
+    qemu_proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
+    stdout, stderr = qemu_proc.communicate()
     print("qemu (stdout):", stdout.decode())
     print("qemu (stderr):", stderr.decode())
-    print("Befehl beendet mit Exit-Code", process.returncode)
+    print("Befehl beendet mit Exit-Code", qemu_proc.returncode)
     sys.stdout.flush()
 
 
@@ -106,6 +113,12 @@ while True:
             sys.stdout.flush()
         else:
             print("Timeout: Keine Daten verfügbar. timeout : {0}".format( read_pipe_timeout ) )
+            # Ist Qemu schon beendet, kommen keine Daten mehr -> nicht endlos weiterdrehen
+            # (z.B. wenn Qemu gecrasht ist oder -- vor diesem Fix -- von einem anderen
+            # Job per killall mit-gekillt wurde).
+            if qemu_proc is not None and qemu_proc.poll() is not None:
+                print("Qemu-Prozess ist beendet, breche Lese-Schleife ab.")
+                break
             #break
     except Exception as e:
         print("Fehler beim Lesen aus der Named Pipe:", str(e))
@@ -127,9 +140,14 @@ os.write( pipe_in, "reboot\n".encode())
 
 command_thread.join(10)
 if command_thread.is_alive():
-    kill_cmd = "killall -9 " + data["CONFIG_QEMU_CMD"].split(" ")[0]
-    print("kill_cmd: " + kill_cmd );
-    os.system( kill_cmd )
+    # Nur das eigene Job-Qemu killen (Prozessgruppe), NICHT global per Namen --
+    # sonst stirbt auf der shared VM das gleichnamige Qemu paralleler Runner.
+    if qemu_proc is not None and qemu_proc.poll() is None:
+        print("kill qemu pid {0} (Prozessgruppe)".format(qemu_proc.pid))
+        try:
+            os.killpg(os.getpgid(qemu_proc.pid), signal.SIGKILL)
+        except ProcessLookupError:
+            pass
 
 os.remove("guest_pipe.in")
 os.remove("guest_pipe.out")
