@@ -44,7 +44,10 @@ jobs:
 
       - name: Cleanup workspace (self-hosted)
         run: |
-          sudo find "${{ github.workspace }}" -mindepth 1 -delete 2>/dev/null || true
+          # Build-Reste entfernen, aber das .git behalten -> actions/checkout fetcht
+          # nur Deltas statt komplett neu zu klonen (spart 40-250s checkout ueber die
+          # geteilte GitHub-Leitung). clean:true von checkout deckt den Rest ab.
+          sudo find "${{ github.workspace }}" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} + 2>/dev/null || true
 
       - uses: actions/checkout@master
         with:

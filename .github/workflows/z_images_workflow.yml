@@ -11,7 +11,10 @@ jobs:
 
       - name: Cleanup workspace (self-hosted)
         run: |
-          sudo find "${{ github.workspace }}" -mindepth 1 -delete 2>/dev/null || true
+          # Build-Reste entfernen, aber das .git behalten -> actions/checkout fetcht
+          # nur Deltas statt komplett neu zu klonen (spart 40-250s checkout ueber die
+          # geteilte GitHub-Leitung). clean:true von checkout deckt den Rest ab.
+          sudo find "${{ github.workspace }}" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} + 2>/dev/null || true
 
       - uses: actions/checkout@master
         with:
@@ -98,7 +101,17 @@ jobs:
           echo "root:x:0:0:root:/root:/bin/sh"    > rootfs/etc/passwd
           
           #git clone https://cgit.uclibc-ng.org/cgi/cgit/uclibc-ng-test.git/
-          git clone https://github.com/lordrasmus/uclibc-ng-test.git
+          # per-Runner-Cache: Repo einmal klonen, danach nur Deltas fetchen statt
+          # bei jedem Job komplett ueber die GitHub-Leitung neu zu klonen. In den
+          # Workspace kopieren, damit "make install DESTDIR=../rootfs" relativ stimmt
+          # und der Cache eine saubere Quelle bleibt.
+          TESTREPO="/home/runner/cache/${RUNNER_NAME:-shared}/uclibc-ng-test"
+          if [ -d "$TESTREPO/.git" ]; then
+            git -C "$TESTREPO" fetch -q --depth=1 origin && git -C "$TESTREPO" reset -q --hard FETCH_HEAD && git -C "$TESTREPO" clean -qffdx
+          else
+            git clone -q --depth=1 https://github.com/lordrasmus/uclibc-ng-test.git "$TESTREPO"
+          fi
+          cp -a "$TESTREPO" uclibc-ng-test
           echo "export $(./uclibc-ng-test/get_disabled_tests.py uclibc-ng-config)" > tests_disable
           
           echo "### Disabled Tests :bulb:" >> $GITHUB_STEP_SUMMARY
