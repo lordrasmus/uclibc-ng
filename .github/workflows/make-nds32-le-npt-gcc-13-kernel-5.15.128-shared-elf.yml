@@ -3,7 +3,7 @@ name: nds32-le-npt-gcc-13-kernel-5.15.128-shared-elf
 on:
   push:
     branches:
-      - master
+      - '**'
   pull_request:
     branches:
       - master

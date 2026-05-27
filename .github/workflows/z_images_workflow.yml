@@ -203,7 +203,7 @@ jobs:
           
       
       - name: create Devel Package
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         env:
           UPLOAD_KEY: ${{ secrets.UPLOAD_KEY }} 
         run: |

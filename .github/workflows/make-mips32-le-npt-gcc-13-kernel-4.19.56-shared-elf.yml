@@ -4,7 +4,7 @@ name: mips32-le-npt-gcc-13-kernel-4.19.56-shared-elf
 on:
   push:
     branches:
-      - master
+      - '**'
   pull_request:
     branches:
       - master

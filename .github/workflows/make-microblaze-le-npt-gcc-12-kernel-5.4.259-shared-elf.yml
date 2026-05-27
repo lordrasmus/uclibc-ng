@@ -3,7 +3,7 @@ name: microblaze-le-npt-gcc-12-kernel-5.4.259-shared-elf
 on:
   push:
     branches:
-      - master
+      - '**'
   pull_request:
     branches:
       - master

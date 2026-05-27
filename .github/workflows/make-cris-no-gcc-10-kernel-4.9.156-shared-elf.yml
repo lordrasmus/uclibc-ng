@@ -3,7 +3,7 @@ name: cris-no-gcc-10-kernel-4.9.156-shared-elf
 on:
   push:
     branches:
-      - master
+      - '**'
   pull_request:
     branches:
       - master

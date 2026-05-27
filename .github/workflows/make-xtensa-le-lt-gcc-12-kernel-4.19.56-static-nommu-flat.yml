@@ -3,7 +3,7 @@ name: xtensa-le-lt-gcc-12-kernel-4.19.56-static-nommu-flat
 on:
   push:
     branches:
-      - master
+      - '**'
   pull_request:
     branches:
       - master
