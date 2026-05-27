@@ -81,7 +81,17 @@ jobs:
 
       - name: Install Toolchain
         run: |
-           wget -nv "https://github.com/lordrasmus/toolchains/blob/main/$CONFIG_TOOLCHAIN.tar.xz?raw=true" -O $CONFIG_TOOLCHAIN.tar.xz
+           # per-runner cache: each runner runs one job at a time, so its own
+           # cache dir is never written concurrently -> no locking, no conflicts.
+           CACHE="/home/runner/cache/${RUNNER_NAME:-shared}"; mkdir -p "$CACHE"
+           TC="$CACHE/$CONFIG_TOOLCHAIN.tar.xz"
+           if [ ! -s "$TC" ]; then
+             echo "toolchain: downloading $CONFIG_TOOLCHAIN"
+             wget -nv "https://github.com/lordrasmus/toolchains/blob/main/$CONFIG_TOOLCHAIN.tar.xz?raw=true" -O "$TC.part" && mv "$TC.part" "$TC"
+           else
+             echo "toolchain: cache hit ($TC)"
+           fi
+           cp "$TC" $CONFIG_TOOLCHAIN.tar.xz
            tar -xaf $CONFIG_TOOLCHAIN.tar.xz
 
       - name: check Toolchain files
@@ -107,11 +117,24 @@ jobs:
 
       - name: Extract Kernel Headers
         run: |
+          # per-runner cache for the (large) kernel tarballs, same scheme as the toolchain
+          CACHE="/home/runner/cache/${RUNNER_NAME:-shared}"; mkdir -p "$CACHE"
           if [[ $CONFIG_KERNEL_VERS == "kvx" ]] ; then
-            wget -nv https://media.githubusercontent.com/media/lordrasmus/toolchains/main/linux-kvx.tar.xz && tar -xaf linux-kvx.tar.xz
+            DEST=linux-kvx.tar.xz
+            URL="https://media.githubusercontent.com/media/lordrasmus/toolchains/main/linux-kvx.tar.xz"
           else
-            wget -nv "https://cdn.kernel.org/pub/linux/kernel/$CONFIG_KERNEL_DIR/linux-$CONFIG_KERNEL_VERS.tar.xz" -O linux-$CONFIG_KERNEL_VERS.tar.xz && tar -xaf linux-$CONFIG_KERNEL_VERS.tar.xz
+            DEST=linux-$CONFIG_KERNEL_VERS.tar.xz
+            URL="https://cdn.kernel.org/pub/linux/kernel/$CONFIG_KERNEL_DIR/linux-$CONFIG_KERNEL_VERS.tar.xz"
           fi
+          K="$CACHE/$DEST"
+          if [ ! -s "$K" ]; then
+            echo "kernel: downloading $DEST"
+            wget -nv "$URL" -O "$K.part" && mv "$K.part" "$K"
+          else
+            echo "kernel: cache hit ($K)"
+          fi
+          cp "$K" "$DEST"
+          tar -xaf "$DEST"
      
       
            
