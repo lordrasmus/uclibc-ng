@@ -57,7 +57,7 @@ jobs:
           # libc.a to the default lib search path (which would conflict
           # with the freshly built uClibc-ng).
           shopt -s nullglob
-          for L in "$CONFIG_TOOLCHAIN"/usr/*-linux-uclibc/lib; do
+          for L in "$CONFIG_TOOLCHAIN"/usr/*-*linux-uclibc/lib; do
             if [ -L "$L" ] && [ ! -e "$L" ]; then
               rm "$L"
               mkdir -p "$L"
