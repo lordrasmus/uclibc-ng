@@ -9,10 +9,6 @@ on:
     branches:
       - master
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 
 #      - name: Run static
 #        run: cp .github/workflows/config.mips_static .config && CROSS_COMPILE=mipsel-linux-gnu- make
