@@ -110,10 +110,16 @@ jobs:
           # (target_generic-*/usr/lib) which does not exist post-deploy.
           # Without this, ld-elf2flt fails to find elf2flt.ld and FLAT
           # builds break. Repoint at the sysroot's lib dir if dangling;
-          # no-op for toolchains where the link is already valid.
+          # no-op for toolchains where the link is already valid or the
+          # glob does not match.
+          shopt -s nullglob
           for L in "$CONFIG_TOOLCHAIN"/usr/*-linux-uclibc/lib; do
-            [ -L "$L" ] && [ ! -e "$L" ] && ln -sf "$(pwd)/$CONFIG_TOOLCHAIN/sysroot/usr/lib" "$L" && echo "fixed dangling: $L"
+            if [ -L "$L" ] && [ ! -e "$L" ]; then
+              ln -sf "$(pwd)/$CONFIG_TOOLCHAIN/sysroot/usr/lib" "$L"
+              echo "fixed dangling: $L"
+            fi
           done
+          true
 
       - name: add PATH
         run: echo "$(pwd)/$CONFIG_TOOLCHAIN/usr/bin/" >> $GITHUB_PATH
