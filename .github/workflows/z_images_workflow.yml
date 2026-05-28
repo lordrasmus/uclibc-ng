@@ -49,17 +49,21 @@ jobs:
         run: |
            tar -xaf $CONFIG_TOOLCHAIN.tar.xz
 
-      - name: Fix toolchain symlinks
+      - name: Fix toolchain elf2flt.ld
         run: |
-          # Same fix as z_build_workflow.yml: openadk-built toolchains
-          # ship usr/<target>/lib as a dangling symlink. binfmt-flat link
-          # via ld-elf2flt needs the link to resolve so elf2flt.ld is
-          # findable. No-op for toolchains where the link is valid.
+          # Same fix as in z_build_workflow.yml: replace the dangling
+          # usr/<target>/lib symlink with a real dir containing just
+          # elf2flt.ld, so ld-elf2flt finds it without exposing a second
+          # libc.a to the default lib search path (which would conflict
+          # with the freshly built uClibc-ng).
           shopt -s nullglob
           for L in "$CONFIG_TOOLCHAIN"/usr/*-linux-uclibc/lib; do
             if [ -L "$L" ] && [ ! -e "$L" ]; then
-              ln -sf "$(pwd)/$CONFIG_TOOLCHAIN/sysroot/usr/lib" "$L"
-              echo "fixed dangling: $L"
+              rm "$L"
+              mkdir -p "$L"
+              SCRIPT="$CONFIG_TOOLCHAIN/sysroot/usr/lib/elf2flt.ld"
+              [ -f "$SCRIPT" ] && cp "$SCRIPT" "$L/"
+              echo "replaced dangling: $L (with elf2flt.ld only)"
             fi
           done
           true

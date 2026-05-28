@@ -103,20 +103,28 @@ jobs:
            if [ ! -e ${CONFIG_TOOLCHAIN}/os-release ] ; then echo "Toolchain os-release not found" ; exit 1 ; fi
            if [ ! -e ${CONFIG_TOOLCHAIN}/sysroot ] ;    then echo "Toolchain sysroot not found" ; exit 1 ; fi
 
-      - name: Fix toolchain symlinks
+      - name: Fix toolchain elf2flt.ld
         run: |
-          # Some openadk-built toolchains ship a dangling symlink at
-          # usr/<target>/lib pointing at openadk's internal build dir
-          # (target_generic-*/usr/lib) which does not exist post-deploy.
-          # Without this, ld-elf2flt fails to find elf2flt.ld and FLAT
-          # builds break. Repoint at the sysroot's lib dir if dangling;
-          # no-op for toolchains where the link is already valid or the
+          # ld-elf2flt looks up elf2flt.ld via <ld-binary>/../lib/elf2flt.ld
+          # which resolves to <toolchain>/usr/<target>/lib/elf2flt.ld.
+          # openadk-built toolchains ship that dir as a dangling symlink
+          # into the openadk build tree, which doesn't exist post-deploy
+          # -> FLAT links fail. Replace the dangling link with a real
+          # directory containing just elf2flt.ld (copied from sysroot,
+          # where pack.py put it). Do NOT make this point at the full
+          # sysroot lib dir: that would expose a second copy of libc.a
+          # to the default lib search path and conflict with the freshly
+          # built uClibc-ng (e.g. TLS-vs-non-TLS mismatches in aarch64).
+          # No-op for toolchains where the link is already valid or the
           # glob does not match.
           shopt -s nullglob
           for L in "$CONFIG_TOOLCHAIN"/usr/*-linux-uclibc/lib; do
             if [ -L "$L" ] && [ ! -e "$L" ]; then
-              ln -sf "$(pwd)/$CONFIG_TOOLCHAIN/sysroot/usr/lib" "$L"
-              echo "fixed dangling: $L"
+              rm "$L"
+              mkdir -p "$L"
+              SCRIPT="$CONFIG_TOOLCHAIN/sysroot/usr/lib/elf2flt.ld"
+              [ -f "$SCRIPT" ] && cp "$SCRIPT" "$L/"
+              echo "replaced dangling: $L (with elf2flt.ld only)"
             fi
           done
           true
