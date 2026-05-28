@@ -49,6 +49,26 @@ jobs:
         run: |
            tar -xaf $CONFIG_TOOLCHAIN.tar.xz
 
+      - name: Isolate toolchain elf2flt.ld
+        run: |
+          # Same isolation as in z_build_workflow.yml: replace the
+          # usr/<target>/lib symlink (which now points at sysroot/usr/lib
+          # post pack.py-fix) with a real dir holding only elf2flt.ld, so
+          # the toolchain's pre-built libc.so ldscript doesn't get picked
+          # up over the freshly built uClibc-ng (e.g. aarch64: absolute
+          # /lib/libc.so.1 in ldscript -> ld cannot find it).
+          shopt -s nullglob
+          for L in "$CONFIG_TOOLCHAIN"/usr/*-*linux-uclibc*/lib; do
+            if [ -L "$L" ]; then
+              rm "$L"
+              mkdir -p "$L"
+              SCRIPT="$CONFIG_TOOLCHAIN/sysroot/usr/lib/elf2flt.ld"
+              [ -f "$SCRIPT" ] && cp "$SCRIPT" "$L/"
+              echo "isolated: $L (elf2flt.ld only)"
+            fi
+          done
+          true
+
       - name: add PATH
         run: echo "$(pwd)/$CONFIG_TOOLCHAIN/usr/bin/" >> $GITHUB_PATH
 

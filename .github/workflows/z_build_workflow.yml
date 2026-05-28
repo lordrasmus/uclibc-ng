@@ -103,6 +103,31 @@ jobs:
            if [ ! -e ${CONFIG_TOOLCHAIN}/os-release ] ; then echo "Toolchain os-release not found" ; exit 1 ; fi
            if [ ! -e ${CONFIG_TOOLCHAIN}/sysroot ] ;    then echo "Toolchain sysroot not found" ; exit 1 ; fi
 
+      - name: Isolate toolchain elf2flt.ld
+        run: |
+          # ld-elf2flt looks up elf2flt.ld via <ld-binary>/../lib/elf2flt.ld
+          # which resolves to <toolchain>/usr/<target>/lib/elf2flt.ld.
+          # pack.py now points that symlink at sysroot/usr/lib so the link
+          # resolves — but that ALSO exposes the toolchain's pre-built
+          # uClibc-ng (libc.so ldscript with absolute /lib/libc.so.1 refs,
+          # uclibc_nonshared.a, etc.) on the default lib search path. When
+          # we later link against the freshly built uClibc-ng in
+          # artifacts/sysroot, ld picks up the toolchain copy instead and
+          # fails (e.g. aarch64: "cannot find /lib/libc.so.1").
+          # Replace the symlink with a real directory containing only
+          # elf2flt.ld so ld-elf2flt still finds its script.
+          shopt -s nullglob
+          for L in "$CONFIG_TOOLCHAIN"/usr/*-*linux-uclibc*/lib; do
+            if [ -L "$L" ]; then
+              rm "$L"
+              mkdir -p "$L"
+              SCRIPT="$CONFIG_TOOLCHAIN/sysroot/usr/lib/elf2flt.ld"
+              [ -f "$SCRIPT" ] && cp "$SCRIPT" "$L/"
+              echo "isolated: $L (elf2flt.ld only)"
+            fi
+          done
+          true
+
       - name: add PATH
         run: echo "$(pwd)/$CONFIG_TOOLCHAIN/usr/bin/" >> $GITHUB_PATH
       
