@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# Read the .config into a CRLF-free temp file before grepping. Some configs
+# (e.g. ones authored on Windows or copy-pasted from a Windows tool) come
+# with CRLF line endings — the literal \r then survives into the variable
+# values and breaks downstream string comparisons like
+# [[ $UCLIBC_FORMAT_FLAT == "y" ]].
+CFG=$(mktemp)
+trap 'rm -f "$CFG"' EXIT
+tr -d '\r' < "$1" > "$CFG"
+set -- "$CFG" "${@:2}"
+
 #echo $1
 mmu=$(grep ARCH_USE_MMU $1)
 if [[ $mmu == "ARCH_USE_MMU=y"* ]]; then
