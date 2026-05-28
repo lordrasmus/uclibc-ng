@@ -117,8 +117,19 @@ jobs:
           echo "### Disabled Tests :bulb:" >> $GITHUB_STEP_SUMMARY
           cat tests_disable >> "$GITHUB_STEP_SUMMARY"
           . tests_disable
-          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/" LDFLAGS="--sysroot=$(pwd)/sysroot/ "   make -C uclibc-ng-test -j20 2>&1  | tee  testsuite_build.log
-          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/" LDFLAGS="--sysroot=$(pwd)/sysroot/ "   make -C uclibc-ng-test install DESTDIR=../rootfs > /dev/null 2>&1
+          # FLAT-specific flags (mirror openadk mk/vars.mk):
+          # -Wl,-elf2flt=-r triggers FLAT output through ld-elf2flt; for
+          # rv32/rv64 the compiler also needs -fPIC so GOT slots get
+          # R_RISCV_RELATIVE relocs that elf2flt can harvest.
+          FLAT_CFLAGS=""
+          if [[ $UCLIBC_FORMAT_FLAT == "y" ]] ; then
+            FLAT_CFLAGS="-Wl,-elf2flt=-r"
+            if [[ $UCLIBC_ARCH == riscv* ]] ; then
+              FLAT_CFLAGS="-fPIC $FLAT_CFLAGS"
+            fi
+          fi
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS"   make -C uclibc-ng-test -j20 2>&1  | tee  testsuite_build.log
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS"   make -C uclibc-ng-test install DESTDIR=../rootfs > /dev/null 2>&1
           find rootfs -type f -name '*.gdb' -exec rm {} \;
           
           cp tests_disable rootfs
@@ -155,7 +166,20 @@ jobs:
           fi
           
           if [[ $UCLIBC_FORMAT_FLAT == "y" ]] ; then
-            echo "no strip"
+            # FLAT needs -Wl,-elf2flt=-r at link time; rv32/rv64 additionally
+            # need -fPIC so GOT slots get R_RISCV_RELATIVE relocs that elf2flt
+            # can harvest (without -fPIC the static link bakes absolute VMAs
+            # into the GOT and binfmt_flat can't fix them up at load time).
+            FLAT_CFLAGS="-Wl,-elf2flt=-r"
+            if [[ $UCLIBC_ARCH == riscv* ]] ; then
+              FLAT_CFLAGS="-fPIC $FLAT_CFLAGS"
+            fi
+            # Compose with any existing CONFIG_EXTRA_CFLAGS (e.g. xtensa -mlongcalls)
+            ESC=$(printf '%s\n' "$FLAT_CFLAGS" | sed 's/[\/&]/\\&/g')
+            sed -i 's|^CONFIG_EXTRA_CFLAGS="\(.*\)"$|CONFIG_EXTRA_CFLAGS="\1 '"$ESC"'"|'  busybox-1.36.1/.config
+            sed -i 's|^CONFIG_EXTRA_LDFLAGS="\(.*\)"$|CONFIG_EXTRA_LDFLAGS="\1 '"$ESC"'"|' busybox-1.36.1/.config
+            echo "FLAT busybox build: CFLAGS+=$FLAT_CFLAGS"
+            grep -E "^CONFIG_EXTRA_(C|LD)FLAGS=" busybox-1.36.1/.config
             SKIP_STRIP=y make -C busybox-1.36.1 -j20 busybox
             SKIP_STRIP=y make -C busybox-1.36.1/ install > /dev/null
           else

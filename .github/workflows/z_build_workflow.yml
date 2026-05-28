@@ -103,6 +103,18 @@ jobs:
            if [ ! -e ${CONFIG_TOOLCHAIN}/os-release ] ; then echo "Toolchain os-release not found" ; exit 1 ; fi
            if [ ! -e ${CONFIG_TOOLCHAIN}/sysroot ] ;    then echo "Toolchain sysroot not found" ; exit 1 ; fi
 
+      - name: Fix toolchain symlinks
+        run: |
+          # Some openadk-built toolchains ship a dangling symlink at
+          # usr/<target>/lib pointing at openadk's internal build dir
+          # (target_generic-*/usr/lib) which does not exist post-deploy.
+          # Without this, ld-elf2flt fails to find elf2flt.ld and FLAT
+          # builds break. Repoint at the sysroot's lib dir if dangling;
+          # no-op for toolchains where the link is already valid.
+          for L in "$CONFIG_TOOLCHAIN"/usr/*-linux-uclibc/lib; do
+            [ -L "$L" ] && [ ! -e "$L" ] && ln -sf "$(pwd)/$CONFIG_TOOLCHAIN/sysroot/usr/lib" "$L" && echo "fixed dangling: $L"
+          done
+
       - name: add PATH
         run: echo "$(pwd)/$CONFIG_TOOLCHAIN/usr/bin/" >> $GITHUB_PATH
       
@@ -181,9 +193,23 @@ jobs:
         run: |
           sed -i 's|KERNEL_HEADERS=.*|KERNEL_HEADERS="artifacts/sysroot/usr/include"|g'  .config
           echo "\n----------------- uClibc-ng log -------------------------- \n" > build.log
-          CROSS_COMPILE=$CONFIG_GCC_PREFIX make oldconfig
-          CROSS_COMPILE=$CONFIG_GCC_PREFIX make -j8 2>&1 | tee -a build.log
-          CROSS_COMPILE=$CONFIG_GCC_PREFIX make install DESTDIR=artifacts/sysroot
+          # FLAT (bFLT) builds need elf2flt invocation at link time. For
+          # rv32/rv64 the compiler also needs -fPIC so the linker emits
+          # R_RISCV_RELATIVE for GOT slots — without it elf2flt has no
+          # source for the GOT relocs and binfmt_flat can't fix them up
+          # at load time (init crashes early with a store fault).
+          # Mirrors openadk's mk/vars.mk treatment of ADK_TARGET_BINFMT_FLAT.
+          EXTRA=""
+          if grep -q '^UCLIBC_FORMAT_FLAT=y' .config; then
+            EXTRA="-Wl,-elf2flt=-r"
+            if grep -qE '^TARGET_ARCH="?riscv(32|64)"?' .config; then
+              EXTRA="-fPIC $EXTRA"
+            fi
+            echo "FLAT build: passing UCLIBC_EXTRA_CFLAGS='$EXTRA' to make" | tee -a build.log
+          fi
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX make UCLIBC_EXTRA_CFLAGS="$EXTRA" oldconfig
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX make UCLIBC_EXTRA_CFLAGS="$EXTRA" -j8 2>&1 | tee -a build.log
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX make UCLIBC_EXTRA_CFLAGS="$EXTRA" install DESTDIR=artifacts/sysroot
 
 
       
