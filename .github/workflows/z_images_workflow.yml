@@ -49,6 +49,21 @@ jobs:
         run: |
            tar -xaf $CONFIG_TOOLCHAIN.tar.xz
 
+      - name: Fix toolchain symlinks
+        run: |
+          # Same fix as z_build_workflow.yml: openadk-built toolchains
+          # ship usr/<target>/lib as a dangling symlink. binfmt-flat link
+          # via ld-elf2flt needs the link to resolve so elf2flt.ld is
+          # findable. No-op for toolchains where the link is valid.
+          shopt -s nullglob
+          for L in "$CONFIG_TOOLCHAIN"/usr/*-linux-uclibc/lib; do
+            if [ -L "$L" ] && [ ! -e "$L" ]; then
+              ln -sf "$(pwd)/$CONFIG_TOOLCHAIN/sysroot/usr/lib" "$L"
+              echo "fixed dangling: $L"
+            fi
+          done
+          true
+
       - name: add PATH
         run: echo "$(pwd)/$CONFIG_TOOLCHAIN/usr/bin/" >> $GITHUB_PATH
 
