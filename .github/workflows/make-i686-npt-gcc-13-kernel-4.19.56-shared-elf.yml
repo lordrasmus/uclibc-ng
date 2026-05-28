@@ -8,6 +8,10 @@ on:
     branches:
       - master
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 
 #      - name: Run static
 #        run: cp .github/workflows/config.x86_64_static .config && make
