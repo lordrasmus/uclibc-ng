@@ -50,6 +50,7 @@ ENTRY(__setcontext)
 	addi	$r1, $r4, UCONTEXT_SIGMASK
 	move	$r2, 0
 	move	$r3, _NSIG8
+	movi	$r15, SYS_ify(rt_sigprocmask)
 	syscall SYS_ify(rt_sigprocmask)
         bnez    $r0, 1f
 

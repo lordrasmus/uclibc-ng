@@ -3,8 +3,11 @@
  * Licensed under the LGPL v2.1, see the file COPYING.LIB in this tarball.
  */
 
-#ifndef __ARCH_NDS32_POSIX_TYPES_H
+/* Also define the asm-generic guard so the kernel's posix_types.h is
+   skipped and our definitions win (see csky/riscv/aarch64). */
+#if !defined(__ARCH_NDS32_POSIX_TYPES_H) || !defined(__ASM_GENERIC_POSIX_TYPES_H)
 #define __ARCH_NDS32_POSIX_TYPES_H
+#define __ASM_GENERIC_POSIX_TYPES_H
 
 /*
  * This file is generally used by user-level software, so you need to

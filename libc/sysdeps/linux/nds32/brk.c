@@ -47,11 +47,12 @@ brk (void *addr)
                         : "$r0", "$r5");
 #else
   __asm__ __volatile__ ("move       $r0, %1      \n\t"   // save the argment in r0
-			"syscall    %2       \n\t"   	 // do the system call
+			"movi       $r15, %2     \n\t"   // syscall number in r15
+			"syscall    %2           \n\t"   // and in the SWID; do the syscall
                         "move       %0, $r0      \n\t"   // keep the return value
                         : "=r"(newbrk)
                         : "r"(addr), "i"(SYS_ify(brk))
-                        : "$r0");
+                        : "$r0", "$r15");
 #endif
 
   __curbrk = newbrk;

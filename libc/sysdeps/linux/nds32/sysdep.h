@@ -48,7 +48,9 @@ C_SYMBOL_NAME(name):			\
 
 #define SYS_ify(syscall_name)  (__NR_##syscall_name)
 
+/* Put the number in both $r15 and the SWID immediate (see bits/syscalls.h). */
 #define __do_syscall(syscall_name)		\
+  movi	$r15, SYS_ify(syscall_name);		\
   syscall	SYS_ify(syscall_name);
 
 # ifdef PIC

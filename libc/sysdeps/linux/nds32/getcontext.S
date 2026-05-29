@@ -48,6 +48,7 @@ ENTRY(__getcontext)
 	move	$r1, 0
 	addi	$r2, $r4, UCONTEXT_SIGMASK
 	move	$r3, _NSIG8
+	movi	$r15, SYS_ify(rt_sigprocmask)
 	syscall SYS_ify(rt_sigprocmask)
         bnez    $r0, 1f
 
