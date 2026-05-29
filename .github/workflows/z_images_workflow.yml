@@ -57,6 +57,8 @@ jobs:
           # the toolchain's pre-built libc.so ldscript doesn't get picked
           # up over the freshly built uClibc-ng (e.g. aarch64: absolute
           # /lib/libc.so.1 in ldscript -> ld cannot find it).
+          # Also re-expose the binutils ldscripts (needed by ld on arches
+          # whose binutils doesn't embed them, e.g. nds32; no libc in there).
           shopt -s nullglob
           for L in "$CONFIG_TOOLCHAIN"/usr/*-*linux-uclibc*/lib; do
             if [ -L "$L" ]; then
@@ -64,7 +66,8 @@ jobs:
               mkdir -p "$L"
               SCRIPT="$CONFIG_TOOLCHAIN/sysroot/usr/lib/elf2flt.ld"
               [ -f "$SCRIPT" ] && cp "$SCRIPT" "$L/"
-              echo "isolated: $L (elf2flt.ld only)"
+              [ -d "$CONFIG_TOOLCHAIN/sysroot/usr/lib/ldscripts" ] && ln -s ../../../sysroot/usr/lib/ldscripts "$L/ldscripts"
+              echo "isolated: $L (elf2flt.ld + ldscripts)"
             fi
           done
           true

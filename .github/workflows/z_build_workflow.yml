@@ -115,7 +115,10 @@ jobs:
           # artifacts/sysroot, ld picks up the toolchain copy instead and
           # fails (e.g. aarch64: "cannot find /lib/libc.so.1").
           # Replace the symlink with a real directory containing only
-          # elf2flt.ld so ld-elf2flt still finds its script.
+          # elf2flt.ld so ld-elf2flt still finds its script. Also re-expose
+          # the binutils ldscripts (ld looks for them at <target>/lib/
+          # ldscripts on arches whose binutils does not embed them, e.g.
+          # nds32); they contain no libc so there is no leak.
           shopt -s nullglob
           for L in "$CONFIG_TOOLCHAIN"/usr/*-*linux-uclibc*/lib; do
             if [ -L "$L" ]; then
@@ -123,7 +126,8 @@ jobs:
               mkdir -p "$L"
               SCRIPT="$CONFIG_TOOLCHAIN/sysroot/usr/lib/elf2flt.ld"
               [ -f "$SCRIPT" ] && cp "$SCRIPT" "$L/"
-              echo "isolated: $L (elf2flt.ld only)"
+              [ -d "$CONFIG_TOOLCHAIN/sysroot/usr/lib/ldscripts" ] && ln -s ../../../sysroot/usr/lib/ldscripts "$L/ldscripts"
+              echo "isolated: $L (elf2flt.ld + ldscripts)"
             fi
           done
           true
