@@ -88,6 +88,9 @@ jobs:
           echo "::sysinit:/bin/mount -t devtmpfs none /dev" >  rootfs/etc/inittab
           echo "::sysinit:/bin/mount -t proc none /proc" >> rootfs/etc/inittab
           echo "::sysinit:/bin/mount -t sysfs none /sys" >> rootfs/etc/inittab
+          # /tmp as tmpfs: the initramfs (ramfs) has no fallocate support,
+          # so tst-fallocate/tst-posix_fallocate fail without a real fs there.
+          echo "::sysinit:/bin/mount -t tmpfs none /tmp" >> rootfs/etc/inittab
           echo "::sysinit:/bin/dmesg -n1" >>  rootfs/etc/inittab
           echo "::sysinit:/bin/echo 'test console' > /dev/console" >> rootfs/etc/inittab
           echo "::sysinit:/bin/echo 'test ttyS0' > /dev/ttyS0" >> rootfs/etc/inittab
