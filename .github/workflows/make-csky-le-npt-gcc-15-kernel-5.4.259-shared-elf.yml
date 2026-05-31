@@ -1,4 +1,4 @@
-name: csky-le-npt-gcc-12-kernel-5.4.259-shared-elf
+name: csky-le-npt-gcc-15-kernel-5.4.259-shared-elf
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-csky-gcc-12.3.0_soft
+      toolchain: toolchain-csky-gcc-15.2.0_soft
       gcc_prefix: csky-openadk-linux-uclibcabiv2-
       kernel_vers: 5.4.259
       kernel_dir: v5.x
