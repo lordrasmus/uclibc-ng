@@ -64,7 +64,11 @@ for f in matching_files:
         line +="|:x:"
     
     if "call_qemu" in data["jobs"]:
-        tmp = data["name"]+ "_test_result.svg"
+        # ?v=N busts GitHub's Camo image cache. The test SVGs now ship a short
+        # Cache-Control, but Camo had cached the old no-Cache-Control version
+        # under its 1-year default; a fresh URL forces a re-fetch (and the new
+        # one then honours the short TTL). Bump N if the badges ever get stuck.
+        tmp = data["name"]+ "_test_result.svg?v=2"
         #line +="|[![" + data["name"] + "test](https://gist.githubusercontent.com/lordrasmus/867aa95ade60fa5b1ad098fa6c6a1968/raw/" + tmp + ")]"
         line +="|[![" + data["name"] + "test](https://uclibc-ng.tangotanzen.de/tests/" + tmp + ")]"
         tmp = data["name"]+ "_test_result.html"
