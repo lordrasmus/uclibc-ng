@@ -21,7 +21,7 @@ jobs:
       kernel_arch: x86
       config_file: config.x86-time64
       qemu_kernel:  kernel-i386-6.18.33.img
-      qemu_cmd:  qemu-system-i386 -m 1G -smp 4 -append "console=ttyS0" -nographic  -kernel kernel.img -initrd rootfs.img
+      qemu_cmd:  qemu-system-i386 -accel kvm:tcg -m 1G -smp 4 -append "console=ttyS0" -nographic  -kernel kernel.img -initrd rootfs.img
 
   call_images:
     needs: call_build
