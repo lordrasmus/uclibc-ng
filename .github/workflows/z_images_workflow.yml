@@ -119,6 +119,10 @@ jobs:
       
       - name: Build Testsuite
         run: |
+          # ohne pipefail frisst "make | tee" den Exit-Code: ein kaputter
+          # Suite-Build lief frueher als success durch und produzierte eine
+          # rootfs voller fehlender Binaries (516 x exit 127)
+          set -o pipefail
           echo "08:00:20:00:61:CA  pal"           > rootfs/etc/ethers
           echo "08:00:20:00:61:CB  192.168.11.2" >> rootfs/etc/ethers
           echo "08:00:20:00:61:CC  teeth"        >> rootfs/etc/ethers
