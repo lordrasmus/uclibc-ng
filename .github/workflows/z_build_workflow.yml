@@ -86,13 +86,29 @@ jobs:
         run: |
            # per-runner cache: each runner runs one job at a time, so its own
            # cache dir is never written concurrently -> no locking, no conflicts.
+           # Cache-Validierung ueber die Git-Blob-SHA: die Tarballs liegen in
+           # einem Git-Repo, die Trees-API liefert die SHA des Blobs (groessen-
+           # unabhaengig, anders als die Contents-API), und git hash-object
+           # berechnet dieselbe SHA fuer die lokale Datei. Neu geladen wird nur
+           # bei Differenz -- ein Re-Upload unter gleichem Namen invalidiert
+           # den Cache damit automatisch.
            CACHE="/home/runner/cache/${RUNNER_NAME:-shared}"; mkdir -p "$CACHE"
            TC="$CACHE/$CONFIG_TOOLCHAIN.tar.xz"
-           if [ ! -s "$TC" ]; then
-             echo "toolchain: downloading $CONFIG_TOOLCHAIN"
-             wget -nv "https://github.com/lordrasmus/toolchains/blob/main/$CONFIG_TOOLCHAIN.tar.xz?raw=true" -O "$TC.part" && mv "$TC.part" "$TC"
+           REMOTE_SHA=$(curl -sf -H "Authorization: Bearer ${{ github.token }}" \
+             "https://api.github.com/repos/lordrasmus/toolchains/git/trees/main" \
+             | jq -r --arg p "$CONFIG_TOOLCHAIN.tar.xz" '.tree[] | select(.path==$p) | .sha')
+           LOCAL_SHA=$(git hash-object "$TC" 2>/dev/null || echo "none")
+           echo "toolchain: remote sha = ${REMOTE_SHA:-<nicht abrufbar>}"
+           echo "toolchain: local  sha = $LOCAL_SHA"
+           if [ -z "$REMOTE_SHA" ] && [ -s "$TC" ]; then
+             echo "toolchain: WARNUNG: remote sha nicht abrufbar -> nutze vorhandenen Cache"
+           elif [ "$REMOTE_SHA" = "$LOCAL_SHA" ]; then
+             echo "toolchain: cache hit (sha ok)"
            else
-             echo "toolchain: cache hit ($TC)"
+             [ "$LOCAL_SHA" = "none" ] \
+               && echo "toolchain: kein Cache -> download" \
+               || echo "toolchain: sha mismatch -> download"
+             wget -nv "https://github.com/lordrasmus/toolchains/blob/main/$CONFIG_TOOLCHAIN.tar.xz?raw=true" -O "$TC.part" && mv "$TC.part" "$TC"
            fi
            cp "$TC" $CONFIG_TOOLCHAIN.tar.xz
            tar -xaf $CONFIG_TOOLCHAIN.tar.xz
