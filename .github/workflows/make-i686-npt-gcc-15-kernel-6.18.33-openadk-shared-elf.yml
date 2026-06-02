@@ -1,0 +1,36 @@
+name: i686-npt-gcc-15-kernel-6.18.33-openadk-shared-elf
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - master
+
+
+jobs:
+
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-i686-gcc-15.2.0
+      gcc_prefix: i686-openadk-linux-uclibc-
+      kernel_vers: 6.18.33
+      kernel_dir: v6.x
+      kernel_arch: x86
+      config_file: config.x86-openadk-20260602
+      qemu_kernel:  kernel-i386-6.18.33-openadk.img
+      qemu_cmd:  qemu-system-i386 -machine pc,accel=kvm:tcg -m 1G -nographic -kernel kernel.img -initrd rootfs.img
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+
+
+  call_qemu:
+    needs: call_images
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit
