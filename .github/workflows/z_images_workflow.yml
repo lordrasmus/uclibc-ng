@@ -158,8 +158,16 @@ jobs:
               FLAT_CFLAGS="-fPIC $FLAT_CFLAGS"
             fi
           fi
-          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS"   make -C uclibc-ng-test -j20 2>&1  | tee  testsuite_build.log
-          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS"   make -C uclibc-ng-test install DESTDIR=../rootfs > /dev/null 2>&1
+          # xtensa/kvx/csky embed the rootfs cpio in a fixed-size kernel slot
+          # (the cpio hack, ~17 MB); the -O2 twins roughly double the test
+          # binaries and overflow it. O2_TWINS=0 on the make command line
+          # overrides the per-directory O2_TWINS:=1 and skips the twins there.
+          MK_FLAGS=""
+          case "$CONFIG_KERNEL_ARCH" in
+            xtensa|kvx|csky) MK_FLAGS="O2_TWINS=0" ;;
+          esac
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS"   make -C uclibc-ng-test -j20 $MK_FLAGS 2>&1  | tee  testsuite_build.log
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS"   make -C uclibc-ng-test install DESTDIR=../rootfs $MK_FLAGS > /dev/null 2>&1
           find rootfs -type f -name '*.gdb' -exec rm {} \;
           
           cp tests_disable rootfs
