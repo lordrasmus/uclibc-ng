@@ -15,7 +15,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-microblazeel_gcc-12.3.0
+      toolchain: toolchain-microblazeel_gcc-12.5.0
       gcc_prefix: microblazeel-openadk-linux-uclibc-
       kernel_vers: 5.4.259
       kernel_dir: v5.x
