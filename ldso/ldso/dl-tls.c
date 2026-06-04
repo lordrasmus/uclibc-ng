@@ -900,14 +900,22 @@ _dl_tls_get_addr_soft (struct link_map *map)
   if (map->l_tls_modid == 0)
     return NULL;
 
-  /* This is called from dl_iterate_phdr to fill dl_phdr_info::dlpi_tls_data,
-     which the unwinder invokes during stack unwinding (e.g. pthread
-     cancellation).  In such contexts the calling thread may not have a
-     usable thread pointer / DTV yet (or any more), so THREAD_DTV() can
-     come back as a near-null bogus pointer.  dlpi_tls_data is optional,
-     so bail out instead of dereferencing it.  */
+  /* dl_iterate_phdr fills dl_phdr_info::dlpi_tls_data unconditionally for
+     every caller, including the DWARF unwinder during stack unwinding (e.g.
+     pthread cancellation).  The value is obtained from the calling thread's
+     DTV via the thread pointer.  On some targets the thread pointer is not
+     reliably available from an arbitrary call context: microblaze keeps it
+     in r21, an ordinary callee-saved GPR that is not globally reserved, so
+     low-level asm on the stack (libgcc's unwinder arithmetic, libc helpers)
+     can leave a scratch value in r21 when it calls into dl_iterate_phdr.
+     THREAD_DTV() then returns a bogus pointer.  dlpi_tls_data is optional and
+     only consumed from contexts where the thread pointer is valid (e.g.
+     libsanitizer iterating from a normal thread), so when the DTV does not
+     look like a real (heap-allocated, aligned) pointer, return NULL instead
+     of dereferencing it.  */
   dtv = THREAD_DTV ();
-  if (dtv == NULL || (uintptr_t) dtv < 4096)
+  if (dtv == NULL || (uintptr_t) dtv < 0x10000
+      || ((uintptr_t) dtv & (__alignof__ (dtv_t) - 1)) != 0)
     return NULL;
   if (map->l_tls_modid > (size_t) dtv[-1].counter)
     return NULL;
