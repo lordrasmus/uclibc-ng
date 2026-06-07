@@ -1,6 +1,7 @@
 name: i686-npt-gcc-13-kernel-6.18.33-shared-elf
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - '**'

@@ -1,6 +1,7 @@
 name: riscv32-no-gcc-15-kernel-6.18.33-static-nommu-flat
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - '**'

@@ -1,6 +1,7 @@
 name: or1k-npt-gcc-10-kernel-6.1.53-shared-elf
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - '**'

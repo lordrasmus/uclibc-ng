@@ -1,6 +1,7 @@
 name: avr32-lt-gcc-4-kernel-4.4.302-shared-elf
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - '**'

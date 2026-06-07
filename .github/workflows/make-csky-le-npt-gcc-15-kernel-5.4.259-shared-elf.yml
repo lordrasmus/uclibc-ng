@@ -1,6 +1,7 @@
 name: csky-le-npt-gcc-15-kernel-5.4.259-shared-elf
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - '**'

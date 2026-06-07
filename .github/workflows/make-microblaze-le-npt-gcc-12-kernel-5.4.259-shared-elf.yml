@@ -1,6 +1,7 @@
 name: microblaze-le-npt-gcc-12-kernel-5.4.259-shared-elf
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - '**'

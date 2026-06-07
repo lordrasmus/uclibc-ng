@@ -1,6 +1,7 @@
 name: m68k-npt-gcc-13-kernel-5.4.259-shared-elf
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - '**'

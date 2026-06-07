@@ -1,6 +1,7 @@
 name: mips64-le-n64-npt-gcc-13-kernel-6.1.60-shared-elf
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - '**'

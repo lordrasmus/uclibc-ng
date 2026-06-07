@@ -1,6 +1,7 @@
 name: nios2-no-gcc-13-kernel-6.1.53-static-elf
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - '**'

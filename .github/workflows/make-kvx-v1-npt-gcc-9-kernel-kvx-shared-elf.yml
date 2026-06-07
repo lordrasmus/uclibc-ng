@@ -1,6 +1,7 @@
 name: kvx-v1-npt-gcc-9-kernel-kvx-shared-elf
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - '**'

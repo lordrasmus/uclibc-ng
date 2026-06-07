@@ -1,6 +1,7 @@
 name: i686-npt-gcc-15-kernel-6.18.33-openadk-shared-elf
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - '**'
