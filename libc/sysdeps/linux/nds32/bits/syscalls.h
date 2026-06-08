@@ -5,16 +5,16 @@
 
 /*
  * nds32 Linux syscall convention:
- *   - syscall number in $r15 *and* in the "syscall" SWID immediate
+ *   - syscall number in $ta *and* in the "syscall" SWID immediate
  *   - arguments       in $r0 .. $r5 (a 7th is spilled to the stack)
  *   - return value    in $r0
  *
- * The number is placed in both spots: mainline reads it from $r15, the legacy
- * Andes BSP reads the SWID, and gcc's unwinder expects SWID == nr. $r15 ($ta)
+ * The number is placed in both spots: mainline reads it from $ta, the legacy
+ * Andes BSP reads the SWID, and gcc's unwinder expects SWID == nr. $ta (r15)
  * is the assembler temporary, so it is loaded inside the asm and clobbered
  * rather than bound to a register variable. A non-constant number (NCS) cannot
  * be an immediate and modern nds32 has no indirect syscall, so it travels in
- * $r15 only.
+ * $ta only.
  */
 
 #ifndef _BITS_SYSCALLS_H
@@ -30,7 +30,7 @@
 #define X(x) #x
 #define Y(x) X(x)
 
-#define __SYSCALL_CLOBBERS "$r15", "$lp", "memory"
+#define __SYSCALL_CLOBBERS "$ta", "$lp", "memory"
 
 #undef INTERNAL_SYSCALL_ERROR_P
 #define INTERNAL_SYSCALL_ERROR_P(val, err) ((unsigned int) (val) >= 0xfffff001u)
@@ -60,13 +60,13 @@
 #undef INTERNAL_SYSCALL_NCS
 #define INTERNAL_SYSCALL_NCS(name, err, nr, args...) internal_syscall_ncs##nr(name, err, args)
 
-/* Constant number: emit it as the SWID immediate and into $r15. */
+/* Constant number: emit it as the SWID immediate and into $ta. */
 
 #define internal_syscall0(name, err, dummy...)				\
   ({									\
        register long ___res  __asm__("$r0");				\
        __asm__ volatile (						\
-       "movi $r15, " Y(name) "\n\t"					\
+       "movi $ta, " Y(name) "\n\t"					\
        "syscall " Y(name) "\n\t"					\
        : "=r" (___res)							\
        :								\
@@ -79,7 +79,7 @@
        register long ___res  __asm__("$r0");				\
        register long __arg1  __asm__("$r0") = (long) (arg1);		\
        __asm__ volatile (						\
-       "movi $r15, " Y(name) "\n\t"					\
+       "movi $ta, " Y(name) "\n\t"					\
        "syscall " Y(name) "\n\t"					\
        : "=r" (___res)							\
        : "r" (__arg1)							\
@@ -93,7 +93,7 @@
        register long __arg1  __asm__("$r0") = (long) (arg1);		\
        register long __arg2  __asm__("$r1") = (long) (arg2);		\
        __asm__ volatile (						\
-       "movi $r15, " Y(name) "\n\t"					\
+       "movi $ta, " Y(name) "\n\t"					\
        "syscall " Y(name) "\n\t"					\
        : "=r" (___res)							\
        : "r" (__arg1), "r" (__arg2)					\
@@ -108,7 +108,7 @@
        register long __arg2  __asm__("$r1") = (long) (arg2);		\
        register long __arg3  __asm__("$r2") = (long) (arg3);		\
        __asm__ volatile (						\
-       "movi $r15, " Y(name) "\n\t"					\
+       "movi $ta, " Y(name) "\n\t"					\
        "syscall " Y(name) "\n\t"					\
        : "=r" (___res)							\
        : "r" (__arg1), "r" (__arg2), "r" (__arg3)			\
@@ -124,7 +124,7 @@
        register long __arg3  __asm__("$r2") = (long) (arg3);		\
        register long __arg4  __asm__("$r3") = (long) (arg4);		\
        __asm__ volatile (						\
-       "movi $r15, " Y(name) "\n\t"					\
+       "movi $ta, " Y(name) "\n\t"					\
        "syscall " Y(name) "\n\t"					\
        : "=r" (___res)							\
        : "r" (__arg1), "r" (__arg2), "r" (__arg3), "r" (__arg4)		\
@@ -141,7 +141,7 @@
        register long __arg4  __asm__("$r3") = (long) (arg4);		\
        register long __arg5  __asm__("$r4") = (long) (arg5);		\
        __asm__ volatile (						\
-       "movi $r15, " Y(name) "\n\t"					\
+       "movi $ta, " Y(name) "\n\t"					\
        "syscall " Y(name) "\n\t"					\
        : "=r" (___res)							\
        : "r" (__arg1), "r" (__arg2), "r" (__arg3), "r" (__arg4),		\
@@ -160,7 +160,7 @@
        register long __arg5  __asm__("$r4") = (long) (arg5);		\
        register long __arg6  __asm__("$r5") = (long) (arg6);		\
        __asm__ volatile (						\
-       "movi $r15, " Y(name) "\n\t"					\
+       "movi $ta, " Y(name) "\n\t"					\
        "syscall " Y(name) "\n\t"					\
        : "=r" (___res)							\
        : "r" (__arg1), "r" (__arg2), "r" (__arg3), "r" (__arg4),		\
@@ -181,7 +181,7 @@
        register long __arg5  __asm__("$r4") = (long) (arg5);		\
        register long __arg6  __asm__("$r5") = (long) (arg6);		\
        __asm__ volatile (						\
-        "movi $r15, " Y(name) "\n\t"					\
+        "movi $ta, " Y(name) "\n\t"					\
         "addi10.sp\t #-4\n\t"						\
         CFI_ADJUST_CFA_OFFSET(4)"\n\t"					\
         "push\t %[a7]\n\t"						\
@@ -198,14 +198,14 @@
        ___res;								\
   })
 
-/* Non-constant number: it cannot be a SWID immediate, so pass it in $r15
+/* Non-constant number: it cannot be a SWID immediate, so pass it in $ta
    only (mainline; modern nds32 has no indirect syscall). */
 
 #define internal_syscall_ncs0(name, err, dummy...)			\
   ({									\
        register long ___res  __asm__("$r0");				\
        __asm__ volatile (						\
-       "move $r15, %[nr]\n\t"						\
+       "move $ta, %[nr]\n\t"						\
        "syscall 0x0\n\t"						\
        : "=r" (___res)							\
        : [nr] "r" ((long) (name))					\
@@ -218,7 +218,7 @@
        register long ___res  __asm__("$r0");				\
        register long __arg1  __asm__("$r0") = (long) (arg1);		\
        __asm__ volatile (						\
-       "move $r15, %[nr]\n\t"						\
+       "move $ta, %[nr]\n\t"						\
        "syscall 0x0\n\t"						\
        : "=r" (___res)							\
        : [nr] "r" ((long) (name)), "r" (__arg1)				\
@@ -232,7 +232,7 @@
        register long __arg1  __asm__("$r0") = (long) (arg1);		\
        register long __arg2  __asm__("$r1") = (long) (arg2);		\
        __asm__ volatile (						\
-       "move $r15, %[nr]\n\t"						\
+       "move $ta, %[nr]\n\t"						\
        "syscall 0x0\n\t"						\
        : "=r" (___res)							\
        : [nr] "r" ((long) (name)), "r" (__arg1), "r" (__arg2)		\
@@ -247,7 +247,7 @@
        register long __arg2  __asm__("$r1") = (long) (arg2);		\
        register long __arg3  __asm__("$r2") = (long) (arg3);		\
        __asm__ volatile (						\
-       "move $r15, %[nr]\n\t"						\
+       "move $ta, %[nr]\n\t"						\
        "syscall 0x0\n\t"						\
        : "=r" (___res)							\
        : [nr] "r" ((long) (name)), "r" (__arg1), "r" (__arg2),		\
@@ -264,7 +264,7 @@
        register long __arg3  __asm__("$r2") = (long) (arg3);		\
        register long __arg4  __asm__("$r3") = (long) (arg4);		\
        __asm__ volatile (						\
-       "move $r15, %[nr]\n\t"						\
+       "move $ta, %[nr]\n\t"						\
        "syscall 0x0\n\t"						\
        : "=r" (___res)							\
        : [nr] "r" ((long) (name)), "r" (__arg1), "r" (__arg2),		\
@@ -282,7 +282,7 @@
        register long __arg4  __asm__("$r3") = (long) (arg4);		\
        register long __arg5  __asm__("$r4") = (long) (arg5);		\
        __asm__ volatile (						\
-       "move $r15, %[nr]\n\t"						\
+       "move $ta, %[nr]\n\t"						\
        "syscall 0x0\n\t"						\
        : "=r" (___res)							\
        : [nr] "r" ((long) (name)), "r" (__arg1), "r" (__arg2),		\
@@ -301,7 +301,7 @@
        register long __arg5  __asm__("$r4") = (long) (arg5);		\
        register long __arg6  __asm__("$r5") = (long) (arg6);		\
        __asm__ volatile (						\
-       "move $r15, %[nr]\n\t"						\
+       "move $ta, %[nr]\n\t"						\
        "syscall 0x0\n\t"						\
        : "=r" (___res)							\
        : [nr] "r" ((long) (name)), "r" (__arg1), "r" (__arg2),		\
