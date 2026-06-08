@@ -27,8 +27,7 @@ jobs:
       qemu_kernel:
       qemu_cmd:
 
-
-  call_images:
-    needs: call_build
-    uses: ./.github/workflows/z_images_workflow.yml
-    secrets: inherit
+  # No call_images: this job only guards the uClibc build against the old
+  # Andes BSP world (gcc-4.9.3 / binutils-2.24 / linux-3.4). nds32 has no
+  # qemu, so the test rootfs is never booted, and busybox-1.36 pulls in
+  # getrandom() which the 3.4 kernel/uClibc does not provide.
