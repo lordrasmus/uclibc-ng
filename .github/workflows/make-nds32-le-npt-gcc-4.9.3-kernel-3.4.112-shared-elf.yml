@@ -20,7 +20,7 @@ jobs:
     with:
       toolchain: toolchain-nds32le_nds32-gcc-4.9.3
       gcc_prefix: nds32le-openadk-linux-uclibc-
-      kernel_vers: 3.4.112
+      kernel_vers: nds32-3.4.112
       kernel_dir: v3.x
       kernel_arch: nds32
       config_file: config.nds32le

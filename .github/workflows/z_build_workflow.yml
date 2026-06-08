@@ -170,6 +170,11 @@ jobs:
           if [[ $CONFIG_KERNEL_VERS == "kvx" ]] ; then
             DEST=linux-kvx.tar.xz
             URL="https://media.githubusercontent.com/media/lordrasmus/toolchains/main/linux-kvx.tar.xz"
+          elif [[ $CONFIG_KERNEL_VERS == nds32-* ]] ; then
+            # nds32 was mainlined only in 4.17; the old Andes BSP kernel (3.4) is
+            # not on kernel.org, so use the patched tree from lordrasmus/toolchains.
+            DEST=linux-$CONFIG_KERNEL_VERS.tar.xz
+            URL="https://media.githubusercontent.com/media/lordrasmus/toolchains/main/linux-$CONFIG_KERNEL_VERS.tar.xz"
           else
             DEST=linux-$CONFIG_KERNEL_VERS.tar.xz
             URL="https://cdn.kernel.org/pub/linux/kernel/$CONFIG_KERNEL_DIR/linux-$CONFIG_KERNEL_VERS.tar.xz"
