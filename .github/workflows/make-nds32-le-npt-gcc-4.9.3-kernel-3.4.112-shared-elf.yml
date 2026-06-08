@@ -1,4 +1,4 @@
-name: nds32-le-npt-gcc-4.9.3-kernel-5.15.128-shared-elf
+name: nds32-le-npt-gcc-4.9.3-kernel-3.4.112-shared-elf
 
 on:
   workflow_dispatch:
@@ -20,8 +20,8 @@ jobs:
     with:
       toolchain: toolchain-nds32le_nds32-gcc-4.9.3
       gcc_prefix: nds32le-openadk-linux-uclibc-
-      kernel_vers: 5.15.128
-      kernel_dir: v5.x
+      kernel_vers: 3.4.112
+      kernel_dir: v3.x
       kernel_arch: nds32
       config_file: config.nds32le
       qemu_kernel:
