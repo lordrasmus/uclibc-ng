@@ -2,6 +2,8 @@ name: riscv32-no-gcc-10-kernel-6.5.10-static-nommu-flat
 
 on:
   workflow_dispatch:
+  repository_dispatch:
+    types: [test-update]
   push:
     branches:
       - '**'

@@ -2,6 +2,8 @@ name: nds32-le-npt-gcc-13-kernel-5.15.128-shared-elf
 
 on:
   workflow_dispatch:
+  repository_dispatch:
+    types: [test-update]
   push:
     branches:
       - '**'

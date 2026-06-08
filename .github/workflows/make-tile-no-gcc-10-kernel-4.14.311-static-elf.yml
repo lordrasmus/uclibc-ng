@@ -2,6 +2,8 @@ name: tile-no-gcc-10-kernel-4.14.311-static-elf
 
 on:
   workflow_dispatch:
+  repository_dispatch:
+    types: [test-update]
   push:
     branches:
       - '**'

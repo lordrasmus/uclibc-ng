@@ -2,6 +2,8 @@ name: bfin-no-gcc-13-kernel-4.9.156-static-nommu-flat
 
 on:
   workflow_dispatch:
+  repository_dispatch:
+    types: [test-update]
   push:
     branches:
       - '**'

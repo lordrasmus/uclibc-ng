@@ -2,6 +2,8 @@ name: sh2-be-no-gcc-10-kernel-4.19.56-static-nommu-flat
 
 on:
   workflow_dispatch:
+  repository_dispatch:
+    types: [test-update]
   push:
     branches:
       - '**'

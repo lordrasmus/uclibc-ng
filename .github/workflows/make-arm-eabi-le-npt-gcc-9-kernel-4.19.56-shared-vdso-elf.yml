@@ -2,6 +2,8 @@ name: arm-eabi-le-npt-gcc-9-kernel-4.19.56-shared-vdso-elf
 
 on:
   workflow_dispatch:
+  repository_dispatch:
+    types: [test-update]
   push:
     branches:
       - '**'
