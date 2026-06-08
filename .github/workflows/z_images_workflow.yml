@@ -242,9 +242,23 @@ jobs:
       - name: Fetch Qemu Kernel Image
         run: |
           if [[ ! ${CONFIG_QEMU_KERNEL} == "" ]] ; then
-            wget -nv  "https://github.com/lordrasmus/uclibc-ng-qemu-imgs/blob/main/${CONFIG_QEMU_KERNEL}?raw=true" -O kernel.img
-            CONFIG_QEMU_KERNEL_CONF="${CONFIG_QEMU_KERNEL%.img}.config"
-            wget -nv  "https://github.com/lordrasmus/uclibc-ng-qemu-imgs/blob/main/${CONFIG_QEMU_KERNEL_CONF}?raw=true" -O kernel.config
+            # Pull straight from raw.githubusercontent (no github.com /blob
+            # redirect, which can hand back a 200 HTML page on a rate limit);
+            # retry with backoff and require a non-empty file.
+            base="https://raw.githubusercontent.com/lordrasmus/uclibc-ng-qemu-imgs/main"
+            fetch() {   # $1 remote name, $2 local name
+              for i in 1 2 3 4 5; do
+                if wget -nv --timeout=30 "$base/$1" -O "$2" && [ -s "$2" ]; then
+                  return 0
+                fi
+                echo "fetch $1 failed (attempt $i), retrying..." >&2
+                sleep $((i*10))
+              done
+              echo "ERROR: could not fetch $1" >&2
+              return 1
+            }
+            fetch "${CONFIG_QEMU_KERNEL}" kernel.img
+            fetch "${CONFIG_QEMU_KERNEL%.img}.config" kernel.config
           else
             echo "No Qemu Kernel configured"
           fi
