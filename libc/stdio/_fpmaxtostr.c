@@ -140,7 +140,7 @@ static const __fpmax_t exp10_table[] =
 #endif
 
 static const __fpmax_t exp16_table[] = {
-	0x1.0p4L, 0x1.0p8L, 0x1.0p16L, 0x1.0p32L, 0x1.0p64L,
+	0x1.0p1L, 0x1.0p2L, 0x1.0p4L, 0x1.0p8L, 0x1.0p16L, 0x1.0p32L, 0x1.0p64L,
 #if FPMAX_MAX_EXP >= 128
 	0x1.0p128L,
 #endif
@@ -186,6 +186,7 @@ ssize_t _fpmaxtostr(FILE * fp, __fpmax_t x, struct printf_info *info,
 #ifdef __UCLIBC_HAS_HEXADECIMAL_FLOATS__
 	__fpmax_t lower_bnd;
 	__fpmax_t upper_bnd = 1e9;
+	__fpmax_t block_scale = 1e9;
 #endif /* __UCLIBC_HAS_HEXADECIMAL_FLOATS__ */
 #ifdef __UCLIBC_HAS_HEXADECIMAL_FLOATS__
 	uint_fast32_t base = 10;
@@ -296,10 +297,11 @@ ssize_t _fpmaxtostr(FILE * fp, __fpmax_t x, struct printf_info *info,
 #ifdef __UCLIBC_HAS_HEXADECIMAL_FLOATS__
 
 		if ((mode|0x20) == 'a') {
-			lower_bnd = 0x1.0p31L;
-			upper_bnd = 0x1.0p32L;
+			lower_bnd = 0x1.0p28L;
+			upper_bnd = 0x1.0p29L;
+			block_scale = 0x1.0p32L;
 			power_table = exp16_table;
-			exp = HEX_DIGITS_PER_BLOCK - 1;
+			exp = 28;
 			i = EXP16_TABLE_SIZE;
 			j = EXP16_TABLE_MAX;
 			dpb = HEX_DIGITS_PER_BLOCK;
@@ -324,6 +326,7 @@ ssize_t _fpmaxtostr(FILE * fp, __fpmax_t x, struct printf_info *info,
 
 #define lower_bnd    (__fpmax_t)1e8
 #define upper_bnd    (__fpmax_t)1e9
+#define block_scale  (__fpmax_t)1e9
 #define power_table  exp10_table
 #define dpb          DIGITS_PER_BLOCK
 #define base         10
@@ -372,8 +375,8 @@ ssize_t _fpmaxtostr(FILE * fp, __fpmax_t x, struct printf_info *info,
 		i = 0;
 		do {
 			uint_fast32_t digit_block = (uint_fast32_t) x;
-			assert(digit_block < upper_bnd);
-			x = (x - digit_block) * upper_bnd;
+			assert(digit_block < block_scale);
+			x = (x - digit_block) * block_scale;
 			s += dpb;
 			j = 0;
 			do {
@@ -438,10 +441,6 @@ ssize_t _fpmaxtostr(FILE * fp, __fpmax_t x, struct printf_info *info,
 			if (*q > '9') {
 				*q += (*exp_buf - ('p' - 'a') - '9' - 1);
 			}
-		}
-
-		if (e > s) {
-			exp *= 4;			/* Change from base 16 to base 2. */
 		}
 	}
 #endif /* __UCLIBC_HAS_HEXADECIMAL_FLOATS__ */
