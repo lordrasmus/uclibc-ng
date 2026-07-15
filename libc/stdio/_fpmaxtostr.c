@@ -636,7 +636,8 @@ ssize_t _fpmaxtostr(FILE * fp, __fpmax_t x, struct printf_info *info,
 		ppc[2] = (intptr_t) sign_str;
 
 #ifdef __UCLIBC_HAS_HEXADECIMAL_FLOATS__
-		if (((mode|0x20) == 'a') && (pc_fwi[3] >= 16)) { /* Hex sign handling. */
+		if (((mode|0x20) == 'a') && (pc_fwi[3] >= 16) &&
+		    (pc_fwi[3] != FPO_STR_PREC)) { /* Hex sign handling. */
 			/* Hex and not inf or nan, so prefix with 0x. */
 			char *h = sign_str + i;
 			*h = '0';
