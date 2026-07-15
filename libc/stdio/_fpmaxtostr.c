@@ -10,6 +10,7 @@
 #include <printf.h>
 #include <float.h>
 #include <locale.h>
+#include <math.h>
 #include "_fpmaxtostr.h"
 
 /*
@@ -250,6 +251,8 @@ ssize_t _fpmaxtostr(FILE * fp, __fpmax_t x, struct printf_info *info,
 	pc_fwi[5] = INF_OFFSET;
 	if (isnan(x)) {				/* First, check for nan. */
 		pc_fwi[5] = NAN_OFFSET;
+		if (signbit(x))
+			*sign_str = '-';
 		goto INF_NAN;
 	}
 
