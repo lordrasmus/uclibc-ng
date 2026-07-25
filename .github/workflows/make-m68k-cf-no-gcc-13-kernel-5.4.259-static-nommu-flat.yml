@@ -1,0 +1,33 @@
+name: m68k-cf-no-gcc-13-kernel-5.4.259-static-nommu-flat
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [test-update]
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - master
+
+
+
+jobs:
+
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-m68k_cf51-gcc-13
+      gcc_prefix: m68k-openadk-uclinux-uclibc-
+      kernel_vers: 5.4.259
+      kernel_dir: v5.x
+      kernel_arch: m68k
+      config_file: config.m68k_cf_nommu
+      qemu_kernel:
+      qemu_cmd:
+
+  # No call_images: this job guards the ColdFire build. ColdFire is not
+  # 68020, so anything the m68k code emits unconditionally - CAS being the
+  # obvious one - breaks here while the 68040 workflow stays green. There is
+  # no qemu ColdFire test image, so the rootfs is never booted.
