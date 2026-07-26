@@ -98,6 +98,14 @@ flat="${flat/UCLIBC_FORMAT_FLAT=}"
 flat="${flat/\"}"
 flat="${flat/\"}"
 
+# Plain ELF. On noMMU that means the ELF_FDPIC loader and needs -fpie, which
+# UCLIBC_FORMAT_FDPIC_ELF (bfin) and UCLIBC_FORMAT_DSBT_ELF (c6x) must not get,
+# so it is not enough to just look at "not FLAT".
+elf=$(grep "^UCLIBC_FORMAT_ELF=" $1)
+elf="${elf/UCLIBC_FORMAT_ELF=}"
+elf="${elf/\"}"
+elf="${elf/\"}"
+
 
 
 gcc=$(${CONFIG_GCC_PREFIX}gcc --version | head -n 1)
@@ -116,16 +124,18 @@ echo "LINKMODE: $shared"
 echo "VDSO    : $vdso"
 echo "FLAGS   : $flags"
 echo "FLAT    : $flat"
+echo "ELF     : $elf"
 
 
 
 
 json=$(jq -n --arg workflow "$2" --arg gcc "$gcc" --arg arch "$arch" --arg subarch "$subarch" --arg mmu "$mmu" --arg bits "$bits" --arg endian "$endian" --arg float "$float" \
         --arg threads "$threads" --arg shared "$shared" --arg vdso "$vdso" --arg flags "$flags" --arg flat "$flat" \
+        --arg elf "$elf" \
         --arg CONFIG_KERNEL_VERS "$CONFIG_KERNEL_VERS" --arg CONFIG_KERNEL_DIR "$CONFIG_KERNEL_DIR" --arg CONFIG_KERNEL_ARCH "$CONFIG_KERNEL_ARCH" \
         --arg CONFIG_TOOLCHAIN "$CONFIG_TOOLCHAIN"  --arg CONFIG_GCC_PREFIX "$CONFIG_GCC_PREFIX"  --arg CONFIG_FILE "$CONFIG_FILE" \
         --arg CONFIG_QEMU_KERNEL "$CONFIG_QEMU_KERNEL" --arg CONFIG_QEMU_CMD "$CONFIG_QEMU_CMD"  \
-        '{ "WORKFLOW": $workflow, "GCC": $gcc, "UCLIBC_ARCH": $arch, "UCLIBC_ARCHSUB": $subarch, "UCLIBC_MMU": $mmu, "UCLIBC_BITS": $bits, "UCLIBC_ENDIAN": $endian, "UCLIBC_FPU": $float, "UCLIBC_THREADS": $threads, "UCLIBC_LINKMODE": $shared, "UCLIBC_VDSO": $vdso, "UCLIBC_FLAGS": $flags, "UCLIBC_FORMAT_FLAT": $flat, "CONFIG_KERNEL_VERS": $CONFIG_KERNEL_VERS, "CONFIG_KERNEL_DIR": $CONFIG_KERNEL_DIR, "CONFIG_KERNEL_ARCH": $CONFIG_KERNEL_ARCH, "CONFIG_TOOLCHAIN": $CONFIG_TOOLCHAIN, "CONFIG_GCC_PREFIX": $CONFIG_GCC_PREFIX, "CONFIG_FILE": $CONFIG_FILE, "CONFIG_QEMU_KERNEL": $CONFIG_QEMU_KERNEL, "CONFIG_QEMU_CMD": $CONFIG_QEMU_CMD }')
+        '{ "WORKFLOW": $workflow, "GCC": $gcc, "UCLIBC_ARCH": $arch, "UCLIBC_ARCHSUB": $subarch, "UCLIBC_MMU": $mmu, "UCLIBC_BITS": $bits, "UCLIBC_ENDIAN": $endian, "UCLIBC_FPU": $float, "UCLIBC_THREADS": $threads, "UCLIBC_LINKMODE": $shared, "UCLIBC_VDSO": $vdso, "UCLIBC_FLAGS": $flags, "UCLIBC_FORMAT_FLAT": $flat, "UCLIBC_FORMAT_ELF": $elf, "CONFIG_KERNEL_VERS": $CONFIG_KERNEL_VERS, "CONFIG_KERNEL_DIR": $CONFIG_KERNEL_DIR, "CONFIG_KERNEL_ARCH": $CONFIG_KERNEL_ARCH, "CONFIG_TOOLCHAIN": $CONFIG_TOOLCHAIN, "CONFIG_GCC_PREFIX": $CONFIG_GCC_PREFIX, "CONFIG_FILE": $CONFIG_FILE, "CONFIG_QEMU_KERNEL": $CONFIG_QEMU_KERNEL, "CONFIG_QEMU_CMD": $CONFIG_QEMU_CMD }')
 
 mkdir -p artifacts
 echo $json | python3 -m json.tool > artifacts/infos.json

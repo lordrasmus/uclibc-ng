@@ -151,12 +151,20 @@ jobs:
           # -Wl,-elf2flt=-r triggers FLAT output through ld-elf2flt; for
           # rv32/rv64 the compiler also needs -fPIC so GOT slots get
           # R_RISCV_RELATIVE relocs that elf2flt can harvest.
+          # noMMU without FLAT means the ELF_FDPIC loader, which can only load
+          # position independent executables -- a plain ELF gives ENOEXEC at
+          # exec time. Same flags openadk uses for that combination.
           FLAT_CFLAGS=""
+          PIE_CFLAGS=""
+          PIE_LDFLAGS=""
           if [[ $UCLIBC_FORMAT_FLAT == "y" ]] ; then
             FLAT_CFLAGS="-Wl,-elf2flt=-r"
             if [[ $UCLIBC_ARCH == riscv* ]] ; then
               FLAT_CFLAGS="-fPIC $FLAT_CFLAGS"
             fi
+          elif [[ $UCLIBC_MMU == "No" && $UCLIBC_FORMAT_ELF == "y" ]] ; then
+            PIE_CFLAGS="-fpie"
+            PIE_LDFLAGS="-fpie -pie"
           fi
           # xtensa/kvx/csky embed the rootfs cpio in a fixed-size kernel slot
           # (the cpio hack, ~17 MB); the -O2 twins roughly double the test
@@ -166,8 +174,8 @@ jobs:
           case "$CONFIG_KERNEL_ARCH" in
             xtensa|kvx|csky) MK_FLAGS="O2_TWINS=0" ;;
           esac
-          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS"   make -C uclibc-ng-test -j20 $MK_FLAGS 2>&1  | tee  testsuite_build.log
-          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS"   make -C uclibc-ng-test install DESTDIR=../rootfs $MK_FLAGS > /dev/null 2>&1
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_LDFLAGS"   make -C uclibc-ng-test -j20 $MK_FLAGS 2>&1  | tee  testsuite_build.log
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_LDFLAGS"   make -C uclibc-ng-test install DESTDIR=../rootfs $MK_FLAGS > /dev/null 2>&1
           find rootfs -type f -name '*.gdb' -exec rm {} \;
           
           cp tests_disable rootfs
@@ -222,6 +230,15 @@ jobs:
             grep -E "^CONFIG_EXTRA_(C|LD)FLAGS=" busybox-1.36.1/.config
             SKIP_STRIP=y make -C busybox-1.36.1 -j20 busybox
             SKIP_STRIP=y make -C busybox-1.36.1/ install > /dev/null
+          elif [[ $UCLIBC_MMU == "No" && $UCLIBC_FORMAT_ELF == "y" ]] ; then
+            # noMMU + ELF: the FDPIC loader only takes position independent
+            # executables, see the testsuite step above.
+            sed -i 's|^CONFIG_EXTRA_CFLAGS="\(.*\)"$|CONFIG_EXTRA_CFLAGS="\1 -fpie"|'       busybox-1.36.1/.config
+            sed -i 's|^CONFIG_EXTRA_LDFLAGS="\(.*\)"$|CONFIG_EXTRA_LDFLAGS="\1 -fpie -pie"|' busybox-1.36.1/.config
+            echo "PIE busybox build (noMMU, ELF)"
+            grep -E "^CONFIG_EXTRA_(C|LD)FLAGS=" busybox-1.36.1/.config
+            SKIP_STRIP=0 make -C busybox-1.36.1 -j20 busybox
+            SKIP_STRIP=0 make -C busybox-1.36.1/ install > /dev/null
           else
             SKIP_STRIP=0 make -C busybox-1.36.1 -j20 busybox
             SKIP_STRIP=0 make -C busybox-1.36.1/ install > /dev/null
