@@ -8,6 +8,13 @@ from pprint import pprint
 
 old_string = b'HIER_DAS_ECHTE_CPIO_HIN'
 
+# Groesse des Platzhalters im Kernel-Image. Mehr darf nicht geschrieben
+# werden, sonst laeuft das rootfs ueber das initramfs hinaus. Per Argument
+# ueberschreibbar, weil nicht jedes Image denselben Platzhalter hat.
+max_size = 17825792
+
+if len ( sys.argv ) > 1 and sys.argv[1] != "check_sig":
+    max_size = int( sys.argv[1] )
 
 print("Kernel cpio hack")
 
@@ -43,8 +50,10 @@ with open('kernel.img', 'r+b') as file:
         
     print("  RootFS Size   : " + str( len( new_string ) ))
     
-    if len( new_string ) > 17825792:
-        print("   Size > 17825792")
+    print("  Max Size      : " + str( max_size ))
+
+    if len( new_string ) > max_size:
+        print("   Size > " + str( max_size ))
         exit(1)
 
     # Suchen nach dem zu ersetzenden String

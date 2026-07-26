@@ -80,7 +80,8 @@ jobs:
           # ColdFire: the mcf5208evb machine has no initrd support at all, so the
           # rootfs goes into the kernel image. Keyed on the qemu machine, not on
           # the arch, because m68k also has the 68040 virt target which uses -initrd.
-          if [[ $CONFIG_QEMU_CMD == *mcf5208* ]] ;    then python3 .github/tools/xtensa-cpio-hack.py; fi
+          # Its image carries a 24M placeholder, the m68k rootfs does not fit in 17M.
+          if [[ $CONFIG_QEMU_CMD == *mcf5208* ]] ;    then python3 .github/tools/xtensa-cpio-hack.py 25165824; fi
           echo "Qemu Command : $CONFIG_QEMU_CMD"
           python3 .github/tools/run_qemu.py
            
