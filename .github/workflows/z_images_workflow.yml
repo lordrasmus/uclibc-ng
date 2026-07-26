@@ -200,7 +200,12 @@ jobs:
           sed -i 's|CONFIG_FEATURE_EJECT_SCSI=y|# CONFIG_FEATURE_EJECT_SCSI is not set|'  busybox-1.36.1/.config
           
           if [[ $UCLIBC_VDSO == "No" ]] ; then
-            sed -i 's|# CONFIG_STATIC is not set|CONFIG_STATIC=y|'  busybox-1.36.1/.config
+            if [[ $UCLIBC_MMU == "No" && $UCLIBC_FORMAT_ELF == "y" ]] ; then
+              # -static would override the -pie below, and noMMU ELF must be PIE
+              echo "noMMU ELF: not forcing CONFIG_STATIC (would defeat -pie)"
+            else
+              sed -i 's|# CONFIG_STATIC is not set|CONFIG_STATIC=y|'  busybox-1.36.1/.config
+            fi
           fi
           
           sed -i 's|CONFIG_MKSWAP=y|# CONFIG_MKSWAP is not set|'  busybox-1.36.1/.config
