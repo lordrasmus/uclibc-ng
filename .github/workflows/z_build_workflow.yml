@@ -266,6 +266,17 @@ jobs:
             ln -f "$CRT1" "$(dirname "$CRT1")/Scrt1.o"
             echo "Scrt1.o: not shipped, linked to crt1.o" | tee -a build.log
           fi
+          # noMMU ELF binaries are loaded through ld-uClibc, but install_runtime
+          # only installs it under HAVE_SHARED, which this format does not set --
+          # so the sysroot, and with it the rootfs, ends up without the
+          # interpreter and every exec fails with ENOEXEC. It is built, so copy
+          # it over; openadk does the same in package/uclibc-ng/Makefile.
+          if ls lib/ld*-uClibc*.so* >/dev/null 2>&1 && \
+             ! ls artifacts/sysroot/lib/ld*-uClibc*.so* >/dev/null 2>&1 ; then
+            mkdir -p artifacts/sysroot/lib
+            cp -a lib/ld*-uClibc*.so* artifacts/sysroot/lib/
+            echo "ld-uClibc: not installed by make install, copied from lib/" | tee -a build.log
+          fi
 
 
       
