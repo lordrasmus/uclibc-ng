@@ -7,8 +7,16 @@ import hashlib
 import requests
 import secrets
 import string
+import time
+import random
 
 from pprint import pprint
+
+# Der Server sieht bis zu 70 parallele Uploads, wenn die ganze Matrix laeuft,
+# und wirft dann TLS-Fehler. Mehrfach versuchen, mit Jitter damit die Jobs
+# nicht gemeinsam in denselben Engpass zurueckkehren.
+TRIES = 5
+DELAY = 20
 
 # Einstellungen
 url = 'https://uclibc-ng.tangotanzen.de/'
@@ -38,7 +46,23 @@ if len( sys.argv ) > 3:
 #pprint( files )
 
 # HTTP-POST-Anfrage senden
-response = requests.post(url, files=files)
+for attempt in range(1, TRIES + 1):
+    try:
+        response = requests.post(url, files=files, timeout=300)
+        if response.status_code < 500:
+            # Ausgabe der Serverantwort
+            print(response.text)
+            sys.exit(0)
+        reason = "HTTP " + str(response.status_code)
+    except requests.exceptions.RequestException as e:
+        reason = str(e)
 
-# Ausgabe der Serverantwort
-print(response.text)
+    if attempt == TRIES:
+        print("upload failed after " + str(TRIES) + " tries: " + reason)
+        sys.exit(1)
+
+    wait = DELAY + random.uniform(0, DELAY / 2)
+    print("upload attempt " + str(attempt) + "/" + str(TRIES) +
+          " failed (" + reason + "), retry in " + str(round(wait)) + "s")
+    sys.stdout.flush()
+    time.sleep(wait)
