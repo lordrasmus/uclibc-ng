@@ -245,6 +245,15 @@ jobs:
             fi
             echo "FLAT build: passing UCLIBC_EXTRA_CFLAGS='$EXTRA' to make" | tee -a build.log
           fi
+          # ColdFire addresses the GOT with 16 bit offsets by default, and a
+          # full rootfs overflows that ("R_68K_GOT16O truncated to fit"), so it
+          # needs the large GOT model. Same two flags openadk passes for
+          # ADK_TARGET_CPU_CF. Ask the compiler rather than matching on names:
+          # m68k is also the 68040 target, which does not want them.
+          if ${CONFIG_GCC_PREFIX}gcc -dM -E - < /dev/null 2>/dev/null | grep -q __mcoldfire__ ; then
+            EXTRA="-mxgot -fno-dwarf2-cfi-asm $EXTRA"
+            echo "ColdFire: passing UCLIBC_EXTRA_CFLAGS='$EXTRA' to make" | tee -a build.log
+          fi
           CROSS_COMPILE=$CONFIG_GCC_PREFIX make UCLIBC_EXTRA_CFLAGS="$EXTRA" oldconfig
           CROSS_COMPILE=$CONFIG_GCC_PREFIX make UCLIBC_EXTRA_CFLAGS="$EXTRA" -j8 2>&1 | tee -a build.log
           CROSS_COMPILE=$CONFIG_GCC_PREFIX make UCLIBC_EXTRA_CFLAGS="$EXTRA" install DESTDIR=artifacts/sysroot

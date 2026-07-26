@@ -166,6 +166,13 @@ jobs:
             PIE_CFLAGS="-fpie"
             PIE_LDFLAGS="-fpie -pie"
           fi
+          # ColdFire needs the large GOT model, a full rootfs overflows the
+          # 16 bit one ("R_68K_GOT16O truncated to fit"). Ask the compiler:
+          # m68k is also the 68040 target, which does not want these.
+          CF_CFLAGS=""
+          if ${CONFIG_GCC_PREFIX}gcc -dM -E - < /dev/null 2>/dev/null | grep -q __mcoldfire__ ; then
+            CF_CFLAGS="-mxgot -fno-dwarf2-cfi-asm"
+          fi
           # xtensa/kvx/csky embed the rootfs cpio in a fixed-size kernel slot
           # (the cpio hack, ~17 MB); the -O2 twins roughly double the test
           # binaries and overflow it. O2_TWINS=0 on the make command line
@@ -174,8 +181,8 @@ jobs:
           case "$CONFIG_KERNEL_ARCH" in
             xtensa|kvx|csky) MK_FLAGS="O2_TWINS=0" ;;
           esac
-          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_LDFLAGS"   make -C uclibc-ng-test -j20 $MK_FLAGS 2>&1  | tee  testsuite_build.log
-          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_LDFLAGS"   make -C uclibc-ng-test install DESTDIR=../rootfs $MK_FLAGS > /dev/null 2>&1
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_CFLAGS $CF_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_LDFLAGS $CF_CFLAGS"   make -C uclibc-ng-test -j20 $MK_FLAGS 2>&1  | tee  testsuite_build.log
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_CFLAGS $CF_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_LDFLAGS $CF_CFLAGS"   make -C uclibc-ng-test install DESTDIR=../rootfs $MK_FLAGS > /dev/null 2>&1
           find rootfs -type f -name '*.gdb' -exec rm {} \;
           
           cp tests_disable rootfs
@@ -213,6 +220,12 @@ jobs:
             sed -i 's|CONFIG_EXTRA_CFLAGS=".*"|CONFIG_EXTRA_CFLAGS="-mlongcalls"|g'  busybox-1.36.1/.config
           fi
           
+          # ColdFire: large GOT model, see the testsuite step. Separate shell
+          # step, so the probe has to be repeated here.
+          CF_CFLAGS=""
+          if ${CONFIG_GCC_PREFIX}gcc -dM -E - < /dev/null 2>/dev/null | grep -q __mcoldfire__ ; then
+            CF_CFLAGS=" -mxgot -fno-dwarf2-cfi-asm"
+          fi
           if [[ $UCLIBC_FORMAT_FLAT == "y" ]] ; then
             # FLAT needs -Wl,-elf2flt=-r at link time; rv32/rv64 additionally
             # need -fPIC so GOT slots get R_RISCV_RELATIVE relocs that elf2flt
@@ -223,7 +236,7 @@ jobs:
               FLAT_CFLAGS="-fPIC $FLAT_CFLAGS"
             fi
             # Compose with any existing CONFIG_EXTRA_CFLAGS (e.g. xtensa -mlongcalls)
-            ESC=$(printf '%s\n' "$FLAT_CFLAGS" | sed 's/[\/&]/\\&/g')
+            ESC=$(printf '%s\n' "$FLAT_CFLAGS$CF_CFLAGS" | sed 's/[\/&]/\\&/g')
             sed -i 's|^CONFIG_EXTRA_CFLAGS="\(.*\)"$|CONFIG_EXTRA_CFLAGS="\1 '"$ESC"'"|'  busybox-1.36.1/.config
             sed -i 's|^CONFIG_EXTRA_LDFLAGS="\(.*\)"$|CONFIG_EXTRA_LDFLAGS="\1 '"$ESC"'"|' busybox-1.36.1/.config
             echo "FLAT busybox build: CFLAGS+=$FLAT_CFLAGS"
@@ -233,7 +246,7 @@ jobs:
           elif [[ $UCLIBC_MMU == "No" && $UCLIBC_FORMAT_ELF == "y" ]] ; then
             # noMMU + ELF: the FDPIC loader only takes position independent
             # executables, see the testsuite step above.
-            sed -i 's|^CONFIG_EXTRA_CFLAGS="\(.*\)"$|CONFIG_EXTRA_CFLAGS="\1 -fpie"|'       busybox-1.36.1/.config
+            sed -i 's|^CONFIG_EXTRA_CFLAGS="\(.*\)"$|CONFIG_EXTRA_CFLAGS="\1 -fpie'"$CF_CFLAGS"'"|'  busybox-1.36.1/.config
             sed -i 's|^CONFIG_EXTRA_LDFLAGS="\(.*\)"$|CONFIG_EXTRA_LDFLAGS="\1 -fpie -pie"|' busybox-1.36.1/.config
             echo "PIE busybox build (noMMU, ELF)"
             grep -E "^CONFIG_EXTRA_(C|LD)FLAGS=" busybox-1.36.1/.config
