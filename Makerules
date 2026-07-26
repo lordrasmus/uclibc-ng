@@ -403,10 +403,13 @@ $(libc):
 
 CRT := crt1
 
-ifeq ($(HAVE_SHARED)$(UCLIBC_FORMAT_SHARED_FLAT),y)
-CRTS=$(top_builddir)lib/$(CRT).o $(top_builddir)lib/S$(CRT).o
-else
 CRTS=$(top_builddir)lib/$(CRT).o
+# Scrt1.o is the PIE variant, which gcc picks for -pie. Needed with shared
+# libraries, with shared FLAT, and on noMMU ELF: there the ELF_FDPIC loader
+# only takes position independent executables, so everything is linked -pie
+# even though HAVE_SHARED is off.
+ifneq ($(findstring y,$(HAVE_SHARED)$(UCLIBC_FORMAT_SHARED_FLAT)$(HAVE_LDSO)),)
+CRTS+=$(top_builddir)lib/S$(CRT).o
 endif
 
 ifeq ($(STATIC_PIE),y)
