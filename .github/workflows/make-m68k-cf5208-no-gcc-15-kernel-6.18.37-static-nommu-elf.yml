@@ -25,7 +25,7 @@ jobs:
       kernel_arch: m68k
       config_file: config.m68k_cf5208_elf_nommu
       qemu_kernel: kernel-m68k-cf5208.img
-      qemu_cmd: qemu-system-m68k -nographic -M mcf5208evb -cpu m5208 -kernel kernel.img
+      qemu_cmd: qemu-system-m68k -nographic -M mcf5208evb -cpu m5208 -kernel kernel.img -m 512
 
   call_images:
     needs: call_build
