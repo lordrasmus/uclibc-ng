@@ -3,19 +3,23 @@
 #include <syscall.h>
 #include <bits/kernel-features.h>
 #include <bits/wordsize.h>
+#ifdef __mips__
+#include <sgidefs.h>
+#endif
 
 #ifndef __ARCH_HAS_DEPRECATED_SYSCALLS__
 #  define __IPC_64	0x0
-#elif defined __mips__
-/* mips routes the *ctl syscalls through sys_old_*ctl (and the ipc()
-   multiplexer), which call ipc_parse_version() and so strip IPC_64 out of
-   cmd to select the layout on every kernel version -- including n64.  The
-   bit must therefore always be set, otherwise the kernel returns the
-   ancient struct and e.g. sem_nsems comes back as 0.  */
+#elif defined __mips__ && _MIPS_SIM != _ABIO32
+/* n32/n64 route the *ctl syscalls through sys_old_*ctl (n32: the compat_
+   variants), which call ipc_parse_version() and so strip IPC_64 out of cmd to
+   select the layout on every kernel version.  The bit must therefore always be
+   set, otherwise the kernel returns the ancient struct and e.g. sem_nsems
+   comes back as 0.  */
 #  define __IPC_64	0x100
-#elif defined __m68k__ || defined __i386__
+#elif defined __m68k__ || defined __i386__ || defined __mips__
 /* 5.1+ uses the direct *ctl syscalls, which (unlike ipc()) do not strip
-   IPC_64 -- passing it would make them fail with EINVAL.  */
+   IPC_64 -- passing it would make them fail with EINVAL.  mips o32 got them
+   as 394/396/402 and belongs here; n32/n64 are handled above.  */
 # if __LINUX_KERNEL_VERSION < 0x050100
 #  define __IPC_64      0x100
 # else
