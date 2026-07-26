@@ -248,6 +248,15 @@ jobs:
           CROSS_COMPILE=$CONFIG_GCC_PREFIX make UCLIBC_EXTRA_CFLAGS="$EXTRA" oldconfig
           CROSS_COMPILE=$CONFIG_GCC_PREFIX make UCLIBC_EXTRA_CFLAGS="$EXTRA" -j8 2>&1 | tee -a build.log
           CROSS_COMPILE=$CONFIG_GCC_PREFIX make UCLIBC_EXTRA_CFLAGS="$EXTRA" install DESTDIR=artifacts/sysroot
+          # Linking -pie needs Scrt1.o. uClibc-ng only ships it for some
+          # configurations, so fall back to crt1.o when it is missing -- same
+          # as openadk does in toolchain/uclibc-ng/Makefile. Only when absent,
+          # a real Scrt1.o must win.
+          CRT1=$(find artifacts/sysroot -name crt1.o -print -quit)
+          if [ -n "$CRT1" ] && [ ! -e "$(dirname "$CRT1")/Scrt1.o" ] ; then
+            ln -f "$CRT1" "$(dirname "$CRT1")/Scrt1.o"
+            echo "Scrt1.o: not shipped, linked to crt1.o" | tee -a build.log
+          fi
 
 
       
