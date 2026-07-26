@@ -132,6 +132,13 @@ while True:
         
     if "-------------------- tests_end --------------------------" in test_log:
         break;
+
+    # Nach einer Panic kommt nichts mehr -- sonst wartet die Schleife die
+    # kompletten 3 x 240s Stille ab, bevor sie aufgibt. Der Fehler selbst wird
+    # in read_test_log.py gemeldet (fehlende tests_end-Marke).
+    if "Kernel panic" in test_log:
+        print("Kernel panic erkannt, breche Lese-Schleife ab.")
+        break
         
     
     if "Kernel panic - not syncing: Attempted to kill init" in test_log:

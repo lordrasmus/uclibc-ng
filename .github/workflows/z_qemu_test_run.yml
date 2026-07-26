@@ -87,8 +87,12 @@ jobs:
            
       - name: analyse Test
         run: |
-           python3 .github/tools/read_test_log.py
+           # Summary auch anhaengen, wenn die Auswertung fehlschlaegt (Suite
+           # nicht gelaufen) -- danach den Fehler weitergeben.
+           rc=0
+           python3 .github/tools/read_test_log.py || rc=$?
            cat test_summary.md >> $GITHUB_STEP_SUMMARY
+           exit $rc
         
            
       - name: upload Test

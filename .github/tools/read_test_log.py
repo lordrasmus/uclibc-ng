@@ -13,6 +13,14 @@ test_results = {"TOTAL": 0, "PASS": 0 , "FAIL":0 , "SKIP": 0 }
 tests_failed = []
 tests_skip = []
 
+# Lief die Suite ueberhaupt? Ohne diese Pruefung ist ein Lauf, der nie bis zu
+# den Tests kommt (z.B. Kernel panic, weil das rootfs nicht ausfuehrbar ist),
+# nicht von einem erfolgreichen zu unterscheiden: es gibt dann einfach keine
+# PASS/FAIL-Zeilen und der Job wird gruen.
+tests_started = False
+tests_ended = False
+kernel_panic = False
+
 header=True
 
 file_text = open("log_text.txt","w")
@@ -26,12 +34,17 @@ with open("log.txt","rb") as f:
             continue
             
             
+        if "Kernel panic" in line:
+            kernel_panic = True
+
         if "-------------------- tests_start ------------------------" in line:
+            tests_started = True
             header=False
             file_text.write( line )
             continue
-            
+
         if '-------------------- tests_end --------------------------' in line:
+            tests_ended = True
             break
         
         if header == True:
@@ -127,3 +140,26 @@ for fa in tests_skip:
 
 with open("test_summary.md","w") as f:
     f.write( summary_text )
+
+
+"""
+
+   did the suite run at all?
+
+   Einzelne fehlgeschlagene Tests bleiben wie bisher gruen -- die stehen im
+   Badge und in der Summary. Rot wird nur, wenn die Suite nicht gelaufen ist.
+
+"""
+
+if not tests_ended or test_results["TOTAL"] == 0:
+    print("")
+    print("ERROR: the test suite did not run")
+    if kernel_panic:
+        print("       the kernel panicked")
+    if not tests_started:
+        print("       tests_start marker missing - userspace never got that far")
+    elif not tests_ended:
+        print("       tests_end marker missing - the run was cut short")
+    if test_results["TOTAL"] == 0:
+        print("       no test results in log.txt")
+    sys.exit(1)
