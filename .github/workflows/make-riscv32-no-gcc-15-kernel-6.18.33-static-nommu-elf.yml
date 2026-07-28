@@ -1,0 +1,38 @@
+name: riscv32-no-gcc-15-kernel-6.18.33-static-nommu-elf
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [test-update]
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - master
+
+
+
+jobs:
+
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-riscv32-gcc-15.2.0_nommu_flat_static
+      gcc_prefix: riscv32-openadk-linux-uclibc-
+      kernel_vers: 6.18.33
+      kernel_dir: v6.x
+      kernel_arch: riscv
+      config_file: config.riscv32_elf_nommu
+      qemu_kernel: kernel-riscv32-nommu-6.18.img
+      qemu_cmd: qemu-system-riscv32 -M virt -nographic -bios none -kernel kernel.img -initrd rootfs.img
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+
+  call_qemu:
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit
