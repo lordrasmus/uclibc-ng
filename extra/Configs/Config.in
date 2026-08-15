@@ -2211,16 +2211,6 @@ config UCLIBC_HAS_SSP
 
 	  Most people will answer N.
 
-config SSP_QUICK_CANARY
-	bool "Use simple guard values without accessing /dev/urandom"
-	depends on UCLIBC_HAS_SSP
-	help
-	  Use gettimeofday(2) to define the __guard without accessing
-	  /dev/urandom.
-	  WARNING: This makes smashing stack protector vulnerable to timing
-	  	attacks.
-	  Most people will answer N.
-
 choice
 	prompt "Propolice protection blocking signal"
 	depends on UCLIBC_HAS_SSP
