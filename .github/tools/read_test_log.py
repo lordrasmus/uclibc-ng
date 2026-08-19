@@ -146,8 +146,11 @@ with open("test_summary.md","w") as f:
 
    did the suite run at all?
 
-   Einzelne fehlgeschlagene Tests bleiben wie bisher gruen -- die stehen im
-   Badge und in der Summary. Rot wird nur, wenn die Suite nicht gelaufen ist.
+   Rot wird ein Lauf in zwei Faellen: die Suite ist nicht gelaufen (Panic,
+   fehlender tests_end-Marker, keine Ergebnisse), oder mindestens ein Test
+   ist fehlgeschlagen. Badge, log_text.txt und test_summary.md sind zu dem
+   Zeitpunkt schon geschrieben, und der Upload-Schritt laeuft mit always()
+   -- die Anzeige bleibt also aktuell, auch wenn der Job rot ist.
 
 """
 
@@ -162,4 +165,11 @@ if not tests_ended or test_results["TOTAL"] == 0:
         print("       tests_end marker missing - the run was cut short")
     if test_results["TOTAL"] == 0:
         print("       no test results in log.txt")
+    sys.exit(1)
+
+if test_results["FAIL"] > 0:
+    print("")
+    print("ERROR: {0} of {1} tests failed".format( test_results["FAIL"], test_results["TOTAL"] ))
+    for fa in tests_failed:
+        print("       " + fa[0] + " : " + fa[1])
     sys.exit(1)

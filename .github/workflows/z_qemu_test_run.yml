@@ -96,7 +96,7 @@ jobs:
         
            
       - name: upload Test
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/master'
         env:
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }} 
           UPLOAD_KEY: ${{ secrets.UPLOAD_KEY }} 
