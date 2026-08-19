@@ -237,9 +237,18 @@ jobs:
           # source for the GOT relocs and binfmt_flat can't fix them up
           # at load time (init crashes early with a store fault).
           # Mirrors openadk's mk/vars.mk treatment of ADK_TARGET_BINFMT_FLAT.
-          EXTRA=""
+          # Start from what the arch config asks for.  Passing
+          # UCLIBC_EXTRA_CFLAGS on the make command line overrides the .config
+          # value outright -- command-line variables win in make, even over an
+          # included .config -- so anything a config sets was silently dropped
+          # here.  28 of the configs set it; uc_devel honours them (it only
+          # passes the variable when it has something to add), the CI did not.
+          EXTRA=$(sed -n 's/^UCLIBC_EXTRA_CFLAGS="\(.*\)"$/\1/p' .config)
+          if [ -n "$EXTRA" ]; then
+            echo "config asks for UCLIBC_EXTRA_CFLAGS='$EXTRA'" | tee -a build.log
+          fi
           if grep -q '^UCLIBC_FORMAT_FLAT=y' .config; then
-            EXTRA="-Wl,-elf2flt=-r"
+            EXTRA="-Wl,-elf2flt=-r $EXTRA"
             if grep -qE '^TARGET_ARCH="?riscv(32|64)"?' .config; then
               EXTRA="-fPIC $EXTRA"
             fi
