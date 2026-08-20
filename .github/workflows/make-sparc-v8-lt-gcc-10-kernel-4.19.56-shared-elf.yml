@@ -23,8 +23,8 @@ jobs:
       kernel_dir: v4.x
       kernel_arch: sparc
       config_file: config.sparc_linuxthreads
-      qemu_kernel: kernel-sparc.img
-      qemu_cmd: qemu-system-sparc -monitor none -parallel none -net none -M SS-20 -m 256 -kernel kernel.img  -initrd rootfs.img.xz -nographic
+      qemu_kernel: kernel-sparc-smp.img
+      qemu_cmd: qemu-system-sparc -monitor none -parallel none -net none -M SS-20 -smp 4 -m 256 -kernel kernel.img  -initrd rootfs.img.xz -nographic
 
   call_images:
     needs: call_build
