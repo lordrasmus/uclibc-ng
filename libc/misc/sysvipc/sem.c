@@ -68,7 +68,17 @@ int semctl(int semid, int semnum, int cmd, ...)
 #endif
     return __ret;
 #else
+# if defined __sparc__ && defined __arch64__
+    /* sparc64 has its own demultiplexer, sys_sparc_ipc() in
+       arch/sparc/kernel/sys_sparc_64.c: for SEMCTL it hands ptr straight to
+       sys_semctl() as the semun argument, where the generic sys_ipc() reads
+       the argument through it with get_user().  Passing &arg there makes the
+       kernel write the semid_ds over the union itself -- and it sets IPC_64
+       on its own, so the bit does not matter.  */
+    return __syscall_ipc(IPCOP_semctl, semid, semnum, cmd, arg.__pad, NULL);
+# else
     return __syscall_ipc(IPCOP_semctl, semid, semnum, cmd|__IPC_64, &arg, NULL);
+# endif
 #endif
 }
 #endif
