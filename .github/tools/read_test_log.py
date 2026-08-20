@@ -20,6 +20,7 @@ tests_skip = []
 tests_started = False
 tests_ended = False
 kernel_panic = False
+last_started = None   # letzter Test, dessen RUN-Marke im Log steht
 
 header=True
 
@@ -58,6 +59,10 @@ with open("log.txt","rb") as f:
             
         print( line )
         
+        if line.startswith('RUN '):
+            last_started = line.split('RUN ', 1)[1].strip()
+            continue
+
         if 'PASS ' in line:
             test_results["TOTAL"] += 1
             test_results["PASS"] += 1
@@ -165,6 +170,9 @@ if not tests_ended or test_results["TOTAL"] == 0:
         print("       tests_end marker missing - the run was cut short")
     if test_results["TOTAL"] == 0:
         print("       no test results in log.txt")
+    if last_started:
+        print("       last test started: {0} ({1} results before it)".format(
+              last_started, test_results["TOTAL"] ))
     sys.exit(1)
 
 if test_results["FAIL"] > 0:
