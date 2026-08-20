@@ -89,6 +89,9 @@ CSRC- += $(if $(findstring =arm=,=$(TARGET_ARCH)=),vfork.c)
 CSRC- += $(if $(findstring =x86_64=,=$(TARGET_ARCH)=),vfork.c)
 CSRC- += $(if $(findstring =metag=,=$(TARGET_ARCH)=),vfork.c)
 endif
+# Cancellation points block in this multiplexer and must be unwindable.
+CFLAGS-__socketcall.c = -fasynchronous-unwind-tables
+
 # xstatconv.c always built (old kernels need it even without ARCH_HAS_DEPRECATED_SYSCALLS)
 # stubbed out in mman.h
 CSRC-$(ARCH_USE_MMU) += msync.c
