@@ -268,13 +268,27 @@ struct tcp_info
 /* For TCP_MD5SIG socket option.  */
 #define TCP_MD5SIG_MAXKEYLEN	80
 
+/* tcp_md5sig extension flags for TCP_MD5SIG_EXT.  */
+#define TCP_MD5SIG_FLAG_PREFIX	1 /* Address prefix length.  */
+#define TCP_MD5SIG_FLAG_IFINDEX	2 /* Ifindex set.  */
+
 struct tcp_md5sig
 {
   struct sockaddr_storage tcpm_addr;		/* Address associated.  */
-  u_int16_t	__tcpm_pad1;			/* Zero.  */
-  u_int16_t	tcpm_keylen;			/* Key length.  */
-  u_int32_t	__tcpm_pad2;			/* Zero.  */
-  u_int8_t	tcpm_key[TCP_MD5SIG_MAXKEYLEN];	/* Key (binary).  */
+  uint8_t	tcpm_flags;			/* Extension flags.  */
+  uint8_t	tcpm_prefixlen;			/* Address prefix.  */
+  uint16_t	tcpm_keylen;			/* Key length.  */
+  int		tcpm_ifindex;			/* Device index for scope.  */
+  uint8_t	tcpm_key[TCP_MD5SIG_MAXKEYLEN];	/* Key (binary).  */
+};
+
+/* INET_DIAG_MD5SIG */
+struct tcp_diag_md5sig {
+  uint8_t   tcpm_family;
+  uint8_t   tcpm_prefixlen;
+  uint16_t  tcpm_keylen;
+  uint32_t  tcpm_addr[4];
+  uint8_t   tcpm_key[TCP_MD5SIG_MAXKEYLEN];
 };
 
 #endif /* Misc.  */

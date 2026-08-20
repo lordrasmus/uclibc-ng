@@ -1,5 +1,9 @@
-/* Clear given exceptions in current floating-point environment.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+/*
+ * Copyright (C) 2026 Waldemar Brodkorb <wbx@uclibc-ng.org>
+ * Licensed under the LGPL v2.1, see the file COPYING.LIB in this tarball.
+ */
+
+/* Copyright (C) 1999 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -15,23 +19,13 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-#include "fenv_libc.h"
-#undef feclearexcept
-int
-__feclearexcept (int excepts)
-{
-  unsigned int fpescr;
+/* This file contains a bit of information about the stack allocation
+   of the processor.  Since there is no general truth we can't say
+   anything here.  */
 
-  /* Get the current state.  */
-  fpescr = fegetenv_register ();
+#ifndef _STACKINFO_H
+#define _STACKINFO_H	1
 
-  /* Clear the relevant bits.  */
-  fpescr &= ~(excepts & FE_ALL_EXCEPT);
+#define _STACK_GROWS_DOWN	1
 
-  /* Put the new state in effect.  */
-  fesetenv_register (fpescr);
-
-  /* Success.  */
-  return 0;
-}
-
+#endif	/* stackinfo.h */

@@ -1,5 +1,4 @@
-/* Clear given exceptions in current floating-point environment.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+/* Copyright (C) 1997, 1999, 2000 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -15,23 +14,11 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-#include "fenv_libc.h"
-#undef feclearexcept
-int
-__feclearexcept (int excepts)
+/* Rounding mode context.  This allows functions to set/restore rounding mode
+   only when the desired rounding mode is different from the current rounding
+   mode.  */
+struct rm_ctx
 {
-  unsigned int fpescr;
-
-  /* Get the current state.  */
-  fpescr = fegetenv_register ();
-
-  /* Clear the relevant bits.  */
-  fpescr &= ~(excepts & FE_ALL_EXCEPT);
-
-  /* Put the new state in effect.  */
-  fesetenv_register (fpescr);
-
-  /* Success.  */
-  return 0;
-}
-
+  fenv_t env;
+  bool updated_status;
+};
