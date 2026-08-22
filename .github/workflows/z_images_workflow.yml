@@ -161,7 +161,15 @@ jobs:
           if [[ $UCLIBC_FORMAT_FLAT == "y" ]] ; then
             FLAT_CFLAGS="-Wl,-elf2flt=-r"
             if [[ $UCLIBC_ARCH == riscv* ]] ; then
-              FLAT_CFLAGS="-fPIC $FLAT_CFLAGS"
+              # --no-relax: ld relaxes position independent sequences into absolute
+              # ones once the target address fits a 12 bit immediate, which only
+              # happens in small images -- and a bFLT is loaded at an arbitrary
+              # base, so those addresses are wrong. It hit the register_tm_clones
+              # pair that .init_array calls before main, so every small test binary
+              # died with SIGSEGV. binutils 2.46 behaves exactly like 2.39 here:
+              # from ld's point of view the link is a fixed address executable, so
+              # saying no is our job.
+              FLAT_CFLAGS="-fPIC -Wl,--no-relax $FLAT_CFLAGS"
             fi
           elif [[ $UCLIBC_MMU == "No" && $UCLIBC_FORMAT_ELF == "y" ]] ; then
             PIE_CFLAGS="-fpie"
