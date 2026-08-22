@@ -27,6 +27,12 @@ jobs:
       qemu_kernel: kernel-m68k-cf5208.img
       qemu_cmd: qemu-system-m68k -nographic -M mcf5208evb -cpu m5208 -kernel kernel.img -m 512
 
+  # Built for cf5208 because that is the core qemu runs. Do not reach for the
+  # cf51 toolchain here: -mcpu=51 is ISA C (the small V1 core carries the
+  # richer ISA) while the m5208 is ISA A+, and the ISAs are incremental, so
+  # cf51 code may hold instructions this machine rejects. Ask gcc with
+  # -mcpu=X -dM -E -, the core number says nothing about the ISA.
+
   call_images:
     needs: call_build
     uses: ./.github/workflows/z_images_workflow.yml
