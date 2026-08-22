@@ -159,7 +159,11 @@ jobs:
           PIE_LDFLAGS=""
           STATIC_LDFLAGS=""
           if [[ $UCLIBC_FORMAT_FLAT == "y" ]] ; then
-            FLAT_CFLAGS="-Wl,-elf2flt=-r"
+            # -s65536: elf2flt defaults to a 4 KB stack, and a bFLT stack cannot
+            # grow -- it is a fixed slice of the one mapping that also holds
+            # text, data and bss. test/unistd/clone.c alone declares 24 KB of
+            # clone stacks as locals.
+            FLAT_CFLAGS="-Wl,-elf2flt=-r -Wl,-elf2flt=-s65536"
             if [[ $UCLIBC_ARCH == riscv* ]] ; then
               # --no-relax: ld relaxes position independent sequences into absolute
               # ones once the target address fits a 12 bit immediate, which only
