@@ -158,19 +158,14 @@ jobs:
           PIE_CFLAGS=""
           PIE_LDFLAGS=""
           STATIC_LDFLAGS=""
-          # noMMU gets a real stack: elf2flt defaults to 4 KB and a PT_GNU_STACK
-          # with p_memsz 0 leaves binfmt_elf_fdpic at its 2-page minimum. Tests
-          # with ordinary buffers on the stack (test/string/tester alone has
-          # three 4 KB arrays) then die with SIGSEGV -- that was 53 of 224 tests
-          # on riscv32.
           if [[ $UCLIBC_FORMAT_FLAT == "y" ]] ; then
-            FLAT_CFLAGS="-Wl,-elf2flt=-r -Wl,-elf2flt=-s131072"
+            FLAT_CFLAGS="-Wl,-elf2flt=-r"
             if [[ $UCLIBC_ARCH == riscv* ]] ; then
               FLAT_CFLAGS="-fPIC $FLAT_CFLAGS"
             fi
           elif [[ $UCLIBC_MMU == "No" && $UCLIBC_FORMAT_ELF == "y" ]] ; then
             PIE_CFLAGS="-fpie"
-            PIE_LDFLAGS="-fpie -pie -Wl,-z,stack-size=131072"
+            PIE_LDFLAGS="-fpie -pie"
           elif ! ls sysroot/lib/libc.so* >/dev/null 2>&1 ; then
             # A static-only libc comes with a static-only toolchain, which has
             # no libgcc_s.so. Without -static gcc uses the shared-libgcc link
