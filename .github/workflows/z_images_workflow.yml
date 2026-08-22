@@ -157,6 +157,7 @@ jobs:
           FLAT_CFLAGS=""
           PIE_CFLAGS=""
           PIE_LDFLAGS=""
+          STATIC_LDFLAGS=""
           if [[ $UCLIBC_FORMAT_FLAT == "y" ]] ; then
             FLAT_CFLAGS="-Wl,-elf2flt=-r"
             if [[ $UCLIBC_ARCH == riscv* ]] ; then
@@ -165,6 +166,14 @@ jobs:
           elif [[ $UCLIBC_MMU == "No" && $UCLIBC_FORMAT_ELF == "y" ]] ; then
             PIE_CFLAGS="-fpie"
             PIE_LDFLAGS="-fpie -pie"
+          elif ! ls sysroot/lib/libc.so* >/dev/null 2>&1 ; then
+            # A static-only libc comes with a static-only toolchain, which has
+            # no libgcc_s.so. Without -static gcc uses the shared-libgcc link
+            # spec, pulls the unwinder out of libgcc.a only after -lc has been
+            # scanned, and its dl_iterate_phdr stays undefined -- which killed
+            # test/pthread on riscv64 as soon as those tests stopped being
+            # disabled. -static picks the spec that keeps libc available.
+            STATIC_LDFLAGS="-static"
           fi
           # ColdFire needs the large GOT model, a full rootfs overflows the
           # 16 bit one ("R_68K_GOT16O truncated to fit"). Ask the compiler:
@@ -181,8 +190,8 @@ jobs:
           case "$CONFIG_KERNEL_ARCH" in
             xtensa|kvx|csky) MK_FLAGS="O2_TWINS=0" ;;
           esac
-          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_CFLAGS $CF_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_LDFLAGS $CF_CFLAGS"   make -C uclibc-ng-test -j20 $MK_FLAGS 2>&1  | tee  testsuite_build.log
-          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_CFLAGS $CF_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_LDFLAGS $CF_CFLAGS"   make -C uclibc-ng-test install DESTDIR=../rootfs $MK_FLAGS > /dev/null 2>&1
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_CFLAGS $CF_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_LDFLAGS $STATIC_LDFLAGS $CF_CFLAGS"   make -C uclibc-ng-test -j20 $MK_FLAGS 2>&1  | tee  testsuite_build.log
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_CFLAGS $CF_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_LDFLAGS $STATIC_LDFLAGS $CF_CFLAGS"   make -C uclibc-ng-test install DESTDIR=../rootfs $MK_FLAGS > /dev/null 2>&1
           find rootfs -type f -name '*.gdb' -exec rm {} \;
           
           cp tests_disable rootfs
