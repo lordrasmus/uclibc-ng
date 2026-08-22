@@ -24,7 +24,7 @@ jobs:
       kernel_dir: v6.x
       kernel_arch: riscv
       config_file: config.riscv32
-      qemu_kernel: kernel-riscv32-nommu.img
+      qemu_kernel: kernel-riscv32-nommu-6.18.img
       qemu_cmd: qemu-system-riscv32 -M virt -nographic -bios none -kernel kernel.img -initrd rootfs.img
 
 
