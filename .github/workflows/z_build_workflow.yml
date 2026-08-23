@@ -264,7 +264,7 @@ jobs:
             echo "ColdFire: passing UCLIBC_EXTRA_CFLAGS='$EXTRA' to make" | tee -a build.log
           fi
           CROSS_COMPILE=$CONFIG_GCC_PREFIX make UCLIBC_EXTRA_CFLAGS="$EXTRA" oldconfig
-          CROSS_COMPILE=$CONFIG_GCC_PREFIX make UCLIBC_EXTRA_CFLAGS="$EXTRA" -j8 2>&1 | tee -a build.log
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX nice -n 19 make UCLIBC_EXTRA_CFLAGS="$EXTRA" -j8 2>&1 | tee -a build.log
           CROSS_COMPILE=$CONFIG_GCC_PREFIX make UCLIBC_EXTRA_CFLAGS="$EXTRA" install DESTDIR=artifacts/sysroot
           # Linking -pie needs Scrt1.o. uClibc-ng only ships it for some
           # configurations, so fall back to crt1.o when it is missing -- same
