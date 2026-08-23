@@ -111,7 +111,7 @@ jobs:
              wget -nv "https://github.com/lordrasmus/toolchains/blob/main/$CONFIG_TOOLCHAIN.tar.xz?raw=true" -O "$TC.part" && mv "$TC.part" "$TC"
            fi
            cp "$TC" $CONFIG_TOOLCHAIN.tar.xz
-           tar -xaf $CONFIG_TOOLCHAIN.tar.xz
+           nice -n 19 tar -xaf $CONFIG_TOOLCHAIN.tar.xz
 
       - name: check Toolchain files
         run: |
@@ -187,7 +187,7 @@ jobs:
             echo "kernel: cache hit ($K)"
           fi
           cp "$K" "$DEST"
-          tar -xaf "$DEST"
+          nice -n 19 tar -xaf "$DEST"
      
       
            
@@ -292,7 +292,7 @@ jobs:
 
       - name: copy Sysroot
         run: |
-          ( cd artifacts ; tar -cf sysroot.tar sysroot ; rm -rf sysroot )
+          ( cd artifacts ; nice -n 19 tar -cf sysroot.tar sysroot ; rm -rf sysroot )
           cp .config uclibc-ng.config.config
 
       - name: upload Artifacts
