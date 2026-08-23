@@ -69,7 +69,7 @@ jobs:
       - name: install Qemu
         run: |
           wget -nv  "https://github.com/lordrasmus/uclibc-ng-qemu-imgs/blob/main/qemu-inst.tar.xz?raw=true" -O qemu-inst.tar.xz
-          tar -xaf qemu-inst.tar.xz
+          nice -n 19 tar -xaf qemu-inst.tar.xz
       
           
       - name: run Qemu
