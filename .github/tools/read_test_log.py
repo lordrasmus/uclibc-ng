@@ -10,6 +10,12 @@ from pprint import pprint
 
 
 test_results = {"TOTAL": 0, "PASS": 0 , "FAIL":0 , "SKIP": 0 }
+# Zeilen, die ein bestandener Test selbst ausgibt, weil er etwas nicht
+# pruefen konnte -- Ausnahmen ohne fenv, Symbole in einem statischen
+# Bau, Funktionen die die Config nicht baut. Nicht in TOTAL: das sind
+# keine uebersprungenen Tests, sondern uebersprungene Pruefungen
+# innerhalb bestandener Tests.
+unchecked = []
 tests_failed = []
 tests_skip = []
 
@@ -84,6 +90,11 @@ with open("log.txt","rb") as f:
             test_results["TOTAL"] += 1
             test_results["SKIP"] += 1
             tests_skip.append( line.split("SKIP ")[1] );
+
+        # von den Runnern nach einem PASS durchgereicht, eingerueckt
+        st = line.strip()
+        if st.startswith("SKIP:") or "expectations skipped" in st:
+            unchecked.append( [ last_started or "", st ] )
 
 
 
@@ -160,7 +171,17 @@ summary_text += "|Total: {0} |:hash:|\n".format( test_results["TOTAL"] )
 summary_text += "|Pass: {0}  |:white_check_mark:|\n".format( test_results["PASS"] )
 summary_text += "|Fail: {0}  |:x:|\n".format( test_results["FAIL"] )
 summary_text += "|skip: {0}  |:warning:|\n".format( test_results["SKIP"] )
+if unchecked:
+    summary_text += "|unchecked: {0}  |:grey_question:|\n".format( len(unchecked) )
 
+
+if unchecked:
+    summary_text += "\n"
+    summary_text += "#### Not checked :grey_question:\n\n"
+    summary_text += "| Test | Reason |\n"
+    summary_text += "| ---- | ---- |\n"
+    for u in unchecked:
+        summary_text += "| {0} | {1} |\n".format( u[0], u[1] )
 
 summary_text += "\n"
 summary_text += "#### Test Failed :x:\n\n"
