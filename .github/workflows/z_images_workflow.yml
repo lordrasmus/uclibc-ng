@@ -202,6 +202,15 @@ jobs:
           case "$CONFIG_KERNEL_ARCH" in
             xtensa|kvx|csky) MK_FLAGS="O2_TWINS=0" ;;
           esac
+          # ColdFire's mcf5208evb has no initrd support either, so it uses the
+          # same slot -- 24 MB in that image. Keyed on the machine and on ELF,
+          # not on the arch: m68k is also the 68040 virt target, which does use
+          # -initrd, and the FLAT target on the same machine still fits with
+          # the twins because its binaries are smaller. The ELF one overflowed
+          # at 26287104 bytes against the 25165824 the slot holds.
+          if [[ $CONFIG_QEMU_CMD == *mcf5208* && $UCLIBC_FORMAT_ELF == "y" ]] ; then
+            MK_FLAGS="O2_TWINS=0"
+          fi
           CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_CFLAGS $CF_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_LDFLAGS $STATIC_LDFLAGS $CF_CFLAGS"   nice -n 19 make -C uclibc-ng-test -j20 $MK_FLAGS 2>&1  | tee  testsuite_build.log
           CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_CFLAGS $CF_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_LDFLAGS $STATIC_LDFLAGS $CF_CFLAGS"   make -C uclibc-ng-test install DESTDIR=../rootfs $MK_FLAGS > /dev/null 2>&1
           find rootfs -type f -name '*.gdb' -exec rm {} \;
