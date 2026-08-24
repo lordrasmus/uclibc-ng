@@ -1,0 +1,49 @@
+name: z_badge_failed_workflow
+
+# Haelt den Test-Badge ehrlich, wenn die Tests nicht liefen: der qemu-Job
+# haengt an call_images, wird bei einem Fehler davor uebersprungen und laedt
+# darum nichts hoch -- auf dem Server blieb dann die letzte gruene SVG liegen.
+# Dieser Job laeuft mit if: failure() im Aufrufer, also gerade dann.
+
+on:
+  workflow_call:
+    inputs:
+      build_result:
+        description: 'result of the call_build job'
+        required: true
+        type: string
+      images_result:
+        description: 'result of the call_images job'
+        required: true
+        type: string
+
+jobs:
+  badge:
+    runs-on: [self-hosted, uclibc-build]
+
+    steps:
+
+      - name: Cleanup workspace (self-hosted)
+        run: |
+          # wie in den anderen Workflows: Build-Reste weg, .git behalten
+          sudo find "${{ github.workspace }}" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} + 2>/dev/null || true
+
+      - uses: actions/checkout@master
+        with:
+          fetch-depth: 1
+
+      - name: create Badge
+        run: |
+          python3 .github/tools/failed_badge.py \
+            "${{ inputs.build_result }}" \
+            "${{ inputs.images_result }}" \
+            "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          cat log_text.txt >> $GITHUB_STEP_SUMMARY
+
+      - name: upload Badge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        env:
+          UPLOAD_KEY: ${{ secrets.UPLOAD_KEY }}
+        run: |
+          python3 .github/tools/upload.py badge.svg    tests ${{ github.workflow }}_test_result.svg
+          python3 .github/tools/upload.py log_text.txt tests ${{ github.workflow }}_test_result.txt
