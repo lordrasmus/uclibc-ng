@@ -1,0 +1,60 @@
+name: aarch64-be-no-gcc-15-kernel-6.5.10-shared-elf
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [test-update]
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - master
+
+
+jobs:
+
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-aarch64_be_cortex_a53-gcc-15.3.0
+      gcc_prefix: aarch64_be-openadk-linux-uclibc-
+      kernel_vers: 6.5.10
+      kernel_dir: v6.x
+      kernel_arch: arm64
+      config_file: config.aarch64_be
+      qemu_kernel: kernel-aarch64_be.img
+      qemu_cmd: qemu-system-aarch64 -nographic -machine virt,gic-version=max -m 512M -cpu max -smp 4  -kernel kernel.img -initrd rootfs.img.xz
+
+  # Big endian aarch64, which nothing else here covers: every other target of
+  # this arch family is little endian, so the byte order paths in the library
+  # were never compiled, let alone run.
+  #
+  # It also carries UCLIBC_LIBM_ACCURATE. aarch64 is the only toolchain in the
+  # matrix that sets __FP_FAST_FMA, and both libm variants use fma() as a
+  # building block - accurate/ in six files - so this is the one place where
+  # the accurate tier runs on a core that has the instruction instead of
+  # falling back to the software fma in libm/s_fma.c.
+  #
+  # The kernel had to be built for it: arm64 picks its byte order through a
+  # kconfig choice, so kernel-aarch64_be.img is kernel-aarch64.config with
+  # CONFIG_CPU_LITTLE_ENDIAN turned off and CONFIG_CPU_BIG_ENDIAN turned on.
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+
+  call_qemu:
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit
+
+  call_badge_failed:
+    if: failure()
+    needs: [call_build, call_images]
+    uses: ./.github/workflows/z_badge_failed_workflow.yml
+    with:
+      build_result: ${{ needs.call_build.result }}
+      images_result: ${{ needs.call_images.result }}
+    secrets: inherit
