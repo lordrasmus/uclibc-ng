@@ -95,6 +95,30 @@ jobs:
            exit $rc
         
            
+      - name: Badge wenn der Lauf vor der Auswertung starb
+        if: failure()
+        run: |
+           # Den Badge schreibt sonst read_test_log.py in "analyse Test". Stirbt
+           # der Job vorher -- cpio-Platzhalter zu klein, qemu startet nicht,
+           # Absturz --, laeuft der Step nie, "upload Test" faellt ueber die
+           # fehlende badge.svg, und auf dem Server bleibt die letzte gruene SVG
+           # liegen. Nur einspringen, wenn wirklich keiner da ist: bei
+           # fehlgeschlagenen Tests hat read_test_log.py seinen schon.
+           if [ -e badge.svg ] ; then
+             echo "badge.svg vorhanden -- analyse Test hat ihn geschrieben"
+             exit 0
+           fi
+           python3 .github/tools/failed_badge.py qemu \
+             "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+           # den Gast-Log anhaengen, soweit er existiert -- daran sieht man, wie
+           # weit der Lauf kam, und die Seite hinter dem Badge zeigt es mit.
+           if [ -e log.txt ] ; then
+             echo "" >> log_text.txt
+             echo "--- guest log ---" >> log_text.txt
+             cat log.txt >> log_text.txt
+           fi
+           cat log_text.txt >> $GITHUB_STEP_SUMMARY
+
       - name: upload Test
         if: always() && github.event_name == 'push' && github.ref == 'refs/heads/master'
         env:
