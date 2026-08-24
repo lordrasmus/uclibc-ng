@@ -1,4 +1,4 @@
-name: aarch64-be-no-gcc-15-kernel-6.5.10-shared-elf
+name: aarch64-be-npt-gcc-15-kernel-6.5.10-shared-elf
 
 on:
   workflow_dispatch:
