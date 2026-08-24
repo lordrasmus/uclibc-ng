@@ -34,9 +34,20 @@ jobs:
 
       - name: create Badge
         run: |
-          python3 .github/tools/failed_badge.py \
-            "${{ inputs.build_result }}" \
-            "${{ inputs.images_result }}" \
+          # Welche Stufe fiel? call_images ist bei einem Build-Fehler nur
+          # skipped, nicht failed -- deshalb auf "!= success" pruefen und nicht
+          # auf "== failure".
+          if [ "${{ inputs.build_result }}" != "success" ] ; then
+            STAGE=build
+          elif [ "${{ inputs.images_result }}" != "success" ] ; then
+            STAGE=rootfs
+          else
+            # Nur erreichbar, wenn der Job trotz gruener Vorstufen laeuft --
+            # dann lieber abbrechen als einen gruenen Badge ueberschreiben.
+            echo "ERROR: neither build nor images failed, refusing to write a badge"
+            exit 1
+          fi
+          python3 .github/tools/failed_badge.py "$STAGE" \
             "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           cat log_text.txt >> $GITHUB_STEP_SUMMARY
 
