@@ -1,4 +1,4 @@
-name: m68k-npt-gcc-13-kernel-5.4.259-shared-elf
+name: m68k-68040-npt-gcc-13-kernel-5.4.259-shared-elf
 
 on:
   workflow_dispatch:
