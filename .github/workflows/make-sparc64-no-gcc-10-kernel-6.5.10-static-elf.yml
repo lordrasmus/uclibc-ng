@@ -25,7 +25,7 @@ jobs:
       kernel_arch: sparc64
       config_file: config.sparc64
       qemu_kernel: kernel-sparc64.img
-      qemu_cmd: qemu-system-sparc64 -M sun4u -m 512M -nographic -kernel kernel.img -initrd rootfs.img.xz
+      qemu_cmd: qemu-system-sparc64 -M sun4u -m 1024M -nographic -kernel kernel.img -initrd rootfs.img.xz
 
   call_images:
     needs: call_build
