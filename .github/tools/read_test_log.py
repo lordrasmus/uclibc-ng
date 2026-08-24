@@ -20,6 +20,7 @@ tests_skip = []
 tests_started = False
 tests_ended = False
 kernel_panic = False
+initramfs_failed = False
 last_started = None   # letzter Test, dessen RUN-Marke im Log steht
 
 header=True
@@ -37,6 +38,9 @@ with open("log.txt","rb") as f:
             
         if "Kernel panic" in line:
             kernel_panic = True
+
+        if "Initramfs unpacking failed" in line:
+            initramfs_failed = True
 
         if "-------------------- tests_start ------------------------" in line:
             tests_started = True
@@ -97,11 +101,44 @@ file_text.close();
 
 #test_results["FAIL"] = 0
 
-right_color='green'
-if test_results["FAIL"] > 0:
-    right_color='#800000'
+"""
 
-text = 'total: {0} pass: {1}  failed: {2}  skip: {3}'.format( test_results["TOTAL"], test_results["PASS"], test_results["FAIL"], test_results["SKIP"] )
+   Ein Lauf ist gut, wenn die Suite durchgelaufen ist UND kein Test
+   fehlgeschlagen ist.  Diese Entscheidung faellt hier, vor dem Badge, damit
+   Badge, Summary und Exit-Code dieselbe Antwort geben: ein Lauf, der die
+   Tests nie erreicht hat, lieferte frueher 0 Fehler von 0 Tests und wurde
+   damit gruen, waehrend der Job rot war.
+
+"""
+
+if kernel_panic:
+    reason = 'kernel panic'
+elif initramfs_failed:
+    # rootfs passt nicht in den Gastspeicher: der Init kommt noch hoch, die
+    # spaeteren Dateien (u.a. der Testrunner) fehlen -- -m im qemu_cmd erhoehen
+    reason = 'initramfs unpack failed'
+elif not tests_started:
+    reason = 'guest never reached the tests'
+elif not tests_ended:
+    reason = 'run cut short'
+elif test_results["TOTAL"] == 0:
+    reason = 'no test results'
+else:
+    reason = None
+
+suite_ran = reason is None
+
+if not suite_ran:
+    right_color='#800000'
+    if test_results["TOTAL"] > 0:
+        text = '{0} after {1} tests'.format( reason, test_results["TOTAL"] )
+    else:
+        text = reason
+else:
+    right_color='green'
+    if test_results["FAIL"] > 0:
+        right_color='#800000'
+    text = 'total: {0} pass: {1}  failed: {2}  skip: {3}'.format( test_results["TOTAL"], test_results["PASS"], test_results["FAIL"], test_results["SKIP"] )
 
 s = badge(left_text='test results', right_text=text, right_color=right_color )
 
@@ -159,11 +196,14 @@ with open("test_summary.md","w") as f:
 
 """
 
-if not tests_ended or test_results["TOTAL"] == 0:
+if not suite_ran:
     print("")
     print("ERROR: the test suite did not run")
     if kernel_panic:
         print("       the kernel panicked")
+    if initramfs_failed:
+        print("       initramfs unpacking failed - the rootfs does not fit into")
+        print("       the guest memory, raise -m in the workflow's qemu_cmd")
     if not tests_started:
         print("       tests_start marker missing - userspace never got that far")
     elif not tests_ended:
