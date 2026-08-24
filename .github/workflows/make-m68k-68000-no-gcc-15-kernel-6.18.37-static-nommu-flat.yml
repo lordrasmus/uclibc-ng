@@ -1,0 +1,42 @@
+name: m68k-68000-no-gcc-15-kernel-6.18.37-static-nommu-flat
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [test-update]
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - master
+
+
+jobs:
+
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-m68k_68000-gcc-15.3.0_nommu_flat_static
+      gcc_prefix: m68k-openadk-uclinux-uclibc-
+      kernel_vers: 6.18.37
+      kernel_dir: v6.x
+      kernel_arch: m68k
+      config_file: config.m68k_68000
+      qemu_kernel:
+      qemu_cmd:
+
+  # Build only: qemu has no machine for a 68000. Its m68k machines are the two
+  # ColdFire boards and the 68040 based q800 and virt; the 68328 class parts a
+  # 68000 uClinux runs on are not emulated, and ColdFire is a different
+  # instruction set, not a 68000 superset.
+  #
+  # What this target is for: the 68000 and 68010 have no CAS, so they take the
+  # kernel helper path in bits/atomic.h that ColdFire uses. That path had no
+  # coverage here - every other m68k toolchain is 68040 or ColdFire - until a
+  # Buildroot autobuilder found it.
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
