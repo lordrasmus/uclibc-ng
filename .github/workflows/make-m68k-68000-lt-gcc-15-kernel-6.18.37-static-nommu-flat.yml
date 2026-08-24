@@ -1,4 +1,4 @@
-name: m68k-68000-no-gcc-15-kernel-6.18.37-static-nommu-flat
+name: m68k-68000-lt-gcc-15-kernel-6.18.37-static-nommu-flat
 
 on:
   workflow_dispatch:
