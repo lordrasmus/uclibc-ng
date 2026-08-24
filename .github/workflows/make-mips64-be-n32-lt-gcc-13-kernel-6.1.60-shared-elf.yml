@@ -36,3 +36,12 @@ jobs:
     needs: call_images
     uses: ./.github/workflows/z_qemu_test_run.yml
     secrets: inherit 
+
+  call_badge_failed:
+    if: failure()
+    needs: [call_build, call_images]
+    uses: ./.github/workflows/z_badge_failed_workflow.yml
+    with:
+      build_result: ${{ needs.call_build.result }}
+      images_result: ${{ needs.call_images.result }}
+    secrets: inherit
