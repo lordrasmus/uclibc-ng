@@ -130,8 +130,17 @@ jobs:
            fi
            cat log_text.txt >> $GITHUB_STEP_SUMMARY
 
+      # Anything that ran on master publishes its result, a pull request does
+      # not. Not "event_name == push": a repository_dispatch from the test repo
+      # runs on master too (head_branch master, so github.ref is
+      # refs/heads/master) against the same library and the same test suite, so
+      # its result is worth exactly as much. Gating on push threw it away, and
+      # a target that only fails under dispatch kept a green badge for ever.
+      # Price: when a library push and a test push land together, both matrices
+      # upload and the one finishing later wins -- on a flaky target the badge
+      # then flips, which is the truth rather than the greener half of it.
       - name: upload Test
-        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: always() && github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
         env:
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }} 
           UPLOAD_KEY: ${{ secrets.UPLOAD_KEY }} 
