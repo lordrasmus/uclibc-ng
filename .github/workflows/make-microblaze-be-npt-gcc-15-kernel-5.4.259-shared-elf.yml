@@ -1,0 +1,42 @@
+name: microblaze-be-npt-gcc-15-kernel-5.4.259-shared-elf
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [test-update]
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - master
+
+
+jobs:
+
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-microblaze_gcc-15.3.0
+      gcc_prefix: microblaze-openadk-linux-uclibc-
+      kernel_vers: 5.4.259
+      kernel_dir: v5.x
+      kernel_arch: microblaze
+      config_file: config.microblaze
+      qemu_kernel:
+      qemu_cmd:
+
+  # Buildroot's default microblaze is big endian (BR2_microblaze; the "el" is
+  # the variant), while both of our microblaze targets are little endian. The
+  # port has hand written assembler -- crt1.S, clone.S, setjmp.S, the lwx/swx
+  # sequences in bits/atomic.h -- so a byte order that nothing compiles is
+  # worth covering.
+  #
+  # Build only: qemu-system-microblaze needs a big endian machine model and a
+  # matching kernel image, neither of which we have; call_images still builds
+  # the test suite, which is where a broken port shows up.
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
