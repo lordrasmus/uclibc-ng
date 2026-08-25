@@ -19,7 +19,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-sh4_sh4-gcc-13
+      toolchain: toolchain-sh4_sh4-gcc-13.4.0
       gcc_prefix: sh4-openadk-linux-uclibc-
       kernel_vers: 4.19.56
       kernel_dir: v4.x
