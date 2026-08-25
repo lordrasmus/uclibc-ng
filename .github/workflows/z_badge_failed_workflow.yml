@@ -51,8 +51,11 @@ jobs:
             "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           cat log_text.txt >> $GITHUB_STEP_SUMMARY
 
+      # Same rule as "upload Test" in z_qemu_test_run.yml, and for the same
+      # reason: a repository_dispatch runs on master, so a build that breaks
+      # under it must be able to turn the badge red.
       - name: upload Badge
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
         env:
           UPLOAD_KEY: ${{ secrets.UPLOAD_KEY }}
         run: |

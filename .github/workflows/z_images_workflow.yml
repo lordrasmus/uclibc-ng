@@ -369,6 +369,11 @@ jobs:
           path: testsuite_build.log
           
       
+      # Stays push-only, unlike the two badge uploads: a dev pack is ~265 MB
+      # per target, some 7 GB per matrix, and a test-suite commit does not
+      # change the library it holds. Not a question of what may be published
+      # but of what is worth uploading twice -- do not "harmonise" this with
+      # the badge condition.
       - name: create Devel Package
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         env:
