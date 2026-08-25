@@ -23,20 +23,30 @@ jobs:
       kernel_dir: v5.x
       kernel_arch: microblaze
       config_file: config.microblaze
-      qemu_kernel:
-      qemu_cmd:
+      qemu_kernel: kernel-microblaze.img
+      qemu_cmd: qemu-system-microblaze -M petalogix-s3adsp1800 -nographic -kernel kernel.img -initrd rootfs.img.xz
 
   # Buildroot's default microblaze is big endian (BR2_microblaze; the "el" is
   # the variant), while both of our microblaze targets are little endian. The
-  # port has hand written assembler -- crt1.S, clone.S, setjmp.S, the lwx/swx
-  # sequences in bits/atomic.h -- so a byte order that nothing compiles is
-  # worth covering.
-  #
-  # Build only: qemu-system-microblaze needs a big endian machine model and a
-  # matching kernel image, neither of which we have; call_images still builds
-  # the test suite, which is where a broken port shows up.
+  # port carries hand written assembler -- crt1.S, clone.S, setjmp.S, the
+  # lwx/swx sequences in bits/atomic.h -- so a byte order that nothing ever
+  # runs is worth covering.
 
   call_images:
     needs: call_build
     uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+
+  call_qemu:
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit
+
+  call_badge_failed:
+    if: failure()
+    needs: [call_build, call_images]
+    uses: ./.github/workflows/z_badge_failed_workflow.yml
+    with:
+      build_result: ${{ needs.call_build.result }}
+      images_result: ${{ needs.call_images.result }}
     secrets: inherit
