@@ -9,6 +9,17 @@ jobs:
 
     steps:
 
+      - name: Ensure jq
+        run: |
+          # The LXC runners have jq pre-provisioned, a runner registered later
+          # may not - and every step that reads infos.json needs it. Install
+          # only when it is missing, so the 60 runners that share one apt lock
+          # never touch apt.
+          command -v jq >/dev/null && exit 0
+          echo "jq missing, installing"
+          sudo apt-get -y -qq update
+          sudo apt-get -y -qq install jq
+
       - name: Cleanup workspace (self-hosted)
         run: |
           # Build-Reste entfernen, aber das .git behalten -> actions/checkout fetcht
