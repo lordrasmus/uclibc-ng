@@ -1,0 +1,58 @@
+name: riscv64-hf-npt-gcc-15-kernel-6.5.10-shared-elf
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [test-update]
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - master
+
+
+jobs:
+
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-riscv64_rv64imafdc-gcc-15.3.0
+      gcc_prefix: riscv64-openadk-linux-uclibc-
+      kernel_vers: 6.5.10
+      kernel_dir: v6.x
+      kernel_arch: riscv
+      config_file: config.riscv64_hf
+      qemu_kernel: kernel-riscv64.img
+      qemu_cmd: qemu-system-riscv64 -M virt -m 512 -nographic -append console=ttyS0  -kernel kernel.img -initrd rootfs.img.xz
+
+  # RV64IMAFDC, so the F and D extensions in hardware and the LP64D ABI. The
+  # other eight riscv targets are soft float; this is the first with an FPU.
+  #
+  # It carries UCLIBC_LIBM_ACCURATE for the same reason aarch64-be does: both
+  # libm variants use fma() as a building block, and until today the accurate
+  # tier ran only on targets without the instruction, where every call lands in
+  # the software fma of libm/s_fma.c - measured at 10x the cost. This toolchain
+  # sets __FP_FAST_FMA and the libc it builds has 436 fmadd/fmsub instructions.
+  #
+  # No new kernel needed: kernel-riscv64.img already has CONFIG_FPU=y, and the
+  # virt machine's default cpu has F and D.
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+
+  call_qemu:
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit
+
+  call_badge_failed:
+    if: failure()
+    needs: [call_build, call_images]
+    uses: ./.github/workflows/z_badge_failed_workflow.yml
+    with:
+      build_result: ${{ needs.call_build.result }}
+      images_result: ${{ needs.call_images.result }}
+    secrets: inherit
