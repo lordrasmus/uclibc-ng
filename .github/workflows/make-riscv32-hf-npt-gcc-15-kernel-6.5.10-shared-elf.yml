@@ -23,18 +23,32 @@ jobs:
       kernel_dir: v6.x
       kernel_arch: riscv
       config_file: config.riscv32_shared
-      qemu_kernel:
-      qemu_cmd:
+      qemu_kernel: kernel-riscv32.img
+      qemu_cmd: qemu-system-riscv32 -M virt -nographic -kernel kernel.img -initrd rootfs.img
 
   # Buildroot's riscv32 default is RV32IMAFDC with the ilp32d ABI, while our
-  # riscv32 targets are all rv32imac/ilp32, i.e. soft float. Same config as the
-  # soft float target: the ABI lives entirely in the toolchain, uClibc-ng only
-  # sees UCLIBC_HAS_FPU, which config.riscv32_shared already sets.
+  # riscv32 targets are all rv32imac/ilp32, i.e. soft float.
   #
-  # Build only: qemu needs a riscv32 kernel image built for the same float ABI,
-  # which we do not have. call_images still builds the test suite.
+  # No new config and no new kernel image: the ABI lives entirely in the
+  # toolchain, uClibc-ng only sees UCLIBC_HAS_FPU, which config.riscv32_shared
+  # already sets, and kernel-riscv32.config already has CONFIG_FPU=y. Verified
+  # by booting an ilp32d binary on that very image.
 
   call_images:
     needs: call_build
     uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+
+  call_qemu:
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit
+
+  call_badge_failed:
+    if: failure()
+    needs: [call_build, call_images]
+    uses: ./.github/workflows/z_badge_failed_workflow.yml
+    with:
+      build_result: ${{ needs.call_build.result }}
+      images_result: ${{ needs.call_images.result }}
     secrets: inherit

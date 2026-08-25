@@ -23,18 +23,28 @@ jobs:
       kernel_dir: v6.x
       kernel_arch: mips
       config_file: config.mips_shared_be
-      qemu_kernel:
-      qemu_cmd:
+      qemu_kernel: kernel-mips32.img
+      qemu_cmd: qemu-system-mips -M malta -nographic -kernel kernel.img -initrd rootfs.img
 
-  # Buildroot's default mips is big endian o32 (BR2_mips); all three of our
-  # o32 targets are little endian. Big endian o32 is its own code path in
-  # uClibc-ng: the syscall convention differs from n32/n64, which are the only
-  # big endian mips we build today.
-  #
-  # Build only: a qemu run needs a big endian malta kernel image, which we do
-  # not have. call_images still builds the test suite.
+  # Buildroot's default mips is big endian o32 (BR2_mips), while all three of
+  # our o32 targets are little endian. The only big endian mips we run today is
+  # n32/n64, which uses a different syscall convention.
 
   call_images:
     needs: call_build
     uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+
+  call_qemu:
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit
+
+  call_badge_failed:
+    if: failure()
+    needs: [call_build, call_images]
+    uses: ./.github/workflows/z_badge_failed_workflow.yml
+    with:
+      build_result: ${{ needs.call_build.result }}
+      images_result: ${{ needs.call_images.result }}
     secrets: inherit
