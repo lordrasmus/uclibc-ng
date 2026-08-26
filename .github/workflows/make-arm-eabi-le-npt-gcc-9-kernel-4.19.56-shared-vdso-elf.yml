@@ -12,6 +12,18 @@ on:
     branches:
       - master
 
+concurrency:
+  # Zwei Laeufe desselben Ziels duerfen sich nicht ueberholen: der Badge ist
+  # eine Datei auf dem Server, es gewinnt also der, der spaeter fertig wird --
+  # nicht der mit dem neueren Commit. Am 2026-08-26 hat so ein dispatch-Lauf
+  # auf dem aelteren Commit den gruenen Badge eines Pushs ueberschrieben, eine
+  # Minute nach ihm. Die Gruppe ist (Workflow, Ref), die Ziele laufen also
+  # weiter parallel zueinander; nur derselbe Workflow reiht sich auf. Wartende
+  # Laeufe belegen keinen Runner, und kommt ein dritter Trigger, verwirft
+  # GitHub den wartenden und behaelt den neuesten -- fuer den Badge richtig.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
       
       
