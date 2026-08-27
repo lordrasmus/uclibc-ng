@@ -501,7 +501,11 @@ char *ctime(const time_t *t)
 	struct tm xtm;
 	memset(&xtm, 0, sizeof(xtm));
 
-	return asctime(localtime_r(t, &xtm));
+	if (localtime_r(t, &xtm) == NULL) {	/* asctime asserts on NULL. */
+		return NULL;
+	}
+
+	return asctime(&xtm);
 }
 libc_hidden_def(ctime)
 #endif
@@ -512,7 +516,11 @@ char *ctime_r(const time_t *t, char *buf)
 {
 	struct tm xtm;
 
-	return asctime_r(localtime_r(t, &xtm), buf);
+	if (localtime_r(t, &xtm) == NULL) {	/* asctime_r asserts on NULL. */
+		return NULL;
+	}
+
+	return asctime_r(&xtm, buf);
 }
 
 #endif
@@ -561,7 +569,11 @@ struct tm *gmtime(const time_t *timer)
 {
 	register struct tm *ptm = &__time_tm;
 
-	_time_t2tm(timer, 0, ptm); /* Can return NULL... */
+	/* It can return NULL, and then ptm holds a partly written struct;
+	 * handing that out as a result loses the error. */
+	if (_time_t2tm(timer, 0, ptm) == NULL) {
+		return NULL;
+	}
 
 	return ptm;
 }
@@ -586,7 +598,9 @@ struct tm *localtime(const time_t *timer)
 
 	/* In this implementation, tzset() is called by localtime_r().  */
 
-	localtime_r(timer, ptm);	/* Can return NULL... */
+	if (localtime_r(timer, ptm) == NULL) {	/* It can return NULL. */
+		return NULL;
+	}
 
 	return ptm;
 }
@@ -599,15 +613,17 @@ libc_hidden_def(localtime)
 struct tm *localtime_r(register const time_t *__restrict timer,
 					   register struct tm *__restrict result)
 {
+	struct tm *p;
+
 	__UCLIBC_MUTEX_LOCK(_time_tzlock);
 
 	_time_tzset(*timer < new_rule_starts);
 
-	__time_localtime_tzi(timer, result, _time_tzinfo);
+	p = __time_localtime_tzi(timer, result, _time_tzinfo);
 
 	__UCLIBC_MUTEX_UNLOCK(_time_tzlock);
 
-	return result;
+	return p;
 }
 libc_hidden_def(localtime_r)
 
@@ -775,7 +791,11 @@ struct tm attribute_hidden *__time_localtime_tzi(register const time_t *__restri
 		}
 		*x = *timer + offset;
 
-		_time_t2tm(x, days, result);
+		/* Out of range for a struct tm; tm_isdst below would read a
+		 * result that was never written. */
+		if (_time_t2tm(x, days, result) == NULL) {
+			return NULL;
+		}
 		result->tm_isdst = dst;
 #ifdef __UCLIBC_HAS_TM_EXTENSIONS__
 # ifdef __USE_BSD
@@ -1725,7 +1745,9 @@ LOOP:
 				buf = o;
 
 				if (!code) {	/* s */
-					localtime_r(&t, tm); /* TODO: check for failure? */
+					if (localtime_r(&t, tm) == NULL) {
+						return NULL;
+					}
 					i = 0;
 					do {		/* Now copy values from tm to fields. */
 						 fields[i] = ((int *) tm)[i];
@@ -2306,19 +2328,29 @@ struct tm attribute_hidden *_time_t2tm(const time_t *__restrict timer,
 		vp = _vals;
 		do {
 			if ((v = *vp) == 7) {
-				/* Overflow checking, assuming time_t is long int... */
-#if (LONG_MAX > INT_MAX) && (LONG_MAX > 2147483647L)
-#if (INT_MAX == 2147483647L) && (LONG_MAX == 9223372036854775807L)
-				/* Valid range for t is [-784223472856L, 784223421720L].
-				 * Outside of this range, the tm_year field will overflow. */
-				if (((unsigned long)(t + offset- -784223472856L))
-					> (784223421720L - -784223472856L)
+				/* t counts days here, and tm_year is an int, so the
+				 * broken-down time only exists while t stays inside
+				 * [-784223472856, 784223421720] -- those bounds are
+				 * INT_MAX years either side of the epoch.
+				 *
+				 * This used to ask whether long was wider than int,
+				 * which is false on the 32-bit targets that set
+				 * UCLIBC_USE_TIME64: the check was compiled out on
+				 * exactly the configurations that need it.  Ask about
+				 * time_t instead.  sizeof is a constant, so a 32-bit
+				 * time_t -- whose days can never leave the range --
+				 * still compiles the test away. */
+#if INT_MAX == 2147483647
+				if ((sizeof(time_t) > 4)
+					&& (((uintmax_t)((intmax_t) t + offset
+									 - (intmax_t) -784223472856LL))
+						> (uintmax_t)(784223421720LL - -784223472856LL))
 					) {
+					__set_errno(EOVERFLOW);
 					return NULL;
 				}
 #else
-#error overflow conditions unknown
-#endif
+#error tm_year range unknown for this int width
 #endif
 
 				/* We have days since the epoch, so caluclate the weekday. */
@@ -2554,7 +2586,10 @@ DST_CORRECT:
 	d = ((struct tm *)p)->tm_isdst;
 	t = secs;
 
-	__time_localtime_tzi(&t, (struct tm *)p, tzi);
+	if (__time_localtime_tzi(&t, (struct tm *)p, tzi) == NULL) {
+		t = ((time_t)(-1));
+		goto DONE;
+	}
 
 	if (t == ((time_t)(-1))) {	/* Remember, time_t can be unsigned. */
 		goto DONE;
