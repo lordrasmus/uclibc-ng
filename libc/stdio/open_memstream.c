@@ -188,6 +188,10 @@ FILE *open_memstream(char **bufloc, size_t *sizeloc)
 		 * nothing currently in the FILE's write buffer. */
 
 		if (fp != NULL) {
+			/* POSIX: "The stream associated with a call to
+			 * open_memstream() shall be byte-oriented."  fopencookie()
+			 * leaves it unoriented. */
+			__STDIO_STREAM_SET_NARROW(fp);
 			__STDIO_STREAM_VALIDATE(fp);
 			return fp;
 		}
