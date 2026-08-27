@@ -2513,7 +2513,7 @@ DST_CORRECT:
 		+ tzi[default_dst].gmt_offset
 		+ 60*( p[1]
 			   + 60*(p[2]
-					 + 24*(((146073L * ((long long)(p[6])) + d)
+					 + 24*(((146097L * ((long long)(p[6])) + d)
 							+ p[3]) + p[7])));
 
 DST_CORRECT:
