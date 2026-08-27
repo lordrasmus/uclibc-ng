@@ -1,4 +1,4 @@
-name: arc-le-npt-gcc-12-kernel-4.19.56-shared-elf
+name: arcv1-arc700-le-npt-gcc-12-kernel-4.19.56-shared-elf
 
 on:
   workflow_dispatch:

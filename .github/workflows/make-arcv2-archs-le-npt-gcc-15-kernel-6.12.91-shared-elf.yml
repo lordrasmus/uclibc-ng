@@ -1,4 +1,4 @@
-name: arc-archs-le-npt-gcc-15-kernel-6.12.91-shared-elf
+name: arcv2-archs-le-npt-gcc-15-kernel-6.12.91-shared-elf
 
 on:
   workflow_dispatch:
