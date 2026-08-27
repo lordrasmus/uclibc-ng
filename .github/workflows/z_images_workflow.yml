@@ -210,13 +210,13 @@ jobs:
           if ${CONFIG_GCC_PREFIX}gcc -dM -E - < /dev/null 2>/dev/null | grep -q __mcoldfire__ ; then
             CF_CFLAGS="-mxgot -fno-dwarf2-cfi-asm"
           fi
-          # xtensa/kvx/csky embed the rootfs cpio in a fixed-size kernel slot
-          # (the cpio hack, ~17 MB); the -O2 twins roughly double the test
+          # xtensa/kvx/csky/arc embed the rootfs cpio in a fixed-size kernel
+          # slot (the cpio hack, ~17 MB); the -O2 twins roughly double the test
           # binaries and overflow it. O2_TWINS=0 on the make command line
           # overrides the per-directory O2_TWINS:=1 and skips the twins there.
           MK_FLAGS=""
           case "$CONFIG_KERNEL_ARCH" in
-            xtensa|kvx|csky) MK_FLAGS="O2_TWINS=0" ;;
+            xtensa|kvx|csky|arc) MK_FLAGS="O2_TWINS=0" ;;
           esac
           # ColdFire's mcf5208evb has no initrd support either, so it uses the
           # same slot -- 24 MB in that image. Keyed on the machine and on ELF,
