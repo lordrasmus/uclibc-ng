@@ -1022,12 +1022,23 @@ static wchar_t* fmt_to_wc_1(const char *src)
 	}
 	return dest;
 }
+/* For a converted value: consumed at OUTPUT, which frees it there. */
 # define fmt_to_wc(dest, src) \
 	dest = alloc[++allocno] = fmt_to_wc_1(src)
+/* For a converted format string: read through p until the level is popped, so
+ * it belongs to the level and not to OUTPUT.  Freeing it at OUTPUT is a
+ * use-after-free -- the loop then reads *p out of the freed block. */
+# define stacked_to_wc(dest, src) \
+	do { \
+		if (fmt_alloc[lvl - 1] != NULL) \
+			free((void *)fmt_alloc[lvl - 1]); \
+		dest = fmt_alloc[lvl - 1] = fmt_to_wc_1(src); \
+	} while (0)
 # define to_wc(dest, src) \
 	dest = fmt_to_wc_1(src)
 #else
 # define fmt_to_wc(dest, src) (dest) = (src)
+# define stacked_to_wc(dest, src) (dest) = (src)
 # define to_wc(dest, src) (dest) = (src)
 #endif
 
@@ -1048,6 +1059,10 @@ size_t __XL_NPP(strftime)(CHAR_T *__restrict s, size_t maxsize,
 #if defined __UCLIBC_HAS_WCHAR__ && (defined L_wcsftime || defined L_wcsftime_l)
 	const CHAR_T *alloc[MAX_PUSH];
 	int allocno = -1;
+	/* A converted format string is read through p for as long as its stack
+	 * level lives, so it cannot be freed at OUTPUT like a converted value.
+	 * One slot per level, freed when the level is popped. */
+	const CHAR_T *fmt_alloc[MAX_PUSH];
 #endif
 	size_t count;
 	size_t o_count;
@@ -1067,6 +1082,14 @@ size_t __XL_NPP(strftime)(CHAR_T *__restrict s, size_t maxsize,
 
 LOOP:
 	if (!count) {
+#if defined __UCLIBC_HAS_WCHAR__ && (defined L_wcsftime || defined L_wcsftime_l)
+		/* Returning from inside an expansion, so the levels are never
+		 * popped and have to be released here. */
+		while (lvl > 0) {
+			if (fmt_alloc[--lvl] != NULL)
+				free((void *)fmt_alloc[lvl]);
+		}
+#endif
 		return 0;
 	}
 	if (!*p) {
@@ -1075,6 +1098,12 @@ LOOP:
 			return maxsize - count;
 		}
 		p = stack[--lvl];
+#if defined __UCLIBC_HAS_WCHAR__ && (defined L_wcsftime || defined L_wcsftime_l)
+		if (fmt_alloc[lvl] != NULL) {
+			free((void *)fmt_alloc[lvl]);
+			fmt_alloc[lvl] = NULL;
+		}
+#endif
 		goto LOOP;
 	}
 
@@ -1120,31 +1149,41 @@ LOOP:
 			if (lvl == MAX_PUSH) {
 				goto OUTPUT;	/* Stack full so treat as illegal spec. */
 			}
-			stack[lvl++] = ++p;
+			stack[lvl] = ++p;
+#if defined __UCLIBC_HAS_WCHAR__ && (defined L_wcsftime || defined L_wcsftime_l)
+			fmt_alloc[lvl] = NULL;
+#endif
+			++lvl;
 			if ((code &= 0xf) < 8) {
 				ccp = (const char *)(spec + STACKED_STRINGS_START + code);
 				ccp += *ccp;
-				fmt_to_wc(p, ccp);
+				stacked_to_wc(p, ccp);
 				goto LOOP;
 			}
 			ccp = (const char *)spec + STACKED_STRINGS_NL_ITEM_START + (code & 7);
-			fmt_to_wc(p, ccp);
+			stacked_to_wc(p, ccp);
 #ifdef ENABLE_ERA_CODE
 			if ((mod & NO_E_MOD) /* Actually, this means E modifier present. */
 				&& (*(ccp = __XL_NPP(nl_langinfo)(_NL_ITEM(LC_TIME,
-							(int)(((unsigned char *)p)[4]))
+							(int)(UCHAR_T)(p[4]))
 							__LOCALE_ARG
 							)))
 				) {
-				fmt_to_wc(p, ccp);
+				stacked_to_wc(p, ccp);
 				goto LOOP;
 			}
 #endif
+			/* The index is the value of the character, not its first
+			 * byte: for wcsftime p is wchar_t*, so reading a byte gives
+			 * the high one on a big-endian target -- always 0, which is
+			 * ABDAY_1, and %c %x %X %r all returned "Sun".  UCHAR_T is
+			 * unsigned char in the narrow build and unsigned int in the
+			 * wide one, which is exactly the widening wanted here. */
 			ccp = __XL_NPP(nl_langinfo)(_NL_ITEM(LC_TIME,
-							(int)(*((unsigned char *)p)))
+							(int)(UCHAR_T)(*p))
 							__LOCALE_ARG
 							);
-			fmt_to_wc(p, ccp);
+			stacked_to_wc(p, ccp);
 			goto LOOP;
 		}
 
