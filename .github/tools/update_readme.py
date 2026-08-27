@@ -26,7 +26,12 @@ for f in matching_files:
     with open(f, 'r') as f2:
         data = yaml.load(f2)
     
-    if ( not "master" in data["on"]["push"]["branches"] ) and ( not "master2" in data["on"]["push"]["branches"] ): 
+    # Ein Ziel gehoert in die Tabelle, wenn sein push-Trigger den Standardbranch
+    # trifft.  Frueher stand dort "master", inzwischen "**" -- die Abfrage auf
+    # die beiden Namen allein hielt deshalb jedes einzelne Ziel fuer
+    # abgeschaltet und das Skript loeschte die komplette Tabelle.
+    branches = data["on"]["push"]["branches"]
+    if not any(b in branches for b in ("master", "master2", "**", "*")):
         print("disabled : " + f )
         continue
         
