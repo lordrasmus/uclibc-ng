@@ -88,6 +88,9 @@ jobs:
           if [[ $CONFIG_KERNEL_ARCH == "xtensa" ]] ;  then python3 .github/tools/xtensa-cpio-hack.py; fi
           if [[ $CONFIG_KERNEL_ARCH == "kvx" ]] ;     then python3 .github/tools/xtensa-cpio-hack.py; fi
           if [[ $CONFIG_KERNEL_ARCH == "csky" ]] ;    then python3 .github/tools/xtensa-cpio-hack.py; fi
+          # arc: die virt-Maschine des Synopsys-qemu kennt kein -initrd, das
+          # Rootfs geht wie bei den drei darueber ueber den Platzhalter ins Image.
+          if [[ $CONFIG_KERNEL_ARCH == "arc" ]] ;     then python3 .github/tools/xtensa-cpio-hack.py; fi
           # ColdFire: the mcf5208evb machine has no initrd support at all, so the
           # rootfs goes into the kernel image. Keyed on the qemu machine, not on
           # the arch, because m68k also has the 68040 virt target which uses -initrd.

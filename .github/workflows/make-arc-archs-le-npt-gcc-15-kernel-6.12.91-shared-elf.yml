@@ -1,0 +1,66 @@
+name: arc-archs-le-npt-gcc-15-kernel-6.12.91-shared-elf
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [test-update]
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - master
+
+
+
+concurrency:
+  # Zwei Laeufe desselben Ziels duerfen sich nicht ueberholen: der Badge ist
+  # eine Datei auf dem Server, es gewinnt also der, der spaeter fertig wird --
+  # nicht der mit dem neueren Commit. Am 2026-08-26 hat so ein dispatch-Lauf
+  # auf dem aelteren Commit den gruenen Badge eines Pushs ueberschrieben, eine
+  # Minute nach ihm. Die Gruppe ist (Workflow, Ref), die Ziele laufen also
+  # weiter parallel zueinander; nur derselbe Workflow reiht sich auf. Wartende
+  # Laeufe belegen keinen Runner, und kommt ein dritter Trigger, verwirft
+  # GitHub den wartenden und behaelt den neuesten -- fuer den Badge richtig.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-arc_archs-gcc-15.3.0
+      gcc_prefix: arc-openadk-linux-uclibc-
+      kernel_vers: 6.12.91
+      kernel_dir: v6.x
+      kernel_arch: arc
+      config_file: config.arc
+      qemu_kernel: kernel-arc-archs.img
+      # Die virt-Maschine hat kein -initrd; das Rootfs geht ueber den
+      # cpio-Platzhalter ins Image (siehe z_qemu_test_run.yml). Das -m ist
+      # nicht optional: haps_hs.dts meldet 1 GB Low-Mem, mit weniger vergibt
+      # der Kernel Speicher ausserhalb des abgebildeten Bereichs und stirbt
+      # beim Auspacken des Geraetebaums.
+      qemu_cmd: qemu-system-arc -M virt -cpu archs -m 1G -nographic -kernel kernel.img
+
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+
+
+  call_qemu:
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit
+
+  call_badge_failed:
+    if: failure()
+    needs: [call_build, call_images]
+    uses: ./.github/workflows/z_badge_failed_workflow.yml
+    with:
+      build_result: ${{ needs.call_build.result }}
+      images_result: ${{ needs.call_images.result }}
+    secrets: inherit
