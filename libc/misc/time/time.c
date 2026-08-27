@@ -146,6 +146,14 @@
 #include <bits/uClibc_uintmaxtostr.h>
 #include <bits/uClibc_mutex.h>
 
+/* Largest value a time_t can hold, named without assuming its width -- the
+ * places below that need it used to reach for LONG_MAX, which is not the same
+ * thing once UCLIBC_USE_TIME64 gives a 32-bit target a 64-bit time_t.  If
+ * time_t is unsigned this yields half its range, which only makes the tests
+ * that use it trigger earlier, never later. */
+#define TIME_T_MAX \
+	((time_t)(~(uintmax_t)0 >> (8 * (sizeof(uintmax_t) - sizeof(time_t)) + 1)))
+
 #if defined __UCLIBC_HAS_WCHAR__ && (defined L_wcsftime || defined L_wcsftime_l)
 #include <wchar.h>
 # define CHAR_T wchar_t
@@ -748,11 +756,22 @@ struct tm attribute_hidden *__time_localtime_tzi(register const time_t *__restri
 
 	dst = 0;
 	do {
+		/* _time_t2tm() is handed the time a week ahead and a -7 day
+		 * correction, so that a 32-bit time_t stays non-negative while
+		 * the zone offset is applied.  Near the top of the range that
+		 * week would overflow, so it is subtracted instead -- but only
+		 * the week changes sign, never the zone offset.  Negating the
+		 * whole sum moved the clock by twice the offset.
+		 *
+		 * The bound follows time_t.  It used to be LONG_MAX, which is
+		 * 2^31-1 on the 32-bit targets that set UCLIBC_USE_TIME64:
+		 * every date past January 2038 took the fallback path there,
+		 * so localtime() was off by 2*gmtoff in every zone but UTC. */
 		days = -7;
 		offset = 604800L - tzi[dst].gmt_offset;
-		if (*timer > (LONG_MAX - 604800L)) {
+		if (*timer > (TIME_T_MAX - 604800L)) {
 			days = -days;
-			offset = -offset;
+			offset = -604800L - tzi[dst].gmt_offset;
 		}
 		*x = *timer + offset;
 
