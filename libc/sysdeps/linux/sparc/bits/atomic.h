@@ -48,6 +48,81 @@ typedef intmax_t atomic_max_t;
 typedef uintmax_t uatomic_max_t;
 
 
+/* A lock kept in the top byte of the word it protects.  The sparc specific
+   sem_* and pthread_barrier_* still name these in the branch they take
+   without a compare-and-swap instruction, so they stay out of the choice
+   below; with one, that branch is dead and the compiler drops it.  */
+#define __sparc32_atomic_do_lock24(addr) \
+  do								      \
+    {								      \
+      unsigned int __old_lock;					      \
+      do							      \
+	__asm__ __volatile__ ("ldstub %1, %0"			      \
+			  : "=r" (__old_lock), "=m" (*(addr))	      \
+			  : "m" (*(addr))			      \
+			  : "memory");				      \
+      while (__old_lock);					      \
+    }								      \
+  while (0)
+
+#define __sparc32_atomic_do_unlock24(addr) \
+  do								      \
+    {								      \
+      *(char *) (addr) = 0;					      \
+      __asm__ __volatile__ ("" ::: "memory");			      \
+    }								      \
+  while (0)
+
+#if defined __GCC_HAVE_SYNC_COMPARE_AND_SWAP_4
+
+/* The sparc specific sem_* and pthread_barrier_* ask this before choosing
+   between a plain atomic and the in-word lock.  The lock is there because
+   the emulation below keeps its own locks per process, so it is not atomic
+   between processes and cannot carry a pshared semaphore.  A real
+   instruction can, so answer truthfully and those files take the path they
+   have always had for v9.  */
+# define __atomic_is_v9 1
+
+/* leon3 and later, v8plus and v9 have a compare-and-swap instruction, and
+   the compiler emits it inline.  Take it.  Besides being one instruction
+   instead of a lock round trip, it is the only form that may be used from
+   a signal handler: the emulation below takes a lock, and a handler that
+   arrives while the interrupted code holds it spins for an owner that can
+   never run again.  uClibc-ng walks into that itself -- sigcancel_handler
+   and sighandler_setxid both compare-and-swap cancelhandling, the very
+   word the code they interrupt is working on.
+
+   Note that the architecture macro does not tell these apart: -mcpu=leon3
+   defines __sparc_v8__ just as -mcpu=v8 does.  The question that matters
+   is whether the compiler has a real CAS, so ask exactly that.  */
+
+# define atomic_compare_and_exchange_val_acq(mem, newval, oldval) \
+  __sync_val_compare_and_swap (mem, oldval, newval)
+
+/* Mind the sense: this one reports failure, not success.  */
+# define atomic_compare_and_exchange_bool_acq(mem, newval, oldval) \
+  (! __sync_bool_compare_and_swap (mem, oldval, newval))
+
+# define atomic_exchange_acq(mem, newval) \
+  __atomic_exchange_n (mem, newval, __ATOMIC_ACQUIRE)
+
+# define atomic_exchange_rel(mem, newval) \
+  __atomic_exchange_n (mem, newval, __ATOMIC_RELEASE)
+
+# define atomic_exchange_and_add(mem, value) \
+  __sync_fetch_and_add (mem, value)
+
+/* The _24 forms exist only because the emulation below needs a spare byte
+   to keep its lock in, so it borrows the top one.  With a real instruction
+   the whole word is available and these are ordinary 32-bit operations.  */
+# define atomic_compare_and_exchange_val_24_acq(mem, newval, oldval) \
+  __sync_val_compare_and_swap (mem, oldval, newval)
+
+# define atomic_exchange_24_rel(mem, newval) \
+  __atomic_exchange_n (mem, newval, __ATOMIC_RELEASE)
+
+#else
+
 /* We have no compare and swap, just test and set.
    The following implementation contends on 64 global locks
    per library and assumes no variable will be accessed using atomic.h
@@ -85,28 +160,6 @@ volatile unsigned char __sparc32_atomic_locks[64]
       __asm__ __volatile__ ("" ::: "memory");			      \
     }								      \
   while (0)
-
-#define __sparc32_atomic_do_lock24(addr) \
-  do								      \
-    {								      \
-      unsigned int __old_lock;					      \
-      do							      \
-	__asm__ __volatile__ ("ldstub %1, %0"			      \
-			  : "=r" (__old_lock), "=m" (*(addr))	      \
-			  : "m" (*(addr))			      \
-			  : "memory");				      \
-      while (__old_lock);					      \
-    }								      \
-  while (0)
-
-#define __sparc32_atomic_do_unlock24(addr) \
-  do								      \
-    {								      \
-      *(char *) (addr) = 0;					      \
-      __asm__ __volatile__ ("" ::: "memory");			      \
-    }								      \
-  while (0)
-
 
 #ifndef SHARED
 # define __v9_compare_and_exchange_val_32_acq(mem, newval, oldval) \
@@ -324,5 +377,7 @@ volatile unsigned char __sparc32_atomic_locks[64]
      __acev_w24ret; })
 
 #endif
+
+#endif	/* __GCC_HAVE_SYNC_COMPARE_AND_SWAP_4 */
 
 #endif	/* bits/atomic.h */
