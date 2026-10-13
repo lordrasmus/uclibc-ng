@@ -16,6 +16,15 @@ max_size = 17825792
 if len ( sys.argv ) > 1 and sys.argv[1] != "check_sig":
     max_size = int( sys.argv[1] )
 
+# Welche Datei in den Platzhalter wandert. Voreinstellung ist das rohe cpio.
+# leon3 setzt stattdessen rootfs.img.xz ein: unpack_to_rootfs() laesst
+# decompress_method() auf den eingebauten Blob los und ueberspringt die Nullen
+# dahinter einzeln, der Platzhalter bleibt damit klein (16 statt 80 MB).
+rootfs_file = 'rootfs.img'
+
+if len ( sys.argv ) > 2:
+    rootfs_file = sys.argv[2]
+
 print("Kernel cpio hack")
 
 if len ( sys.argv ) > 1:
@@ -44,7 +53,7 @@ with open('kernel.img', 'r+b') as file:
     # Binärdaten lesen
     data = file.read()
 
-    with open('rootfs.img', 'rb') as file2:
+    with open(rootfs_file, 'rb') as file2:
         # Binärdaten lesen
         new_string = file2.read()
         
@@ -68,7 +77,7 @@ with open('kernel.img', 'r+b') as file:
         
         # Den neuen String schreiben
         file.write(new_string)
-        print("rootfs.img written to kernel image")
+        print(rootfs_file + " written to kernel image")
         exit(0)
     
     print("HIER_DAS_ECHTE_CPIO_HIN not found in kernel image")

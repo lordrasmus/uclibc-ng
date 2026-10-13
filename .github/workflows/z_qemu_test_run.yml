@@ -96,6 +96,12 @@ jobs:
           # the arch, because m68k also has the 68040 virt target which uses -initrd.
           # Its image carries a 24M placeholder, the m68k rootfs does not fit in 17M.
           if [[ $CONFIG_QEMU_CMD == *mcf5208* ]] ;    then python3 .github/tools/xtensa-cpio-hack.py 25165824; fi
+          # leon3_generic kennt kein -initrd. Hier geht das *gepackte* Rootfs in
+          # den Platzhalter: der Kernel erkennt die Kompression des eingebauten
+          # Blobs selbst, deshalb reichen 16M statt der 80M, die das rohe cpio
+          # braeuchte -- auf sparc traegt jedes Binary ein 56K-Loch, weil der
+          # Linker das Datensegment auf 64K ausrichtet, 86% des Rootfs sind Nullen.
+          if [[ $CONFIG_QEMU_CMD == *leon3* ]] ;      then python3 .github/tools/xtensa-cpio-hack.py 16777216 rootfs.img.xz; fi
           echo "Qemu Command : $CONFIG_QEMU_CMD"
           python3 .github/tools/run_qemu.py
            
