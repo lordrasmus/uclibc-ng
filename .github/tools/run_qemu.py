@@ -83,7 +83,36 @@ command_thread.start()
 
 time.sleep(3) 
 
-pipe_in =  os.open("guest_pipe.in",  os.O_WRONLY )
+# Ein FIFO blockiert beim Oeffnen zum Schreiben, bis die Gegenseite ihn liest,
+# und die Gegenseite ist qemu. Stirbt qemu beim Start -- etwa weil die Maschine
+# in der gerade gebundelten qemu-Version nicht mehr bootet --, oeffnet es den
+# Pipe nie und dieser Aufruf wartet fuer immer. Die Wache unten in der
+# Leseschleife hilft dann nicht, weil die Schleife gar nicht erst anlaeuft: der
+# Job steht bis zum Job-Timeout und belegt die ganze Zeit einen Runner.
+# Deshalb nicht-blockierend oeffnen (ENXIO, solange kein Leser da ist) und
+# zwischen den Versuchen nachsehen, ob qemu ueberhaupt noch lebt.
+pipe_in = None
+for _ in range( 60 ):
+    try:
+        pipe_in = os.open("guest_pipe.in", os.O_WRONLY | os.O_NONBLOCK )
+        break
+    except OSError:
+        pass
+    if qemu_proc is not None and qemu_proc.poll() is not None:
+        break
+    time.sleep( 1 )
+
+if pipe_in is None:
+    rc = qemu_proc.returncode if qemu_proc is not None else "?"
+    msg = "Qemu hat guest_pipe.in nie geoeffnet (Exit-Code {0}) -- Abbruch.".format( rc )
+    print( msg )
+    log_file.write( ( msg + "\n" ).encode() )
+    log_file.flush()
+    log_file.close()
+    command_thread.join(10)
+    os.remove("guest_pipe.in")
+    os.remove("guest_pipe.out")
+    sys.exit(1)
 
 test_log = ""
 
@@ -147,8 +176,14 @@ while True:
 #os.close(pipe_out)
  
 print("\nshutdown Qemu")
-os.write( pipe_in, "reboot\n".encode())
-#pipe_in.write("reboot")
+# Die Schleife bricht auch ab, weil qemu schon weg ist (Panic, Absturz). Dann
+# hat der Pipe keinen Leser mehr und der Schreibversuch wirft EPIPE -- bisher
+# endete der Lauf an der Stelle mit einem Python-Traceback statt mit der
+# Auswertung, die der naechste Step noch machen soll.
+try:
+    os.write( pipe_in, "reboot\n".encode())
+except OSError as e:
+    print("Qemu nimmt kein 'reboot' mehr entgegen:", str(e))
 
 
 command_thread.join(10)
