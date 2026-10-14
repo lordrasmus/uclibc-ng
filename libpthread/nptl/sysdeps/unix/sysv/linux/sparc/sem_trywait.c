@@ -36,11 +36,15 @@ sem_trywait (sem_t *sem)
 	val = atomic_decrement_if_positive (&isem->value);
       else
 	{
+	  __sparc32_atomic_sigmask_t save;
+
+	  __sparc32_atomic_block_signals (save);
 	  __sparc32_atomic_do_lock24 (&isem->lock);
 	  val = isem->value;
 	  if (val > 0)
 	    isem->value = val - 1;
 	  __sparc32_atomic_do_unlock24 (&isem->lock);
+	  __sparc32_atomic_restore_signals (save);
 	}
       if (val > 0)
 	return 0;

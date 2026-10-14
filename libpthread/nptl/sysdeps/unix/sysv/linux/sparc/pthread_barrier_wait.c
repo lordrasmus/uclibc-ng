@@ -78,12 +78,15 @@ pthread_barrier_wait (
   else
     {
       unsigned int left;
+      __sparc32_atomic_sigmask_t save;
       /* Slightly more complicated.  On pre-v9 CPUs, atomic_increment_val
 	 is only atomic for threads within the same process, not for
 	 multiple processes.  */
+      __sparc32_atomic_block_signals (save);
       __sparc32_atomic_do_lock24 (&ibarrier->s.left_lock);
       left = ++ibarrier->b.left;
       __sparc32_atomic_do_unlock24 (&ibarrier->s.left_lock);
+      __sparc32_atomic_restore_signals (save);
       if (left == init_count)
         /* We are done.  */
 	lll_unlock (ibarrier->b.lock, private);

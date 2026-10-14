@@ -36,9 +36,13 @@ __sem_wait_cleanup (void *arg)
     atomic_decrement (&isem->nwaiters);
   else
     {
+      __sparc32_atomic_sigmask_t save;
+
+      __sparc32_atomic_block_signals (save);
       __sparc32_atomic_do_lock24 (&isem->lock);
       isem->nwaiters--;
       __sparc32_atomic_do_unlock24 (&isem->lock);
+      __sparc32_atomic_restore_signals (save);
     }
 }
 
@@ -54,6 +58,9 @@ sem_wait (sem_t *sem)
     val = atomic_decrement_if_positive (&isem->value);
   else
     {
+      __sparc32_atomic_sigmask_t save;
+
+      __sparc32_atomic_block_signals (save);
       __sparc32_atomic_do_lock24 (&isem->lock);
       val = isem->value;
       if (val > 0)
@@ -61,6 +68,7 @@ sem_wait (sem_t *sem)
       else
 	isem->nwaiters++;
       __sparc32_atomic_do_unlock24 (&isem->lock);
+      __sparc32_atomic_restore_signals (save);
     }
 
   if (val > 0)
@@ -95,11 +103,15 @@ sem_wait (sem_t *sem)
 	val = atomic_decrement_if_positive (&isem->value);
       else
 	{
+	  __sparc32_atomic_sigmask_t save;
+
+	  __sparc32_atomic_block_signals (save);
 	  __sparc32_atomic_do_lock24 (&isem->lock);
 	  val = isem->value;
 	  if (val > 0)
 	    isem->value = val - 1;
 	  __sparc32_atomic_do_unlock24 (&isem->lock);
+	  __sparc32_atomic_restore_signals (save);
 	}
 
       if (val > 0)
@@ -115,9 +127,13 @@ sem_wait (sem_t *sem)
     atomic_decrement (&isem->nwaiters);
   else
     {
+      __sparc32_atomic_sigmask_t save;
+
+      __sparc32_atomic_block_signals (save);
       __sparc32_atomic_do_lock24 (&isem->lock);
       isem->nwaiters--;
       __sparc32_atomic_do_unlock24 (&isem->lock);
+      __sparc32_atomic_restore_signals (save);
     }
 
   return err;

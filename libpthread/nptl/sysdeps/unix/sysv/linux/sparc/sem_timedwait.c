@@ -40,11 +40,15 @@ sem_timedwait (sem_t *sem, const struct timespec *abstime)
     val = atomic_decrement_if_positive (&isem->value);
   else
     {
+      __sparc32_atomic_sigmask_t save;
+
+      __sparc32_atomic_block_signals (save);
       __sparc32_atomic_do_lock24 (&isem->lock);
       val = isem->value;
       if (val > 0)
         isem->value = val - 1;
       __sparc32_atomic_do_unlock24 (&isem->lock);
+      __sparc32_atomic_restore_signals (save);
     }
 
   if (val > 0)
@@ -60,9 +64,13 @@ sem_timedwait (sem_t *sem, const struct timespec *abstime)
     atomic_increment (&isem->nwaiters);
   else
     {
+      __sparc32_atomic_sigmask_t save;
+
+      __sparc32_atomic_block_signals (save);
       __sparc32_atomic_do_lock24 (&isem->lock);
       isem->nwaiters++;
       __sparc32_atomic_do_unlock24 (&isem->lock);
+      __sparc32_atomic_restore_signals (save);
     }
 
   pthread_cleanup_push (__sem_wait_cleanup, isem);
@@ -118,11 +126,15 @@ sem_timedwait (sem_t *sem, const struct timespec *abstime)
 	val = atomic_decrement_if_positive (&isem->value);
       else
 	{
+	  __sparc32_atomic_sigmask_t save;
+
+	  __sparc32_atomic_block_signals (save);
 	  __sparc32_atomic_do_lock24 (&isem->lock);
 	  val = isem->value;
 	  if (val > 0)
 	    isem->value = val - 1;
 	  __sparc32_atomic_do_unlock24 (&isem->lock);
+	  __sparc32_atomic_restore_signals (save);
 	}
 
       if (val > 0)
@@ -138,9 +150,13 @@ sem_timedwait (sem_t *sem, const struct timespec *abstime)
     atomic_decrement (&isem->nwaiters);
   else
     {
+      __sparc32_atomic_sigmask_t save;
+
+      __sparc32_atomic_block_signals (save);
       __sparc32_atomic_do_lock24 (&isem->lock);
       isem->nwaiters--;
       __sparc32_atomic_do_unlock24 (&isem->lock);
+      __sparc32_atomic_restore_signals (save);
     }
 
   return err;

@@ -33,9 +33,13 @@ sem_post (sem_t *sem)
     nr = atomic_increment_val (&isem->value);
   else
     {
+      __sparc32_atomic_sigmask_t save;
+
+      __sparc32_atomic_block_signals (save);
       __sparc32_atomic_do_lock24 (&isem->lock);
       nr = ++(isem->value);
       __sparc32_atomic_do_unlock24 (&isem->lock);
+      __sparc32_atomic_restore_signals (save);
     }
   atomic_full_barrier ();
   if (isem->nwaiters > 0)

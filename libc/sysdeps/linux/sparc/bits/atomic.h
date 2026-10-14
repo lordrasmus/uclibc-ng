@@ -48,10 +48,64 @@ typedef intmax_t atomic_max_t;
 typedef uintmax_t uatomic_max_t;
 
 
+/* Without compare-and-swap the primitives below are built from a lock,
+   and a signal handler that reaches an atomic while the code it
+   interrupted holds that lock spins forever.  Keep signals blocked
+   across the window; they stay pending and arrive once the mask is
+   restored.  With the instruction the macros vanish.  */
+#if defined __GCC_HAVE_SYNC_COMPARE_AND_SWAP_4
+
+typedef int __sparc32_atomic_sigmask_t;
+/* The casts keep the save area from reading as an unused variable at the
+   call sites, which stay the same for both branches.  */
+# define __sparc32_atomic_block_signals(save)	((void) (save))
+# define __sparc32_atomic_restore_signals(save)	((void) (save))
+
+#else
+
+# include <sys/syscall.h>
+
+typedef unsigned long __sparc32_atomic_sigmask_t[2];	/* _NSIG is 64 */
+
+/* sparc numbers these differently from every other port: SIG_BLOCK is 1
+   and SIG_SETMASK is 4.  Spelled out because <signal.h> must not be
+   pulled into a header this low.  */
+# define __sparc32_atomic_sigprocmask(how, set, oldset) \
+  do								      \
+    {								      \
+      register long __spg1 __asm__ ("g1") = __NR_rt_sigprocmask;      \
+      register long __spo0 __asm__ ("o0") = (how);		      \
+      register long __spo1 __asm__ ("o1") = (long) (set);	      \
+      register long __spo2 __asm__ ("o2") = (long) (oldset);	      \
+      register long __spo3 __asm__ ("o3")			      \
+	= sizeof (__sparc32_atomic_sigmask_t);			      \
+      __asm__ __volatile__ ("t 0x10"				      \
+			  : "=r" (__spo0)			      \
+			  : "r" (__spg1), "0" (__spo0), "r" (__spo1), \
+			    "r" (__spo2), "r" (__spo3)		      \
+			  : "cc", "memory");			      \
+    }								      \
+  while (0)
+
+# define __sparc32_atomic_block_signals(save) \
+  do								      \
+    {								      \
+      const unsigned long __spall[2] = { ~0UL, ~0UL };		      \
+      __sparc32_atomic_sigprocmask (1 /* SIG_BLOCK */, __spall, (save)); \
+    }								      \
+  while (0)
+
+# define __sparc32_atomic_restore_signals(save) \
+  __sparc32_atomic_sigprocmask (4 /* SIG_SETMASK */, (save), 0)
+
+#endif
+
 /* A lock kept in the top byte of the word it protects.  The sparc specific
    sem_* and pthread_barrier_* still name these in the branch they take
    without a compare-and-swap instruction, so they stay out of the choice
-   below; with one, that branch is dead and the compiler drops it.  */
+   below; with one, that branch is dead and the compiler drops it.
+   Callers wrap the window in __sparc32_atomic_block_signals, since the
+   24-bit forms drop the lock by storing the new value.  */
 #define __sparc32_atomic_do_lock24(addr) \
   do								      \
     {								      \
@@ -183,19 +237,24 @@ volatile unsigned char __sparc32_atomic_locks[64]
   ({ __typeof (mem) __acev_memp = (mem);			      \
      __typeof (*mem) __acev_ret;				      \
      __typeof (*mem) __acev_newval = (newval);			      \
+     __sparc32_atomic_sigmask_t __acev_save;			      \
 								      \
+     __sparc32_atomic_block_signals (__acev_save);		      \
      __sparc32_atomic_do_lock (__acev_memp);			      \
      __acev_ret = *__acev_memp;					      \
      if (__acev_ret == (oldval))				      \
        *__acev_memp = __acev_newval;				      \
      __sparc32_atomic_do_unlock (__acev_memp);			      \
+     __sparc32_atomic_restore_signals (__acev_save);		      \
      __acev_ret; })
 
 #define __v7_compare_and_exchange_bool_acq(mem, newval, oldval) \
   ({ __typeof (mem) __aceb_memp = (mem);			      \
      int __aceb_ret;						      \
      __typeof (*mem) __aceb_newval = (newval);			      \
+     __sparc32_atomic_sigmask_t __aceb_save;			      \
 								      \
+     __sparc32_atomic_block_signals (__aceb_save);		      \
      __sparc32_atomic_do_lock (__aceb_memp);			      \
      __aceb_ret = 0;						      \
      if (*__aceb_memp == (oldval))				      \
@@ -203,27 +262,34 @@ volatile unsigned char __sparc32_atomic_locks[64]
      else							      \
        __aceb_ret = 1;						      \
      __sparc32_atomic_do_unlock (__aceb_memp);			      \
+     __sparc32_atomic_restore_signals (__aceb_save);		      \
      __aceb_ret; })
 
 #define __v7_exchange_acq(mem, newval) \
   ({ __typeof (mem) __acev_memp = (mem);			      \
      __typeof (*mem) __acev_ret;				      \
      __typeof (*mem) __acev_newval = (newval);			      \
+     __sparc32_atomic_sigmask_t __acev_save;			      \
 								      \
+     __sparc32_atomic_block_signals (__acev_save);		      \
      __sparc32_atomic_do_lock (__acev_memp);			      \
      __acev_ret = *__acev_memp;					      \
      *__acev_memp = __acev_newval;				      \
      __sparc32_atomic_do_unlock (__acev_memp);			      \
+     __sparc32_atomic_restore_signals (__acev_save);		      \
      __acev_ret; })
 
 #define __v7_exchange_and_add(mem, value) \
   ({ __typeof (mem) __acev_memp = (mem);			      \
      __typeof (*mem) __acev_ret;				      \
+     __sparc32_atomic_sigmask_t __acev_save;			      \
 								      \
+     __sparc32_atomic_block_signals (__acev_save);		      \
      __sparc32_atomic_do_lock (__acev_memp);			      \
      __acev_ret = *__acev_memp;					      \
      *__acev_memp = __acev_ret + (value);			      \
      __sparc32_atomic_do_unlock (__acev_memp);			      \
+     __sparc32_atomic_restore_signals (__acev_save);		      \
      __acev_ret; })
 
 /* Special versions, which guarantee that top 8 bits of all values
@@ -237,7 +303,9 @@ volatile unsigned char __sparc32_atomic_locks[64]
   ({ __typeof (mem) __acev_memp = (mem);			      \
      __typeof (*mem) __acev_ret;				      \
      __typeof (*mem) __acev_newval = (newval);			      \
+     __sparc32_atomic_sigmask_t __acev_save;			      \
 								      \
+     __sparc32_atomic_block_signals (__acev_save);		      \
      __sparc32_atomic_do_lock24 (__acev_memp);			      \
      __acev_ret = *__acev_memp & 0xffffff;			      \
      if (__acev_ret == (oldval))				      \
@@ -245,17 +313,21 @@ volatile unsigned char __sparc32_atomic_locks[64]
      else							      \
        __sparc32_atomic_do_unlock24 (__acev_memp);		      \
      __asm__ __volatile__ ("" ::: "memory");			      \
+     __sparc32_atomic_restore_signals (__acev_save);		      \
      __acev_ret; })
 
 #define __v7_exchange_24_rel(mem, newval) \
   ({ __typeof (mem) __acev_memp = (mem);			      \
      __typeof (*mem) __acev_ret;				      \
      __typeof (*mem) __acev_newval = (newval);			      \
+     __sparc32_atomic_sigmask_t __acev_save;			      \
 								      \
+     __sparc32_atomic_block_signals (__acev_save);		      \
      __sparc32_atomic_do_lock24 (__acev_memp);			      \
      __acev_ret = *__acev_memp & 0xffffff;			      \
      *__acev_memp = __acev_newval;				      \
      __asm__ __volatile__ ("" ::: "memory");			      \
+     __sparc32_atomic_restore_signals (__acev_save);		      \
      __acev_ret; })
 
 #ifdef SHARED
