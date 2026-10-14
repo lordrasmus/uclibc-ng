@@ -122,6 +122,15 @@ read_pipe_timeout = 240
 max_consecutive_timeouts = 3   # 3 x 240s = 12 min komplett stumm -> als haengend werten
 consecutive_timeouts = 0
 
+# Die Stille-Erkennung oben faengt nur den stummen Gast. Laeuft die Suite
+# dagegen weiter und kommt nur nie bei tests_end an -- ein Test, der haengt
+# und dabei Ausgabe macht --, setzt jede Zeile consecutive_timeouts zurueck
+# und die Schleife dreht endlos. Der Job laeuft dann in GitHubs 6-Stunden-
+# Grenze, ohne Badge und ohne Gast-Log, und belegt so lange einen der 60
+# Runner. Langsamstes Ziel gemessen: 16 min, hier also reichlich Reserve.
+max_total_seconds = 35 * 60
+deadline = time.monotonic() + max_total_seconds
+
 while True:
     try:
         rlist, _, _ = select.select([pipe_out], [], [], read_pipe_timeout ) 
@@ -161,6 +170,13 @@ while True:
         
     if "-------------------- tests_end --------------------------" in test_log:
         break;
+
+    if time.monotonic() > deadline:
+        msg = "Gesamtlaufzeit ueber {0} min, werte den Lauf als haengend und breche ab.".format( max_total_seconds // 60 )
+        print( msg )
+        log_file.write( ( "\n" + msg + "\n" ).encode() )
+        log_file.flush()
+        break
 
     # Nach einer Panic kommt nichts mehr -- sonst wartet die Schleife die
     # kompletten 3 x 240s Stille ab, bevor sie aufgibt. Der Fehler selbst wird
