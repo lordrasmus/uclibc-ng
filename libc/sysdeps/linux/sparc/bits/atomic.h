@@ -227,7 +227,12 @@ volatile unsigned char __sparc32_atomic_locks[64]
      __acev_ret; })
 
 /* Special versions, which guarantee that top 8 bits of all values
-   are cleared and use those bits as the ldstub lock.  */
+   are cleared and use those bits as the ldstub lock.  This is a second,
+   independent lock: a word reached with these is NOT protected against
+   a plain form above, which locks the table instead and stores the full
+   32 bits.  Whoever touches a word must pick one kind and keep to it on
+   every path -- see libpthread/nptl/sysdeps/unix/sysv/linux/sparc/
+   lowlevellock.h, which exists for exactly that reason.  */
 #define __v7_compare_and_exchange_val_24_acq(mem, newval, oldval) \
   ({ __typeof (mem) __acev_memp = (mem);			      \
      __typeof (*mem) __acev_ret;				      \
