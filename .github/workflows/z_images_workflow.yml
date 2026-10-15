@@ -241,7 +241,15 @@ jobs:
           CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_CFLAGS $CF_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_LDFLAGS $STATIC_LDFLAGS $CF_CFLAGS"   nice -n 19 make -C uclibc-ng-test -j20 $MK_FLAGS 2>&1  | tee  testsuite_build.log
           CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_CFLAGS $CF_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_LDFLAGS $STATIC_LDFLAGS $CF_CFLAGS"   make -C uclibc-ng-test install DESTDIR=../rootfs $MK_FLAGS > /dev/null 2>&1
           find rootfs -type f -name '*.gdb' -exec rm {} \;
-          
+          # The same targets also strip the test binaries: their symbol tables
+          # are 9-18 % of the suite, and arc and xtensa no longer fit the slot
+          # with them.  strip leaves non-ELF files (scripts, FLAT) untouched.
+          if [[ -n $MK_FLAGS ]] ; then
+            echo "rootfs before strip: $(du -sb rootfs | cut -f1)"
+            find rootfs/usr/lib/uclibc-ng-test -type f -exec ${CONFIG_GCC_PREFIX}strip --strip-unneeded {} + 2>/dev/null || true
+            echo "rootfs after strip:  $(du -sb rootfs | cut -f1)"
+          fi
+
           cp tests_disable rootfs
       
       
