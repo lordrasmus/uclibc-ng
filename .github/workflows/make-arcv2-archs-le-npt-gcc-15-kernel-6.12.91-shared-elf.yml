@@ -43,6 +43,9 @@ jobs:
       # der Kernel Speicher ausserhalb des abgebildeten Bereichs und stirbt
       # beim Auspacken des Geraetebaums.
       qemu_cmd: qemu-system-arc -M virt -cpu archs -m 1G -nographic -kernel kernel.img
+      # The ARC qemu fork runs the guest clock ~11x slow; with nptl the suite
+      # takes ~70 min here instead of the 35 the other targets get.
+      qemu_max_minutes: '90'
 
 
   call_images:

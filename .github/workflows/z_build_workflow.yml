@@ -35,6 +35,11 @@ on:
         description: 'Qemu Command for Testsuite execution'
         required: true
         type: string
+      qemu_max_minutes:
+        description: 'Wall clock limit for the whole test run (run_qemu.py)'
+        required: false
+        type: string
+        default: '35'
       
 
 jobs:
@@ -74,6 +79,7 @@ jobs:
           echo "CONFIG_FILE=${{ inputs.config_file }}" >> "$GITHUB_ENV"
           echo "CONFIG_QEMU_KERNEL=${{ inputs.qemu_kernel }}" >> "$GITHUB_ENV"
           echo "CONFIG_QEMU_CMD=${{ inputs.qemu_cmd }}" >> "$GITHUB_ENV"
+          echo "CONFIG_QEMU_MAX_MINUTES=${{ inputs.qemu_max_minutes }}" >> "$GITHUB_ENV"
 
 
       - name: check uClibc-ng config

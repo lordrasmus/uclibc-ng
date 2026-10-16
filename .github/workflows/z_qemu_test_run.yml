@@ -84,11 +84,12 @@ jobs:
       
           
       - name: run Qemu
-        # Netz unter dem Deadline in run_qemu.py (35 min): greift nur, wenn das
-        # Skript selbst klemmt. Bewusst auf dem Step und nicht auf dem Job --
-        # ein Job-Timeout ueberspringt den failure()-Step darunter, und dann
-        # bleibt auf dem Server die letzte gruene SVG liegen.
-        timeout-minutes: 45
+        # Netz unter dem Deadline in run_qemu.py (qemu_max_minutes, sonst 35):
+        # greift nur, wenn das Skript selbst klemmt, daher 10 min darueber.
+        # Bewusst auf dem Step und nicht auf dem Job -- ein Job-Timeout
+        # ueberspringt den failure()-Step darunter, und dann bleibt auf dem
+        # Server die letzte gruene SVG liegen.
+        timeout-minutes: ${{ fromJSON(env.CONFIG_QEMU_MAX_MINUTES || '35') + 10 }}
         run: |
           if [[ $CONFIG_KERNEL_ARCH == "xtensa" ]] ;  then python3 .github/tools/xtensa-cpio-hack.py; fi
           if [[ $CONFIG_KERNEL_ARCH == "kvx" ]] ;     then python3 .github/tools/xtensa-cpio-hack.py; fi

@@ -128,7 +128,10 @@ consecutive_timeouts = 0
 # und die Schleife dreht endlos. Der Job laeuft dann in GitHubs 6-Stunden-
 # Grenze, ohne Badge und ohne Gast-Log, und belegt so lange einen der 60
 # Runner. Langsamstes Ziel gemessen: 16 min, hier also reichlich Reserve.
-max_total_seconds = 35 * 60
+# Ausnahme arcv2: der ARC-Fork von qemu laesst die Gastuhr ~11x langsamer
+# laufen, mit nptl braucht die Suite dort ~70 min. Ein Ziel kann die Grenze
+# deshalb ueber qemu_max_minutes im Workflow setzen.
+max_total_seconds = int( data.get( "CONFIG_QEMU_MAX_MINUTES" ) or 35 ) * 60
 deadline = time.monotonic() + max_total_seconds
 
 while True:
