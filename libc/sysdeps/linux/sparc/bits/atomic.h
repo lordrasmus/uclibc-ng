@@ -157,11 +157,24 @@ typedef unsigned long __sparc32_atomic_sigmask_t[2];	/* _NSIG is 64 */
 # define atomic_compare_and_exchange_bool_acq(mem, newval, oldval) \
   (! __sync_bool_compare_and_swap (mem, oldval, newval))
 
+/* Not __atomic_exchange_n: gcc makes that a swap, and a kernel that
+   emulates casa on a part without it cannot make swap atomic against its
+   own casa.  Every write to an atomic word has to be a casa.  */
+# define __sparc32_cas_exchange(mem, newval) \
+  ({ __typeof (mem) __cxmemp = (mem);				      \
+     __typeof (*mem) __cxnew = (newval), __cxold, __cxprev;	      \
+								      \
+     __cxold = *__cxmemp;					      \
+     while ((__cxprev = __sync_val_compare_and_swap (__cxmemp, __cxold, \
+						     __cxnew)) != __cxold) \
+       __cxold = __cxprev;					      \
+     __cxold; })
+
 # define atomic_exchange_acq(mem, newval) \
-  __atomic_exchange_n (mem, newval, __ATOMIC_ACQUIRE)
+  __sparc32_cas_exchange (mem, newval)
 
 # define atomic_exchange_rel(mem, newval) \
-  __atomic_exchange_n (mem, newval, __ATOMIC_RELEASE)
+  __sparc32_cas_exchange (mem, newval)
 
 # define atomic_exchange_and_add(mem, value) \
   __sync_fetch_and_add (mem, value)
@@ -173,14 +186,74 @@ typedef unsigned long __sparc32_atomic_sigmask_t[2];	/* _NSIG is 64 */
   __sync_val_compare_and_swap (mem, oldval, newval)
 
 # define atomic_exchange_24_rel(mem, newval) \
-  __atomic_exchange_n (mem, newval, __ATOMIC_RELEASE)
+  __sparc32_cas_exchange (mem, newval)
 
 #else
 
-/* We have no compare and swap, just test and set.
-   The following implementation contends on 64 global locks
+/* Built for v8, which has no compare and swap, only test and set.  But the
+   CPU we run on may have casa after all -- LEON3/4 with the CAS option,
+   or a kernel that emulates it -- so __uClibc_init tries it once, before
+   main and before a second thread can exist, and every atomic in the
+   process follows that answer from then on.  A process must never mix the
+   two kinds, or one word is guarded by two different locks.
+
+   Without casa the implementation below contends on 64 global locks
    per library and assumes no variable will be accessed using atomic.h
    macros from two different libraries.  */
+
+/* 0: no casa.  1: casa with ASI 0x0a, LEON's user data space, which also
+   runs natively where the hardware has it.  2: casa with ASI 0x80, for a
+   32-bit process on a 64-bit kernel, where 0x0a is privileged.  One copy
+   in libc, read by every library of the process.  */
+extern int __sparc32_atomic_casa;
+extern void __sparc32_atomic_init (void)
+  __attribute__ ((visibility ("hidden")));
+# define __ARCH_ATOMIC_INIT() __sparc32_atomic_init ()
+
+/* The sparc specific sem_* and pthread_barrier_* ask this before choosing
+   between a plain atomic and the in-word lock: casa is atomic between
+   processes, the locks below are not.  */
+# define __atomic_is_v9 (__sparc32_atomic_casa != 0)
+
+# define __sparc32_atomic_use_casa(mem) \
+  (sizeof (*(mem)) == 4 && __sparc32_atomic_casa)
+
+/* casa [%g1] asi, %g5, %g6, spelled as a word because as would otherwise
+   mark the object as needing a newer CPU.  */
+# define __sparc32_casa_word(word, mem, newval, oldval) \
+  ({ register __typeof (*(mem)) __casnew __asm__ ("%g6") = (newval);  \
+     register __typeof (mem) __casmem __asm__ ("%g1") = (mem);	      \
+     register __typeof (*(mem)) __casold __asm__ ("%g5") = (oldval);  \
+     __asm__ __volatile__ (".word " word				      \
+			   : "+r" (__casnew), "=m" (*__casmem)	      \
+			   : "r" (__casold), "m" (*__casmem),	      \
+			     "r" (__casmem) : "memory");		      \
+     __casnew; })
+
+# define __sparc32_casa(mem, newval, oldval) \
+  (__sparc32_atomic_casa == 1					      \
+   ? __sparc32_casa_word ("0xcde04145", mem, newval, oldval)	      \
+   : __sparc32_casa_word ("0xcde05005", mem, newval, oldval))
+
+# define __sparc32_casa_exchange(mem, newval) \
+  ({ __typeof (mem) __cxmemp = (mem);				      \
+     __typeof (*mem) __cxnew = (newval), __cxold, __cxprev;	      \
+								      \
+     __cxold = *__cxmemp;					      \
+     while ((__cxprev = __sparc32_casa (__cxmemp, __cxnew, __cxold))  \
+	    != __cxold)						      \
+       __cxold = __cxprev;					      \
+     __cxold; })
+
+# define __sparc32_casa_exchange_and_add(mem, value) \
+  ({ __typeof (mem) __camemp = (mem);				      \
+     __typeof (*mem) __caold, __caprev;				      \
+								      \
+     __caold = *__camemp;					      \
+     while ((__caprev = __sparc32_casa (__camemp, __caold + (value),  \
+					__caold)) != __caold)	      \
+       __caold = __caprev;					      \
+     __caold; })
 
 __make_section_unallocated
   (".gnu.linkonce.b.__sparc32_atomic_locks, \"aw\", %nobits");
@@ -214,23 +287,6 @@ volatile unsigned char __sparc32_atomic_locks[64]
       __asm__ __volatile__ ("" ::: "memory");			      \
     }								      \
   while (0)
-
-#ifndef SHARED
-# define __v9_compare_and_exchange_val_32_acq(mem, newval, oldval) \
-({									      \
-  register __typeof (*(mem)) __acev_tmp __asm__ ("%g6");			      \
-  register __typeof (mem) __acev_mem __asm__ ("%g1") = (mem);		      \
-  register __typeof (*(mem)) __acev_oldval __asm__ ("%g5");		      \
-  __acev_tmp = (newval);						      \
-  __acev_oldval = (oldval);						      \
-  /* .word 0xcde05005 is cas [%g1], %g5, %g6.  Can't use cas here though,     \
-     because as will then mark the object file as V8+ arch.  */		      \
-  __asm__ __volatile__ (".word 0xcde05005"					      \
-		    : "+r" (__acev_tmp), "=m" (*__acev_mem)		      \
-		    : "r" (__acev_oldval), "m" (*__acev_mem),		      \
-		      "r" (__acev_mem) : "memory");			      \
-  __acev_tmp; })
-#endif
 
 /* The only basic operation needed is compare and exchange.  */
 #define __v7_compare_and_exchange_val_acq(mem, newval, oldval) \
@@ -330,130 +386,73 @@ volatile unsigned char __sparc32_atomic_locks[64]
      __sparc32_atomic_restore_signals (__acev_save);		      \
      __acev_ret; })
 
-#ifdef SHARED
-
-/* When dynamically linked, we assume pre-v9 libraries are only ever
-   used on pre-v9 CPU.  */
-# define __atomic_is_v9 0
-
+/* Each operation asks once per call which kind the process uses.  Words
+   of another size than 4 always take the locks; casa has no other width,
+   and no word is reached with two sizes.  */
 # define atomic_compare_and_exchange_val_acq(mem, newval, oldval) \
-  __v7_compare_and_exchange_val_acq (mem, newval, oldval)
-
-# define atomic_compare_and_exchange_bool_acq(mem, newval, oldval) \
-  __v7_compare_and_exchange_bool_acq (mem, newval, oldval)
-
-# define atomic_exchange_acq(mem, newval) \
-  __v7_exchange_acq (mem, newval)
-
-# define atomic_exchange_and_add(mem, value) \
-  __v7_exchange_and_add (mem, value)
-
-# define atomic_compare_and_exchange_val_24_acq(mem, newval, oldval) \
-  ({								      \
-     if (sizeof (*mem) != 4)					      \
-       abort ();						      \
-     __v7_compare_and_exchange_val_24_acq (mem, newval, oldval); })
-
-# define atomic_exchange_24_rel(mem, newval) \
-  ({								      \
-     if (sizeof (*mem) != 4)					      \
-       abort ();						      \
-     __v7_exchange_24_rel (mem, newval); })
-
-#else
-
-
-
-/*
-   Here's what we'd like to do:
-
-   In libc.a/libpthread.a etc. we don't know if we'll be run on
-   pre-v9 or v9 CPU.  To be interoperable with dynamically linked
-   apps on v9 CPUs e.g. with process shared primitives, use cas insn
-   on v9 CPUs and ldstub on pre-v9.
-
-   However, we have no good way to test at run time that I know of,
-   so resort to the lowest common denominator (v7 ops) -austinf
- */
-#define __atomic_is_v9 0
-
-# define atomic_compare_and_exchange_val_acq(mem, newval, oldval) \
-  ({								      \
-     __typeof (*mem) __acev_wret;				      \
-     if (sizeof (*mem) != 4)					      \
-       abort ();						      \
-     if (__atomic_is_v9)					      \
-       __acev_wret						      \
-	 = __v9_compare_and_exchange_val_32_acq (mem, newval, oldval);\
+  ({ __typeof (*mem) __acev_wret;				      \
+     if (__sparc32_atomic_use_casa (mem))			      \
+       __acev_wret = __sparc32_casa (mem, newval, oldval);	      \
      else							      \
        __acev_wret						      \
 	 = __v7_compare_and_exchange_val_acq (mem, newval, oldval);   \
      __acev_wret; })
 
+/* Mind the sense: this one reports failure, not success.  */
 # define atomic_compare_and_exchange_bool_acq(mem, newval, oldval) \
-  ({								      \
-     int __acev_wret;						      \
-     if (sizeof (*mem) != 4)					      \
-       abort ();						      \
-     if (__atomic_is_v9)					      \
+  ({ int __acev_wret;						      \
+     if (__sparc32_atomic_use_casa (mem))			      \
        {							      \
-	 __typeof (oldval) __acev_woldval = (oldval);		      \
+	 __typeof (*mem) __acev_wold = (oldval);		      \
 	 __acev_wret						      \
-	   = __v9_compare_and_exchange_val_32_acq (mem, newval,	      \
-						   __acev_woldval)    \
-	     != __acev_woldval;					      \
+	   = __sparc32_casa (mem, newval, __acev_wold) != __acev_wold; \
        }							      \
      else							      \
        __acev_wret						      \
 	 = __v7_compare_and_exchange_bool_acq (mem, newval, oldval);  \
      __acev_wret; })
 
-# define atomic_exchange_rel(mem, newval) \
-  ({								      \
-     __typeof (*mem) __acev_wret;				      \
-     if (sizeof (*mem) != 4)					      \
-       abort ();						      \
-     if (__atomic_is_v9)					      \
-       {							      \
-	 __typeof (mem) __acev_wmemp = (mem);			      \
-	 __typeof (*(mem)) __acev_wval = (newval);		      \
-	 do							      \
-	   __acev_wret = *__acev_wmemp;				      \
-	 while (unlikely					      \
-		  (__v9_compare_and_exchange_val_32_acq (__acev_wmemp,\
-							 __acev_wval, \
-							 __acev_wret) \
-		   != __acev_wret));				      \
-       }							      \
+# define atomic_exchange_acq(mem, newval) \
+  ({ __typeof (*mem) __acev_wret;				      \
+     if (__sparc32_atomic_use_casa (mem))			      \
+       __acev_wret = __sparc32_casa_exchange (mem, newval);	      \
      else							      \
        __acev_wret = __v7_exchange_acq (mem, newval);		      \
      __acev_wret; })
 
+# define atomic_exchange_rel(mem, newval) \
+  atomic_exchange_acq (mem, newval)
+
+# define atomic_exchange_and_add(mem, value) \
+  ({ __typeof (*mem) __acev_wret;				      \
+     if (__sparc32_atomic_use_casa (mem))			      \
+       __acev_wret = __sparc32_casa_exchange_and_add (mem, value);    \
+     else							      \
+       __acev_wret = __v7_exchange_and_add (mem, value);	      \
+     __acev_wret; })
+
+/* With casa the whole word is available, as on the branch above; the
+   in-word lock is only for the emulation.  */
 # define atomic_compare_and_exchange_val_24_acq(mem, newval, oldval) \
-  ({								      \
-     __typeof (*mem) __acev_wret;				      \
+  ({ __typeof (*mem) __acev_wret;				      \
      if (sizeof (*mem) != 4)					      \
        abort ();						      \
-     if (__atomic_is_v9)					      \
-       __acev_wret						      \
-	 = __v9_compare_and_exchange_val_32_acq (mem, newval, oldval);\
+     if (__sparc32_atomic_casa)					      \
+       __acev_wret = __sparc32_casa (mem, newval, oldval);	      \
      else							      \
        __acev_wret						      \
 	 = __v7_compare_and_exchange_val_24_acq (mem, newval, oldval);\
      __acev_wret; })
 
 # define atomic_exchange_24_rel(mem, newval) \
-  ({								      \
-     __typeof (*mem) __acev_w24ret;				      \
+  ({ __typeof (*mem) __acev_wret;				      \
      if (sizeof (*mem) != 4)					      \
        abort ();						      \
-     if (__atomic_is_v9)					      \
-       __acev_w24ret = atomic_exchange_rel (mem, newval);	      \
+     if (__sparc32_atomic_casa)					      \
+       __acev_wret = __sparc32_casa_exchange (mem, newval);	      \
      else							      \
-       __acev_w24ret = __v7_exchange_24_rel (mem, newval);	      \
-     __acev_w24ret; })
-
-#endif
+       __acev_wret = __v7_exchange_24_rel (mem, newval);	      \
+     __acev_wret; })
 
 #endif	/* __GCC_HAVE_SYNC_COMPARE_AND_SWAP_4 */
 

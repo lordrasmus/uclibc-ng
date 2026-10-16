@@ -283,6 +283,11 @@ void __uClibc_init(void)
     __libc_setup_tls (TLS_TCB_SIZE, TLS_TCB_ALIGN);
 #endif
 
+#ifdef __ARCH_ATOMIC_INIT
+    /* Decides how atomics are done; nothing may use one before this.  */
+    __ARCH_ATOMIC_INIT ();
+#endif
+
     /* Before we start initializing uClibc we have to call
      * __pthread_initialize_minimal so we can use pthread_locks
      * whenever they are needed.
