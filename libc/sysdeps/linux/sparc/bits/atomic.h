@@ -188,6 +188,9 @@ typedef unsigned long __sparc32_atomic_sigmask_t[2];	/* _NSIG is 64 */
 # define atomic_exchange_24_rel(mem, newval) \
   __sparc32_cas_exchange (mem, newval)
 
+/* For confstr (_CS_UCLIBC_ATOMICS).  */
+# define __ARCH_ATOMICS_NAME "casa"
+
 #else
 
 /* Built for v8, which has no compare and swap, only test and set.  But the
@@ -209,6 +212,11 @@ extern int __sparc32_atomic_casa;
 extern void __sparc32_atomic_init (void)
   __attribute__ ((visibility ("hidden")));
 # define __ARCH_ATOMIC_INIT() __sparc32_atomic_init ()
+
+/* For confstr (_CS_UCLIBC_ATOMICS).  */
+# define __ARCH_ATOMICS_NAME \
+  (__sparc32_atomic_casa == 1 ? "casa asi=0x0a"			      \
+   : __sparc32_atomic_casa == 2 ? "casa asi=0x80" : "ldstub")
 
 /* The sparc specific sem_* and pthread_barrier_* ask this before choosing
    between a plain atomic and the in-word lock: casa is atomic between

@@ -20,6 +20,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <string.h>
+#include <atomic.h>
 
 
 #define CS_PATH "/bin:/usr/bin"
@@ -41,6 +42,23 @@ size_t confstr (int name, char *buf, size_t len)
 	string_len = sizeof (cs_path);
       }
       break;
+    case _CS_UCLIBC_VERSION:
+      {
+	static const char version[] = "uClibc-ng "
+	  __stringify(__UCLIBC_MAJOR__) "."
+	  __stringify(__UCLIBC_MINOR__) "."
+	  __stringify(__UCLIBC_SUBLEVEL__);
+	string = version;
+	string_len = sizeof (version);
+      }
+      break;
+#ifdef __ARCH_ATOMICS_NAME
+    /* Only where the arch says how it does its atomics.  */
+    case _CS_UCLIBC_ATOMICS:
+      string = __ARCH_ATOMICS_NAME;
+      string_len = strlen (string) + 1;
+      break;
+#endif
 #ifdef __UCLIBC_HAS_THREADS__
     case _CS_GNU_LIBPTHREAD_VERSION:
 # if defined __UCLIBC_HAS_LINUXTHREADS__
