@@ -76,6 +76,9 @@ jobs:
             value=$(echo "$json" | jq -r ".$key")
             echo "$key=$value" >> "$GITHUB_ENV"
           done
+          # Fuer timeout-minutes unten: GitHub-Ausdruecke koennen nicht rechnen.
+          max=$(echo "$json" | jq -r '.CONFIG_QEMU_MAX_MINUTES // empty')
+          echo "QEMU_STEP_TIMEOUT=$(( ${max:-35} + 10 ))" >> "$GITHUB_ENV"
   
       - name: install Qemu
         run: |
@@ -89,7 +92,7 @@ jobs:
         # Bewusst auf dem Step und nicht auf dem Job -- ein Job-Timeout
         # ueberspringt den failure()-Step darunter, und dann bleibt auf dem
         # Server die letzte gruene SVG liegen.
-        timeout-minutes: ${{ fromJSON(env.CONFIG_QEMU_MAX_MINUTES || '35') + 10 }}
+        timeout-minutes: ${{ fromJSON(env.QEMU_STEP_TIMEOUT || '45') }}
         run: |
           if [[ $CONFIG_KERNEL_ARCH == "xtensa" ]] ;  then python3 .github/tools/xtensa-cpio-hack.py; fi
           if [[ $CONFIG_KERNEL_ARCH == "kvx" ]] ;     then python3 .github/tools/xtensa-cpio-hack.py; fi
