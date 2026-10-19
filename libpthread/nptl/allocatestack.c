@@ -526,7 +526,11 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 
 	  /* Place the thread descriptor at the end of the stack.  */
 #if defined(TLS_TCB_AT_TP)
-	  pd = (struct pthread *) ((char *) mem + size - coloring) - 1;
+	  /* The static TLS blocks lie below the thread pointer at offsets
+	     that assume it to be aligned like the most aligned of them.  */
+	  pd = (struct pthread *) ((((uintptr_t) mem + size - coloring)
+				    - TLS_TCB_SIZE)
+				   & ~__static_tls_align_m1);
 #elif defined(TLS_DTV_AT_TP)
 	  pd = (struct pthread *) ((((uintptr_t) mem + size - coloring
 				    - __static_tls_size)
