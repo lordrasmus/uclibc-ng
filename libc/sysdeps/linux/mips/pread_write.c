@@ -10,17 +10,19 @@
 #include <sgidefs.h>
 
 /* We should generalize this for 32bit userlands w/64bit regs.  This applies
- * to the x86_64 x32 and the mips n32 ABIs.  */
+ * to the x86_64 x32 and the mips n32 ABIs.  The register takes the offset
+ * whole, so it must be declared off64_t: inside the library off_t is 32 bit
+ * and would cut it, sign-extended, to a negative offset above 2 GiB.  */
 #if _MIPS_SIM == _MIPS_SIM_NABI32
 # define __NR___syscall_pread __NR_pread64
-static _syscall4(ssize_t, __syscall_pread, int, fd, void *, buf, size_t, count, off_t, offset)
+static _syscall4(ssize_t, __syscall_pread, int, fd, void *, buf, size_t, count, off64_t, offset)
 # define MY_PREAD(fd, buf, count, offset) \
 	__syscall_pread(fd, buf, count, offset)
 # define MY_PREAD64(fd, buf, count, offset) \
 	__syscall_pread(fd, buf, count, offset)
 
 # define __NR___syscall_pwrite __NR_pwrite64
-static _syscall4(ssize_t, __syscall_pwrite, int, fd, const void *, buf, size_t, count, off_t, offset)
+static _syscall4(ssize_t, __syscall_pwrite, int, fd, const void *, buf, size_t, count, off64_t, offset)
 # define MY_PWRITE(fd, buf, count, offset) \
 	__syscall_pwrite(fd, buf, count, offset)
 # define MY_PWRITE64(fd, buf, count, offset) \
