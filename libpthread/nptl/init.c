@@ -57,8 +57,10 @@ int __have_futex_clock_realtime;
 #define __set_futex_clock_realtime() do { } while (0)
 #endif
 
-/* Version of the library, used in libthread_db to detect mismatches.  */
-static const char nptl_version[] __attribute_used__ = VERSION;
+/* Version of the library, used in libthread_db to detect mismatches.
+   Exported, like glibc's, so that libthread_db finds it in a stripped
+   libc as well: it is the first symbol td_ta_new looks up.  */
+const char __nptl_version[] = VERSION;
 
 /* For asynchronous cancellation we use a signal.  This is the handler.  */
 static void
