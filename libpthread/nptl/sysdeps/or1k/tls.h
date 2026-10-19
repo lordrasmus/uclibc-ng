@@ -38,6 +38,10 @@ typedef union dtv
 typedef struct
 {
   dtv_t *dtv;
+  /* binutils places local-exec TLS assuming a 16-byte TCB (TCB_SIZE in
+     bfd/elf32-or1k.c); with less, TLS aligned beyond 4 bytes ends up
+     elsewhere than the loader puts it.  glibc pads the same way.  */
+  void *__padding[3];
 } tcbhead_t;
 
 register tcbhead_t *__thread_self __asm__("r10");
@@ -160,7 +164,7 @@ register tcbhead_t *__thread_self __asm__("r10");
 
 /* Magic for libthread_db to know how to do THREAD_SELF.  */
 # define DB_THREAD_SELF \
-  CONST_THREAD_AREA (32, sizeof (struct pthread))
+  REGISTER (32, 32, 10 * 4, - TLS_INIT_TCB_SIZE - TLS_PRE_TCB_SIZE)
 
 /* Access to data in the thread descriptor is easy.  */
 #define THREAD_GETMEM(descr, member) \
