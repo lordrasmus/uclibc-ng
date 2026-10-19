@@ -54,7 +54,7 @@
 #endif
 
 #ifdef __USE_LARGEFILE64
-# define O_LARGEFILE	0400000
+# define O_LARGEFILE	0100000	/* asm-generic; 0400000 is O_NOFOLLOW */
 #endif
 
 /* Values for the second argument to `fcntl'.  */
