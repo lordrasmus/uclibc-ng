@@ -56,17 +56,26 @@ typedef struct
 /* Thread Pointer $tp is $r13 */
 register tcbhead_t *__thread_self __asm__("$r13");
 
+/* The thread pointer points at the TLS blocks themselves, with the TCB
+   below it inside the pre-TCB area: binutils places local-exec TLS right
+   at the thread pointer for every alignment (tpoff_base in
+   bfd/elfnn-kvx.c), so nothing may sit between them.  Same layout as
+   riscv.  */
+
 /* This is the size of the initial TCB.  */
-# define TLS_INIT_TCB_SIZE	sizeof (tcbhead_t)
+# define TLS_INIT_TCB_SIZE	0
 
 /* Alignment requirements for the initial TCB.  */
 # define TLS_INIT_TCB_ALIGN	__alignof__ (struct pthread)
 
 /* This is the size of the TCB.  */
-# define TLS_TCB_SIZE		sizeof (tcbhead_t)
+# define TLS_TCB_SIZE		0
 
-/* This is the size we need before TCB.  */
-# define TLS_PRE_TCB_SIZE	sizeof (struct pthread)
+/* This is the size we need before TCB - it includes the TCB.  */
+# define TLS_PRE_TCB_SIZE \
+  (sizeof (struct pthread)						\
+   + ((sizeof (tcbhead_t) + __alignof__ (struct pthread) - 1)		\
+      & ~(__alignof__ (struct pthread) - 1)))
 
 /* Alignment requirements for the TCB.  */
 # define TLS_TCB_ALIGN		__alignof__ (struct pthread)
@@ -74,7 +83,7 @@ register tcbhead_t *__thread_self __asm__("$r13");
 /* Install the dtv pointer.  The pointer passed is to the element with
    index -1 which contain the length.  */
 # define INSTALL_DTV(tcbp, dtvp) \
-  (((tcbhead_t *) (tcbp))->dtv = (dtvp) + 1)
+  (((tcbhead_t *) (tcbp))[-1].dtv = (dtvp) + 1)
 
 /* Install new dtv for current thread.  */
 # define INSTALL_NEW_DTV(dtv) \
@@ -82,12 +91,11 @@ register tcbhead_t *__thread_self __asm__("$r13");
 
 /* Return dtv of given thread descriptor.  */
 # define GET_DTV(tcbp) \
-  (((tcbhead_t *) (tcbp))->dtv)
+  (((tcbhead_t *) (tcbp))[-1].dtv)
 
 /* Code to initially initialize the thread pointer.
  *
- * Set TP to the address _after_ tcbhead_t. This will allow us
- * to change the size of tcbhead_t without having to re-link everything.
+ * Set TP to the start of the TLS blocks, tcbhead_t lies just below.
  *
  * secondcall has something to do with USE__THREAD,
  * seems to always be 0 so we don't care about it.
@@ -96,12 +104,12 @@ register tcbhead_t *__thread_self __asm__("$r13");
  * It's hard to fail this, so return NULL always.
  */
 # define TLS_INIT_TP(tcbp, secondcall) \
-  ({__thread_self = ((tcbhead_t *)tcbp + 1); NULL;})
+  ({__thread_self = (tcbhead_t *) (tcbp); NULL;})
 
 /* Return the address of the dtv for the current thread.
  *
  * Dereference TP, offset to dtv - really straightforward.
- * Remember that we made TP point to after tcb, so we need to reverse that.
+ * The TCB lies just below TP.
  */
 #  define THREAD_DTV() \
   ((((tcbhead_t *)__thread_self)-1)->dtv)
@@ -109,8 +117,7 @@ register tcbhead_t *__thread_self __asm__("$r13");
 /* Return the thread descriptor for the current thread.
  *
  * Return a pointer to the TLS_PRE area where we allocated space for
- * a struct pthread. Again, TP points to after tcbhead_t, compensate with
- * TLS_INIT_TCB_SIZE.
+ * a struct pthread, which ends where tcbhead_t (rounded up) begins.
  *
  * I regard this is a seperate system from the "normal" TLS.
  */
@@ -118,9 +125,13 @@ register tcbhead_t *__thread_self __asm__("$r13");
   ((struct pthread *) ((char *) __thread_self - TLS_INIT_TCB_SIZE \
     - TLS_PRE_TCB_SIZE))
 
+/* l_tls_offset == 0 is perfectly valid, so we have to use some different
+   value to mean unset l_tls_offset.  */
+# define NO_TLS_OFFSET		-1
+
 /* Magic for libthread_db to know how to do THREAD_SELF.  */
 # define DB_THREAD_SELF \
-  CONST_THREAD_AREA (64, sizeof (struct pthread))
+  CONST_THREAD_AREA (64, TLS_PRE_TCB_SIZE)
 
 /* Access to data in the thread descriptor is easy.  */
 # define THREAD_GETMEM(descr, member) \
