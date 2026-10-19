@@ -102,6 +102,15 @@ static __always_inline void __ipc_mode_to_kernel (__mode_t *m)
 #endif
 }
 
+/* Whether __ipc_mode_to_kernel changes the value.  IPC_SET must then pass
+   a copy: the caller's buffer is input only and may be read-only.  */
+#if __BYTE_ORDER == __BIG_ENDIAN
+# define __IPC_MODE_TO_KERNEL_CHANGES \
+	(__IPC_KERNEL_MODE_NARROW && __IPC_KERNEL_MODE_PADS_BEHIND)
+#else
+# define __IPC_MODE_TO_KERNEL_CHANGES 0
+#endif
+
 /* _Static_assert wants gcc 4.6 or C11, and this tree is still built with a
    gcc 4.4; same two-way form as _FP_STATIC_ASSERT in sparc64/soft-fp.  */
 #if ((defined __GNUC__							\
