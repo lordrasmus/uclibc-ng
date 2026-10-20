@@ -9,9 +9,12 @@ from pprint import pprint
 old_string = b'HIER_DAS_ECHTE_CPIO_HIN'
 
 # Groesse des Platzhalters im Kernel-Image. Mehr darf nicht geschrieben
-# werden, sonst laeuft das rootfs ueber das initramfs hinaus. Per Argument
-# ueberschreibbar, weil nicht jedes Image denselben Platzhalter hat.
-max_size = 17825792
+# werden, sonst laeuft das rootfs ueber das initramfs hinaus. Ohne Argument
+# wird sie wie in uc_devel (uc_dev/qemu.py) ausgemessen: Marker plus die
+# Nullen dahinter. Eine feste Zahl stimmte nicht mehr, seit
+# kernel-xtensa-nommu.img 48 statt 17 MB hat (uclibc-ng-qemu-imgs 664aaac),
+# und xtensa-lt scheiterte an "Size > 17825792" mit einem 18,6-MB-Rootfs.
+max_size = None
 
 if len ( sys.argv ) > 1 and sys.argv[1] != "check_sig":
     max_size = int( sys.argv[1] )
@@ -58,6 +61,16 @@ with open('kernel.img', 'r+b') as file:
         new_string = file2.read()
         
     print("  RootFS Size   : " + str( len( new_string ) ))
+
+    if max_size is None:
+        index = data.find(old_string)
+        if index == -1:
+            print("    Error signature not found")
+            exit(1)
+        end = index + len(old_string)
+        while end < len(data) and data[end] == 0:
+            end += 1
+        max_size = end - index
     
     print("  Max Size      : " + str( max_size ))
 
