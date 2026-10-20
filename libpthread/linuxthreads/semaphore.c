@@ -62,6 +62,11 @@ int sem_wait(sem_t * sem)
   pthread_extricate_if extr;
   int already_canceled = 0;
 
+  /* A cancellation point even when it does not block, as POSIX requires.  */
+  if (THREAD_GETMEM(self, p_canceled)
+      && THREAD_GETMEM(self, p_cancelstate) == PTHREAD_CANCEL_ENABLE)
+    __pthread_do_exit(PTHREAD_CANCELED, CURRENT_STACK_FRAME);
+
   /* Set up extrication interface */
   extr.pu_object = sem;
   extr.pu_extricate_func = new_sem_extricate_func;
@@ -210,6 +215,11 @@ int sem_timedwait(sem_t *sem, const struct timespec *abstime)
   pthread_descr self = thread_self();
   pthread_extricate_if extr;
   int already_canceled = 0;
+
+  /* A cancellation point even when it does not block, as POSIX requires.  */
+  if (THREAD_GETMEM(self, p_canceled)
+      && THREAD_GETMEM(self, p_cancelstate) == PTHREAD_CANCEL_ENABLE)
+    __pthread_do_exit(PTHREAD_CANCELED, CURRENT_STACK_FRAME);
 
   __pthread_lock(&sem->__sem_lock, self);
   if (sem->__sem_value > 0) {
