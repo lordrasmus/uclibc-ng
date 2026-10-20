@@ -101,7 +101,12 @@ jobs:
           # tests_start/tests_end markers read_test_log.py looks for, then
           # starts a shell.  No busybox init, inittab or run_tests.sh: on
           # noMMU every busybox exec cost a 2 MB block.
+          # /sbin/init too: some kernels bring their own command line with
+          # rdinit=/sbin/init (csky has it in the built-in device tree), and
+          # busybox no longer provides one.
+          mkdir -p rootfs/sbin
           ( cd rootfs ; ln -s /usr/lib/uclibc-ng-test/test/uclibcng-testrunner init )
+          ( cd rootfs ; ln -s /usr/lib/uclibc-ng-test/test/uclibcng-testrunner sbin/init )
           ( cd rootfs ; mkdir dev; mkdir etc; mkdir proc; mkdir sys ; mkdir tmp )
 
           #           shared libs copy          #
