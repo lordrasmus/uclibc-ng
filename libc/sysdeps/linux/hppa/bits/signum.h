@@ -25,12 +25,12 @@
 #define	SIGTRAP		5	/* Trace trap (POSIX).  */
 #define	SIGABRT		6	/* Abort (ANSI).  */
 #define	SIGIOT		6	/* IOT trap (4.2 BSD).  */
-#define	SIGEMT		7
+#define	SIGSTKFLT	7	/* Stack fault.  */
 #define	SIGFPE		8	/* Floating-point exception (ANSI).  */
 #define	SIGKILL		9	/* Kill, unblockable (POSIX).  */
 #define	SIGBUS		10	/* BUS error (4.2 BSD).  */
 #define	SIGSEGV		11	/* Segmentation violation (ANSI).  */
-#define SIGSYS		12	/* Bad system call.  */
+#define	SIGXCPU		12	/* CPU limit exceeded (4.2 BSD).  */
 #define	SIGPIPE		13	/* Broken pipe (POSIX).  */
 #define	SIGALRM		14	/* Alarm clock (POSIX).  */
 #define	SIGTERM		15	/* Termination (ANSI).  */
@@ -50,12 +50,12 @@
 #define	SIGTTIN		27	/* Background read from tty (POSIX).  */
 #define	SIGTTOU		28	/* Background write to tty (POSIX).  */
 #define	SIGURG		29	/* Urgent condition on socket (4.2 BSD).  */
-#define SIGLOST		30	/* Operating System Has Lost (HP/UX). */
+#define	SIGXFSZ		30	/* File size limit exceeded (4.2 BSD).  */
+#define SIGSYS		31	/* Bad system call.  */
 #define SIGUNUSED	31
-#define	SIGXCPU		33	/* CPU limit exceeded (4.2 BSD).  */
-#define	SIGXFSZ		34	/* File size limit exceeded (4.2 BSD).  */
-#define	SIGSTKFLT	36	/* Stack fault.  */
 
-#define __SIGRTMIN	37
+/* Linux renumbered these in 3.17 so that SIGRTMIN could be 32; SIGEMT and
+   SIGLOST went away.  glibc followed in 2.21.  */
+#define __SIGRTMIN	32
 
 #endif	/* <signal.h> included.  */
