@@ -36,7 +36,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-x86_64-gcc-13
+      toolchain: toolchain-x86_64-gcc-13.2.0-npt-shared
       gcc_prefix: x86_64-openadk-linux-uclibc-
       kernel_vers: 4.19.56
       kernel_dir: v4.x

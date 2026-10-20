@@ -33,7 +33,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-ppc-gcc-12_soft
+      toolchain: toolchain-ppc-gcc-12.3.0-npt-shared-soft
       gcc_prefix: ppc-openadk-linux-uclibc-
       kernel_vers: 6.1.60
       kernel_dir: v6.x

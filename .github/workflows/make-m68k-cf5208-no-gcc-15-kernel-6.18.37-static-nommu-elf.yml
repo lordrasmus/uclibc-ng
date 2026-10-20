@@ -30,7 +30,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-m68k_cf5208-gcc-15.3.0_nommu_elf_static
+      toolchain: toolchain-m68k-cf5208-gcc-15.3.0-npt-static-nommu-elf
       gcc_prefix: m68k-openadk-linux-uclibc-
       kernel_vers: 6.18.37
       kernel_dir: v6.x

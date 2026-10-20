@@ -30,7 +30,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-or1k-gcc-10
+      toolchain: toolchain-or1k-gcc-10.5.0-npt-shared
       gcc_prefix: or1k-openadk-linux-uclibc-
       kernel_vers: 6.1.53
       kernel_dir: v6.x

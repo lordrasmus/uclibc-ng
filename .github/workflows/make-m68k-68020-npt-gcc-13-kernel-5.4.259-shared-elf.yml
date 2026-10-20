@@ -29,7 +29,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-m68k_68040-gcc-13
+      toolchain: toolchain-m68k-68040-gcc-13.2.0-npt-shared
       gcc_prefix: m68k-openadk-linux-uclibc-
       kernel_vers: 5.4.259
       kernel_dir: v5.x
