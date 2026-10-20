@@ -30,7 +30,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-csky-gcc-15.2.0_soft
+      toolchain: toolchain-csky-gcc-15.2.0-npt-shared-soft
       gcc_prefix: csky-openadk-linux-uclibcabiv2-
       kernel_vers: 5.4.259
       kernel_dir: v5.x

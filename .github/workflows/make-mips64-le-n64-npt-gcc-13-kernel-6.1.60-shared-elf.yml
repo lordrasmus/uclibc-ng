@@ -30,7 +30,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-mips64el_mips64-gcc_n64-13.2.0
+      toolchain: toolchain-mips64el-gcc-13.2.0-npt-shared-n64
       gcc_prefix: mips64el-openadk-linux-uclibcabi64-
       kernel_vers: 6.1.60
       kernel_dir: v6.x

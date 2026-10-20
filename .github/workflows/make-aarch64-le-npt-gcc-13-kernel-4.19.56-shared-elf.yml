@@ -30,7 +30,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-aarch64_cortex_a53-gcc-13
+      toolchain: toolchain-aarch64-cortex_a53-gcc-13.2.0-npt-shared
       gcc_prefix: aarch64-openadk-linux-uclibc-
       kernel_vers: 4.19.56
       kernel_dir: v4.x

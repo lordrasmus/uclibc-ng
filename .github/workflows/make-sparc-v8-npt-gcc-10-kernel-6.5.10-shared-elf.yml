@@ -29,7 +29,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-sparc_v8-gcc-10.5.0_hard
+      toolchain: toolchain-sparc-v8-gcc-10.5.0-npt-shared-hard
       gcc_prefix: sparc-openadk-linux-uclibc-
       kernel_vers: 6.5.10
       kernel_dir: v6.x

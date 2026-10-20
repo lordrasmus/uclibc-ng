@@ -40,7 +40,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-mips32el-gcc-13_hard
+      toolchain: toolchain-mipsel-mips32-gcc-13.2.0-npt-shared-hard
       gcc_prefix: mipsel-openadk-linux-uclibc-
       kernel_vers: 4.19.56
       kernel_dir: v4.x

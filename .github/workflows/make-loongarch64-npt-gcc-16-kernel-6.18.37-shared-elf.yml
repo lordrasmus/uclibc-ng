@@ -29,7 +29,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-loongarch64-gcc-16.2.0
+      toolchain: toolchain-loongarch64-gcc-16.2.0-npt-shared
       gcc_prefix: loongarch64-openadk-linux-uclibc-
       kernel_vers: 6.18.37
       kernel_dir: v6.x
