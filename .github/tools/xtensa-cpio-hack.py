@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import gzip
 import os
 import sys
 
@@ -73,6 +74,29 @@ with open('kernel.img', 'r+b') as file:
         max_size = end - index
     
     print("  Max Size      : " + str( max_size ))
+
+    # Passt das rohe cpio nicht, ein gepacktes nehmen, wie uc_devel
+    # (uc_dev/qemu.py): unpack_to_rootfs() erkennt die Kompression des
+    # eingebauten Blobs und ueberspringt die Nullen dahinter. Nur ein Format,
+    # das der Kernel laut kernel.config auspacken kann -- sonst stirbt er
+    # ohne eine Logzeile. arcv2 brauchte das, als sein Rootfs 17,9 MB in
+    # einem 17-MB-Platzhalter wurde (der Kernel hat CONFIG_RD_GZIP).
+    if len( new_string ) > max_size and rootfs_file == 'rootfs.img':
+        cfg = ""
+        if os.path.exists( 'kernel.config' ):
+            with open( 'kernel.config' ) as f:
+                cfg = f.read()
+        packed = []
+        if "CONFIG_RD_GZIP=y" in cfg:
+            packed.append( ( 'rootfs.img.gz', gzip.compress( new_string, 9, mtime=0 ) ) )
+        if "CONFIG_RD_XZ=y" in cfg and os.path.exists( 'rootfs.img.xz' ):
+            with open( 'rootfs.img.xz', 'rb' ) as f:
+                packed.append( ( 'rootfs.img.xz', f.read() ) )
+        for name, blob in packed:
+            print("  " + name + " : " + str( len( blob ) ))
+            if len( blob ) <= max_size:
+                rootfs_file, new_string = name, blob
+                break
 
     if len( new_string ) > max_size:
         print("   Size > " + str( max_size ))
