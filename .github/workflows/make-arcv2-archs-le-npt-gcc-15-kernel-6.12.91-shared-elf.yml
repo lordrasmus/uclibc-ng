@@ -30,7 +30,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-arc_archs-gcc-15.3.0
+      toolchain: toolchain-arc-archs-gcc-15.3.0-npt-shared
       gcc_prefix: arc-openadk-linux-uclibc-
       kernel_vers: 6.12.91
       kernel_dir: v6.x

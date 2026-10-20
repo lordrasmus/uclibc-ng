@@ -29,7 +29,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-riscv64_rv64imafdc-gcc-15.3.0
+      toolchain: toolchain-riscv64-rv64imafdc-gcc-15.3.0-npt-shared
       gcc_prefix: riscv64-openadk-linux-uclibc-
       kernel_vers: 6.5.10
       kernel_dir: v6.x

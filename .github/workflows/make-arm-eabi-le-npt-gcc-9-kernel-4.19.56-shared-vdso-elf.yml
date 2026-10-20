@@ -30,7 +30,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-arm_cortex_a5-gcc-9_hard_eabihf_arm
+      toolchain: toolchain-arm-cortex_a5-gcc-9.5.0-npt-shared-eabihf-hard-arm
       gcc_prefix: arm-openadk-linux-uclibceabihf-
       kernel_vers: 4.19.56
       kernel_dir: v4.x

@@ -30,7 +30,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-kvx-gcc-9.4.1
+      toolchain: toolchain-kvx-gcc-9.4.1-npt-shared
       gcc_prefix: kvx-openadk-linux-uclibc-
       kernel_vers: kvx
       kernel_dir: v6.x

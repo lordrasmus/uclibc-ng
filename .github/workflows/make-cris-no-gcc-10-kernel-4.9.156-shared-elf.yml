@@ -29,7 +29,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-cris_crisv10-gcc-10
+      toolchain: toolchain-cris-crisv10-gcc-10.5.0-lt-shared
       gcc_prefix: cris-openadk-linux-uclibc-
       kernel_vers: 4.9.156
       kernel_dir: v4.x

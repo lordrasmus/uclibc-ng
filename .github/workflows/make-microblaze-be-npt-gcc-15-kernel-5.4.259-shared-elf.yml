@@ -29,7 +29,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-microblaze_gcc-15.3.0
+      toolchain: toolchain-microblaze-gcc-15.3.0-npt-shared
       gcc_prefix: microblaze-openadk-linux-uclibc-
       kernel_vers: 5.4.259
       kernel_dir: v5.x
