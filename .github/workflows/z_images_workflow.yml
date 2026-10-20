@@ -102,6 +102,10 @@ jobs:
           # /tmp as tmpfs: the initramfs (ramfs) has no fallocate support,
           # so tst-fallocate/tst-posix_fallocate fail without a real fs there.
           echo "::sysinit:/bin/mount -t tmpfs none /tmp" >> rootfs/etc/inittab
+          # /dev/shm for shm_open(), which keeps its objects there; devtmpfs
+          # does not provide it.
+          echo "::sysinit:/bin/mkdir -p /dev/shm" >> rootfs/etc/inittab
+          echo "::sysinit:/bin/mount -t tmpfs none /dev/shm" >> rootfs/etc/inittab
           echo "::sysinit:/bin/dmesg -n1" >>  rootfs/etc/inittab
           echo "::sysinit:/bin/echo 'test console' > /dev/console" >> rootfs/etc/inittab
           echo "::sysinit:/bin/echo 'test ttyS0' > /dev/ttyS0" >> rootfs/etc/inittab
