@@ -122,10 +122,11 @@ register struct pthread *__thread_self __asm__("%g7");
 /* Return the thread descriptor for the current thread.  */
 #define THREAD_SELF  __thread_self
 
-/* Magic for libthread_db to know how to do THREAD_SELF.  */
-# define DB_THREAD_SELF_INCLUDE <sys/ucontext.h>
+/* Magic for libthread_db to know how to do THREAD_SELF.  The debugger
+   hands over the NT_PRSTATUS register set, which starts with %g0..%g7,
+   so %g7 is word 7 -- not REG_G7, the ucontext index.  */
 # define DB_THREAD_SELF \
-  REGISTER (32, 32, REG_G7 * 4, 0) REGISTER (64, 64, REG_G7 * 8, 0)
+  REGISTER (32, 32, 7 * 4, 0) REGISTER (64, 64, 7 * 8, 0)
 
 /* Access to data in the thread descriptor is easy.  */
 #define THREAD_GETMEM(descr, member) \
