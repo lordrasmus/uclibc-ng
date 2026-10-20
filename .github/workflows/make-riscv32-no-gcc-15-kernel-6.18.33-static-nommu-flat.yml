@@ -30,7 +30,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-riscv32-gcc-15.2.0_nommu_flat_static
+      toolchain: toolchain-riscv32-rv32imac-gcc-15.2.0-lt-static-nommu-flat
       gcc_prefix: riscv32-openadk-linux-uclibc-
       kernel_vers: 6.18.33
       kernel_dir: v6.x

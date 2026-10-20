@@ -30,7 +30,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-avr32-gcc-4.4.7
+      toolchain: toolchain-avr32-gcc-4.4.7-lt-shared
       gcc_prefix: avr32-openadk-linux-uclibc-
       kernel_vers: 4.4.302
       kernel_dir: v4.x

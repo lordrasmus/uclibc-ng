@@ -30,7 +30,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-nios2-gcc-13
+      toolchain: toolchain-nios2-gcc-13.2.0-no-static
       gcc_prefix: nios2-openadk-linux-uclibc-
       kernel_vers: 6.1.53
       kernel_dir: v6.x

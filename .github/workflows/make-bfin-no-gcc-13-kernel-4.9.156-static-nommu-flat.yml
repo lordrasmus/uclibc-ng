@@ -30,7 +30,7 @@ jobs:
   call_build:
     uses: ./.github/workflows/z_build_workflow.yml
     with:
-      toolchain: toolchain-bfin_bf512-gcc-13_flat_nommu
+      toolchain: toolchain-bfin-bf512-gcc-13.2.0-lt-static-nommu-flat
       gcc_prefix: bfin-openadk-uclinux-uclibc-
       kernel_vers: 4.9.156
       kernel_dir: v4.x
