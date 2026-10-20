@@ -132,6 +132,9 @@ static pid_t __fork(void)
     __pthread_once_fork_child();
     pthread_call_handlers(child);
   } else {
+    /* The handlers must not lose the errno of a failed fork.  */
+    int saved_errno = errno;
+
 #if defined(__MALLOC_STANDARD__) || defined(__MALLOC_SIMPLE__)
     __pthread_mutex_unlock(&__malloc_lock);
 #elif defined(__MALLOC__)
@@ -144,6 +147,8 @@ static pid_t __fork(void)
     __pthread_mutex_unlock(&pthread_atfork_lock);
     __pthread_once_fork_parent();
     pthread_call_handlers(parent);
+    if (pid < 0)
+      __set_errno(saved_errno);
   }
   return pid;
 }
