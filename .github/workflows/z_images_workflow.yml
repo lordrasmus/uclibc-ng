@@ -83,6 +83,28 @@ jobs:
           done
           true
 
+      - name: Drop fixincluded libc headers
+        run: |
+          # When gcc is built, fixincludes copies libc headers it wants to
+          # patch into lib/gcc/<target>/<ver>/include-fixed/, which comes
+          # BEFORE the sysroot on the include path.  For uClibc-ng it always
+          # takes pthread.h (rule pthread_incomplete_struct_argument:
+          # __sigsetjmp's "__env[1]").  That copy is the pthread.h of the
+          # uClibc-ng the toolchain was built with, so the testsuite would
+          # see it instead of the freshly built one in sysroot/: a function
+          # added to pthread.h since then is "implicitly declared".  Only
+          # files carrying fixincludes' header go; gcc's own limits.h,
+          # syslimits.h and README stay.  uc_devel does the same
+          # (drop_fixincluded_libc_headers in uc_dev/build.py).
+          find "$CONFIG_TOOLCHAIN"/usr/lib/gcc/*/*/include-fixed -type f 2>/dev/null |
+          while read -r F; do
+            if head -c 512 "$F" | grep -q "auto-edited by fixincludes"; then
+              rm "$F"
+              echo "dropped fixincluded libc header: ${F##*include-fixed/}"
+            fi
+          done
+          true
+
       - name: add PATH
         run: echo "$(pwd)/$CONFIG_TOOLCHAIN/usr/bin/" >> $GITHUB_PATH
 
