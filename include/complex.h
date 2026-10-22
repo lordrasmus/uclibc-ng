@@ -48,6 +48,20 @@ __BEGIN_DECLS
 #undef I
 #define I _Complex_I
 
+#ifdef __USE_ISOC11
+/* Build a complex value from its parts, keeping an infinite or NaN
+   imaginary part intact (x + y*I would not).  */
+# if __GNUC_PREREQ (4, 7)
+#  define __CMPLX(x, y, t) __builtin_complex ((t) (x), (t) (y))
+# else
+#  define __CMPLX(x, y, t) \
+	((union { _Complex t __z; t __xy[2]; }){ .__xy = { (x), (y) } }.__z)
+# endif
+# define CMPLX(x, y)	__CMPLX (x, y, double)
+# define CMPLXF(x, y)	__CMPLX (x, y, float)
+# define CMPLXL(x, y)	__CMPLX (x, y, long double)
+#endif
+
 /* The file <bits/cmathcalls.h> contains the prototypes for all the
    actual math functions.  These macros are used for those prototypes,
    so we can easily declare each function as both `name' and `__name',
