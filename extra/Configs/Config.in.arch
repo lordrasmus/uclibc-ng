@@ -169,6 +169,7 @@ config UCLIBC_HAS_COMPLEX_MATH
 	  ISO C11 makes complex arithmetic optional; without it
 	  __STDC_NO_COMPLEX__ is defined and <tgmath.h> covers only
 	  the real functions.
+	  The functions take about 28k on x86_64.
 
 	  Most people will answer Y.
 

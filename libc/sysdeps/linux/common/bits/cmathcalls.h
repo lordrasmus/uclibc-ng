@@ -87,7 +87,7 @@ __MATHCALL (ccosh, (_Mdouble_complex_ __z));
 libm_hidden_proto(ccosh)
 /* Hyperbolic sine of Z.  */
 __MATHCALL (csinh, (_Mdouble_complex_ __z));
-libm_hidden_proto(ccosh)
+libm_hidden_proto(csinh)
 /* Hyperbolic tangent of Z.  */
 __MATHCALL (ctanh, (_Mdouble_complex_ __z));
 libm_hidden_proto(ctanh)

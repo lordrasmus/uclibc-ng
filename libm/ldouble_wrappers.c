@@ -13,7 +13,6 @@
 /* Prevent math.h from defining colliding inlines */
 #undef __USE_EXTERN_INLINES
 #include "math.h"
-#include <complex.h>
 
 #if !defined __NO_LONG_DOUBLE_MATH
 # define WRAPPER1(func) \
@@ -46,7 +45,6 @@ long long func##l(long double x) \
 #if 0
 long double asinhl(long double);
 long double atanl(long double);
-long double cargl(long double complex);
 long double cbrtl(long double);
 long double ceill(long double);
 long double copysignl(long double, long double);
@@ -125,13 +123,6 @@ WRAPPER1(asinh)
 
 #ifdef L_atanl
 WRAPPER1(atan)
-#endif
-
-#ifdef L_cargl
-long double cargl (long double complex x)
-{
-	return (long double) carg( (double complex)x );
-}
 #endif
 
 #ifdef L_cbrtl
