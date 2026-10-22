@@ -995,7 +995,7 @@ long int sysconf(int name)
 #endif
 
     case _SC_MONOTONIC_CLOCK:
-#if defined __UCLIBC_HAS_REALTIME__ && defined __NR_clock_getres
+#ifdef __UCLIBC_HAS_REALTIME__
       if (clock_getres(CLOCK_MONOTONIC, NULL) >= 0)
         return _POSIX_VERSION;
 #endif
