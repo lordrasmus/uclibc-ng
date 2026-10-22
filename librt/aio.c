@@ -34,7 +34,7 @@ struct aio_thread {
 	struct aiocb *cb;
 	struct aio_thread *next, *prev;
 	struct aio_queue *q;
-	volatile int running;
+	volatile int running __attribute__ ((__aligned__ (4)));
 	int err, op;
 	ssize_t ret;
 };
@@ -55,7 +55,7 @@ struct aio_args {
 
 static pthread_rwlock_t maplock = PTHREAD_RWLOCK_INITIALIZER;
 static struct aio_queue *****map;
-volatile int __aio_fut;
+volatile int __aio_fut __attribute__ ((__aligned__ (4)));
 
 static void aio_prepare(void)
 {
