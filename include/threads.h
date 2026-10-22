@@ -36,6 +36,10 @@ enum
   thrd_timedout = 4
 };
 
+/* mtx_t, cnd_t and once_flag hold futex words, which must be 4-byte
+   aligned; on m68k a long or an int alone is only 2-byte aligned.  So
+   they take the pthread types' alignment, and once_flag 4.  */
+
 /* Mutex types.  */
 enum
 {
@@ -49,7 +53,7 @@ enum
 typedef struct
 {
   int __data;
-} once_flag;
+} __attribute__ ((__aligned__ (4))) once_flag;
 # define ONCE_FLAG_INIT { 0 }
 #endif
 
@@ -57,13 +61,13 @@ typedef union
 {
   char __size[__SIZEOF_PTHREAD_MUTEX_T];
   long int __align;
-} mtx_t;
+} __attribute__ ((__aligned__ (__alignof__ (pthread_mutex_t)))) mtx_t;
 
 typedef union
 {
   char __size[__SIZEOF_PTHREAD_COND_T];
   __extension__ long long int __align;
-} cnd_t;
+} __attribute__ ((__aligned__ (__alignof__ (pthread_cond_t)))) cnd_t;
 
 /* Threads.  thrd_join, thrd_sleep, cnd_wait and cnd_timedwait are
    cancellation points (POSIX.1-2024).  */
