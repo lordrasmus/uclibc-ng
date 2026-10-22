@@ -370,6 +370,17 @@ extern void __close_nocancel_no_status(int) attribute_hidden;
 libc_hidden_proto(close)
 #endif
 
+#ifdef __USE_XOPEN2K24
+/* Close FD like close, but report an interrupted close, which Linux
+   completes anyway, with EINPROGRESS (POSIX.1-2024).  FLAG must be 0
+   or POSIX_CLOSE_RESTART, which is 0 here: Linux never restarts.
+
+   This function is a cancellation point and therefore not marked with
+   __THROW.  */
+# define POSIX_CLOSE_RESTART	0
+extern int posix_close (int __fd, int __flag);
+#endif
+
 /* Read NBYTES into BUF from FD.  Return the
    number read, -1 for errors or 0 for EOF.
 
@@ -443,7 +454,8 @@ extern ssize_t pwrite64 (int __fd, const void *__buf, size_t __n,
 extern int pipe (int __pipedes[2]) __THROW __wur;
 libc_hidden_proto(pipe)
 
-#if defined __UCLIBC_LINUX_SPECIFIC__ && defined __USE_GNU
+#if defined __UCLIBC_LINUX_SPECIFIC__ \
+    && (defined __USE_GNU || defined __USE_XOPEN2K24)
 /* Same as pipe but apply flags passed in FLAGS to the new file
    descriptors.  */
 extern int pipe2 (int __pipedes[2], int __flags) __THROW __wur;
@@ -569,7 +581,7 @@ extern int dup (int __fd) __THROW __wur;
 extern int dup2 (int __fd, int __fd2) __THROW;
 libc_hidden_proto(dup2)
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 /* Duplicate FD to FD2, closing FD2 and making it open on the same
    file while setting flags according to FLAGS.  */
 extern int dup3 (int __fd, int __fd2, int __flags) __THROW;
@@ -783,7 +795,7 @@ libc_hidden_proto(setregid)
 extern int setegid (__gid_t __gid) __THROW __wur;
 #endif /* Use BSD.  */
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 /* Fetch the real user ID, effective user ID, and saved-set user ID,
    of the calling process.  */
 extern int getresuid (__uid_t *__ruid, __uid_t *__euid, __uid_t *__suid)
@@ -820,6 +832,11 @@ extern __pid_t fork (void) __THROWNL;
 extern __typeof(fork) __libc_fork;
 # endif
 libc_hidden_proto(fork)
+# endif
+# ifdef __USE_XOPEN2K24
+/* Like fork, but without running the pthread_atfork handlers;
+   async-signal-safe.  */
+extern __pid_t _Fork (void) __THROW;
 # endif
 #endif
 
@@ -1252,7 +1269,7 @@ extern char *ctermid (char *__s) __THROW;
 
 /* OpenBSD-compatible access to random bytes.
    May be a cancellation point here, unlike in glibc/musl.  */
-#ifdef _DEFAULT_SOURCE
+#if defined __USE_MISC || defined __USE_XOPEN2K24
 # ifndef __getentropy_defined
 extern int getentropy(void *__buf, size_t __len) __nonnull ((1)) __wur;
 #  define __getentropy_defined
@@ -1263,7 +1280,7 @@ extern int getentropy(void *__buf, size_t __len) __nonnull ((1)) __wur;
 extern __pid_t gettid(void);
 #endif
 
-#ifdef _GNU_SOURCE
+#ifdef __USE_GNU
 ssize_t copy_file_range(int, off_t *, int, off_t *, size_t, unsigned);
 #endif
 
