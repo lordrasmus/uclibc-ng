@@ -44,11 +44,14 @@ enum
   mtx_timed     = 2
 };
 
+#ifndef __once_flag_defined
+# define __once_flag_defined 1
 typedef struct
 {
   int __data;
 } once_flag;
-#define ONCE_FLAG_INIT { 0 }
+# define ONCE_FLAG_INIT { 0 }
+#endif
 
 typedef union
 {
