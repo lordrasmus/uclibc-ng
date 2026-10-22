@@ -13,7 +13,6 @@
 /* Prevent math.h from defining colliding inlines */
 #undef __USE_EXTERN_INLINES
 #include <math.h>
-#include <complex.h>
 
 
 #define WRAPPER1(func) \
@@ -41,7 +40,6 @@ long long func##f (float x) \
 #if 0
 float       asinhf(float);
 float       atanf(float);
-float       cargf(float complex);
 float       cbrtf(float);
 float       ceilf(float);
 float       copysignf(float, float);
@@ -107,13 +105,6 @@ WRAPPER1(asinh)
 
 #ifdef L_atanf
 WRAPPER1(atan)
-#endif
-
-#ifdef L_cargf
-float cargf (float complex x)
-{
-	return (float) carg( (double complex)x );
-}
 #endif
 
 #ifdef L_cbrtf
