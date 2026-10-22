@@ -11,6 +11,8 @@
 
 _Static_assert (sizeof (once_flag) == sizeof (pthread_once_t),
 		"once_flag does not match pthread_once_t");
+_Static_assert (__alignof__ (once_flag) >= 4,
+		"once_flag is a futex word and must be 4-byte aligned");
 
 void call_once(once_flag *flag, void (*func)(void))
 {

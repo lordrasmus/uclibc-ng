@@ -1007,7 +1007,7 @@ extern struct drand48_data __libc_drand48_data attribute_hidden;
 typedef struct
 {
   int __data;
-} once_flag;
+} __attribute__ ((__aligned__ (4))) once_flag;
 #  define ONCE_FLAG_INIT { 0 }
 # endif
 
