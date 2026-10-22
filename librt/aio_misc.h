@@ -41,7 +41,8 @@ static inline int __aio_futex_wait (volatile int *addr, int val,
 }
 
 /* Bumped and woken whenever an operation completes; aio_suspend with
-   more than one request waits on it.  */
-extern volatile int __aio_fut attribute_hidden;
+   more than one request waits on it.  Futex words must be 4-byte
+   aligned, which an int is not on m68k.  */
+extern volatile int __aio_fut __attribute__ ((__aligned__ (4))) attribute_hidden;
 
 #endif

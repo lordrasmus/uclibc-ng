@@ -17,7 +17,8 @@ int aio_suspend(const struct aiocb *const cbs[], int cnt,
 {
 	int i, ret, expect = 0, nzcnt = 0, oldtype;
 	struct timespec at, now, rel;
-	volatile int dummy_fut = 0, *pfut;
+	volatile int dummy_fut __attribute__ ((__aligned__ (4))) = 0;
+	volatile int *pfut;
 	const struct aiocb *cb = 0;
 
 	pthread_testcancel();

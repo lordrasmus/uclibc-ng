@@ -21,8 +21,9 @@ struct aiocb
   struct sigevent aio_sigevent;
   __off64_t aio_offset;
 
-  /* Private.  */
-  volatile int __err;
+  /* Private.  __err is a futex word, which must be 4-byte aligned; on
+     m68k an int alone is only 2-byte aligned.  */
+  volatile int __err __attribute__ ((__aligned__ (4)));
   ssize_t __ret;
 };
 
