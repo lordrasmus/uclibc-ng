@@ -25,7 +25,9 @@
 
 /* Include the needed headers.  */
 #include <math.h>
-#include <complex.h>
+#ifdef __UCLIBC_HAS_COMPLEX_MATH__
+# include <complex.h>
+#endif
 
 
 /* Since `complex' is currently not really implemented in most C compilers
@@ -156,6 +158,15 @@
 				   + (__tgmath_real_type (Val3)) 0))	      \
 		       Fct##f (Val1, Val2, Val3)))
 
+# ifndef __UCLIBC_HAS_COMPLEX_MATH__
+/* Without complex math the macros cover the real types only (C11 7.25).  */
+#  define __TGMATH_UNARY_REAL_IMAG(Val, Fct, Cfct) \
+     __TGMATH_UNARY_REAL_ONLY (Val, Fct)
+#  define __TGMATH_UNARY_REAL_IMAG_RET_REAL(Val, Fct, Cfct) \
+     __TGMATH_UNARY_REAL_ONLY (Val, Fct)
+#  define __TGMATH_BINARY_REAL_IMAG(Val1, Val2, Fct, Cfct) \
+     __TGMATH_BINARY_REAL_ONLY (Val1, Val2, Fct)
+# else
 /* XXX This definition has to be changed as soon as the compiler understands
    the imaginary keyword.  */
 # define __TGMATH_UNARY_REAL_IMAG(Val, Fct, Cfct) \
@@ -240,6 +251,7 @@
 			: (__typeof ((__tgmath_real_type (Val1)) 0	      \
 				   + (__tgmath_real_type (Val2)) 0))	      \
 			  Cfct##f (Val1, Val2))))
+# endif /* __UCLIBC_HAS_COMPLEX_MATH__ */
 #else
 # error "Unsupported compiler; you cannot use <tgmath.h>"
 #endif
@@ -434,6 +446,7 @@
      __TGMATH_TERNARY_REAL_ONLY (Val1, Val2, Val3, fma)
 
 
+#ifdef __UCLIBC_HAS_COMPLEX_MATH__
 /* Absolute value, conjugates, and projection.  */
 
 /* Argument value of Z.  */
@@ -453,5 +466,6 @@
 
 /* Real part of Z.  */
 #define creal(Val) __TGMATH_UNARY_REAL_IMAG_RET_REAL (Val, creal, creal)
+#endif /* __UCLIBC_HAS_COMPLEX_MATH__ */
 
 #endif /* tgmath.h */
