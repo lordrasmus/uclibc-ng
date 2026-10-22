@@ -32,6 +32,8 @@ CFLAGS-libm := -DNOT_IN_libc -DIS_IN_libm $(SSP_ALL_CFLAGS)
 # puts the FPU itself at 53 bits, which is stronger.  check_gcc because gcc
 # learned the option in 4.5 and the avr32 toolchain predates that.
 CFLAGS-y-libm/optimized := $(call check_gcc,-fexcess-precision=standard,)
+# libm/complex is musl's and FreeBSD's code, which both build it that way.
+CFLAGS-y-libm/complex := $(CFLAGS-y-libm/optimized)
 
 libm_DIR:=$(top_srcdir)libm
 libm_OUT:=$(top_builddir)libm
@@ -267,9 +269,17 @@ LD_MOBJ += \
 endif
 
 ifeq ($(UCLIBC_HAS_COMPLEX_MATH),y)
-libm_CSRC += w_cabs.c carg.c cexp.c
-FL_MOBJ += cargf.o
-LD_MOBJ += cargl.o
+# The inverse functions all come from catrig.c and catrigf.c.
+libm_COMPLEX_INV := cacos cacosh casin casinh catan catanh
+libm_COMPLEX := cabs carg ccos ccosh cexp cimag clog clog10 conj cpow cproj \
+	creal csin csinh csqrt ctan ctanh
+libm_CSRC += $(addprefix complex/,__cexp.c __cexpf.c catrig.c catrigf.c \
+	$(addsuffix .c,$(libm_COMPLEX)) $(addsuffix f.c,$(libm_COMPLEX)))
+ifeq ($(UCLIBC_HAS_LONG_DOUBLE_MATH),y)
+libm_CSRC += $(addprefix complex/,\
+	$(addsuffix l.c,$(libm_COMPLEX) $(libm_COMPLEX_INV)))
+endif
+subdirs += libm/complex
 endif
 
 else
