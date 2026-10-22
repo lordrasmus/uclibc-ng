@@ -398,7 +398,11 @@
 /* We do support the IEC 559 math functionality, real and complex.  */
 #ifdef __UCLIBC_HAS_FLOATS__
 #define __STDC_IEC_559__		1
+#endif
+#ifdef __UCLIBC_HAS_COMPLEX_MATH__
 #define __STDC_IEC_559_COMPLEX__	1
+#elif !defined __STDC_NO_COMPLEX__
+#define __STDC_NO_COMPLEX__		1
 #endif
 
 #ifdef __UCLIBC_HAS_WCHAR__
