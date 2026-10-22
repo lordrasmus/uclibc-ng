@@ -15,6 +15,10 @@ _Static_assert (sizeof (mtx_t) == sizeof (pthread_mutex_t),
 		"mtx_t does not match pthread_mutex_t");
 _Static_assert (sizeof (cnd_t) == sizeof (pthread_cond_t),
 		"cnd_t does not match pthread_cond_t");
+_Static_assert (__alignof__ (mtx_t) == __alignof__ (pthread_mutex_t),
+		"mtx_t is not aligned like pthread_mutex_t");
+_Static_assert (__alignof__ (cnd_t) == __alignof__ (pthread_cond_t),
+		"cnd_t is not aligned like pthread_cond_t");
 _Static_assert (sizeof (thrd_t) == sizeof (pthread_t),
 		"thrd_t does not match pthread_t");
 _Static_assert (sizeof (tss_t) == sizeof (pthread_key_t),
