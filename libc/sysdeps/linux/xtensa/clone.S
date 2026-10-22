@@ -36,6 +36,10 @@ ENTRY (__clone)
 	beqz	a2, .Leinval	/* no NULL function pointers */
 	beqz	a3, .Leinval	/* no NULL stack pointers */
 
+	/* The ABI wants the stack 16-byte aligned.  */
+	srli	a3, a3, 4
+	slli	a3, a3, 4
+
 	/* a2 and a3 are candidates for destruction by system-call return
 	   parameters.  We don't need the stack pointer after the system
 	   call.  We trust that the kernel will preserve a6, a7 and a9. */
