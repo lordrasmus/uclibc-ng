@@ -1618,6 +1618,10 @@ calc_eclosure_iter (re_node_set *new_set, re_dfa_t *dfa, int node, int root)
   if (BE (err != REG_NOERROR, 0))
     return err;
 
+  /* Epsilon closures include itself; first, so that the merges below
+     do not add it a second time.  */
+  eclosure.elems[eclosure.nelem++] = node;
+
   /* This indicates that we are calculating this node now.
      We reference this value to avoid infinite loop.  */
   dfa->eclosures[node].nelem = -1;
@@ -1669,8 +1673,6 @@ calc_eclosure_iter (re_node_set *new_set, re_dfa_t *dfa, int node, int root)
 	  }
       }
 
-  /* Epsilon closures include itself.  */
-  re_node_set_insert (&eclosure, node);
   if (incomplete && !root)
     dfa->eclosures[node].nelem = 0;
   else
