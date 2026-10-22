@@ -160,6 +160,18 @@ config DO_XSI_MATH
 	  j0, j1, jn - Bessel functions of the first kind
 	  y0, y1, yn - Bessel functions of the second kind
 
+config UCLIBC_HAS_COMPLEX_MATH
+	bool "Enable complex math (<complex.h>)"
+	depends on DO_C99_MATH
+	default y
+	help
+	  Install <complex.h> and build the complex functions of libm.
+	  ISO C11 makes complex arithmetic optional; without it
+	  __STDC_NO_COMPLEX__ is defined and <tgmath.h> covers only
+	  the real functions.
+
+	  Most people will answer Y.
+
 config UCLIBC_HAS_FENV
 	bool "Enable C99 Floating-point environment"
 	depends on UCLIBC_HAS_FLOATS
