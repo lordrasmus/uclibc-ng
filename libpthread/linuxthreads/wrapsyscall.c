@@ -39,29 +39,11 @@ const char __pthread_provide_wrappers = 0;
 #endif
 
 /* Using private interface to libc (__libc_foo) to implement
- * cancellable versions of some libc functions */
+ * cancellable versions of some libc functions.  The wrappers must be
+ * strong: this file is linked into libc, where the plain versions are
+ * weak aliases (CANCELLABLE_SYSCALL in cancel.h), and of two weak
+ * definitions in one link the plain one would win.  */
 #define CANCELABLE_SYSCALL(res_type, name, param_list, params)			\
-res_type __libc_##name param_list;						\
-res_type									\
-__attribute__ ((weak))								\
-name param_list									\
-{										\
-  res_type result;								\
-  int oldtype;									\
-  pthread_setcanceltype (PTHREAD_CANCEL_ASYNCHRONOUS, &oldtype);		\
-  result = __libc_##name params;						\
-  pthread_setcanceltype (oldtype, NULL);					\
-  return result;								\
-}
-
-/* Like CANCELABLE_SYSCALL but the wrapper is a strong definition.  Used for
- * the functions that also export a __GI_ alias (libpthread_hidden_def): a weak
- * wrapper makes that __GI_ symbol weak too, and on MIPS a function derives its
- * PIC gp via %gp_rel(__GI_name) -- with two weak __GI_name (this wrapper and
- * the libc fallback) the linker may pick the fallback, at a different address,
- * so the wrapper computes a wrong gp and SIGSEGVs in its prologue.  A strong
- * wrapper makes its __GI_ win the link, co-located with the code. */
-#define CANCELABLE_SYSCALL_STRONG(res_type, name, param_list, params)		\
 res_type __libc_##name param_list;						\
 res_type									\
 name param_list									\
@@ -77,7 +59,6 @@ name param_list									\
 #define CANCELABLE_SYSCALL_VA(res_type, name, param_list, params, last_arg)	\
 res_type __libc_##name param_list;						\
 res_type									\
-__attribute__ ((weak))								\
 name param_list									\
 {										\
   res_type result;								\
@@ -128,7 +109,7 @@ CANCELABLE_SYSCALL (int, msync, (void *addr, size_t length, int flags),
 
 /* nanosleep(2).  */
 libpthread_hidden_proto(nanosleep)
-CANCELABLE_SYSCALL_STRONG (int, nanosleep, (const struct timespec *requested_time,
+CANCELABLE_SYSCALL (int, nanosleep, (const struct timespec *requested_time,
 				     struct timespec *remaining),
 		    (requested_time, remaining))
 libpthread_hidden_def(nanosleep)
@@ -193,7 +174,7 @@ CANCELABLE_SYSCALL (__pid_t, wait, (__WAIT_STATUS_DEFN stat_loc), (stat_loc))
 
 /* waitpid(2).  */
 libpthread_hidden_proto(waitpid)
-CANCELABLE_SYSCALL_STRONG (__pid_t, waitpid, (__pid_t pid, int *stat_loc,
+CANCELABLE_SYSCALL (__pid_t, waitpid, (__pid_t pid, int *stat_loc,
 				       int options),
 		    (pid, stat_loc, options))
 libpthread_hidden_def(waitpid)
