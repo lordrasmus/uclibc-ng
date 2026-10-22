@@ -270,12 +270,18 @@ __libc_setup_tls (size_t tcbsize, size_t tcbalign)
   memsz = roundup (memsz, align ?: 1);
 
 # if defined(TLS_TCB_AT_TP)
-  memsz += tcbsize;
+  /* Count it as _dl_determine_tlsoffset does: _dl_tls_static_used is
+     what lies below the thread pointer, and the TCB above it only adds
+     to the size.  The size is the main thread's block, so that
+     _dl_try_allocate_static_tls hands out exactly its surplus.  */
+  GL(dl_tls_static_size) = tcb_offset + TLS_TCB_SIZE;
+  GL(dl_tls_static_used) = memsz;
+  GL(dl_tls_static_align) = MAX (TLS_TCB_ALIGN, max_align);
+  GL(dl_tls_static_nelem) = GL(dl_tls_max_dtv_idx);
 # elif defined(TLS_DTV_AT_TP)
   memsz += tcb_offset;
-# endif
-
   init_static_tls (memsz, MAX (TLS_TCB_ALIGN, max_align));
+# endif
 }
 
 /* This is called only when the data structure setup was skipped at startup,
