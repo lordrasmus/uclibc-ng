@@ -26,6 +26,10 @@
 
 #include <features.h>
 
+#ifdef __USE_ISOC23
+# define __STDC_VERSION_MATH_H__	202311L
+#endif
+
 __BEGIN_DECLS
 
 /* Get machine-dependent HUGE_VAL value (returned on overflow).
@@ -337,6 +341,18 @@ enum
 /* Bitmasks for the math_errhandling macro.  */
 # define MATH_ERRNO	1	/* errno set by math functions.  */
 # define MATH_ERREXCEPT	2	/* Exceptions raised by math functions.  */
+
+/* How the math functions report errors.  libm leaves errno alone, so
+   the one way is the exception flags, and only where the target's fenv
+   has invalid, divide-by-zero and overflow; libm settles that when it
+   is built, math.h cannot see FE_*.  Without fenv there is no way, and
+   0 says so.  */
+# ifdef __UCLIBC_HAS_FENV__
+extern const int __math_errhandling;
+#  define math_errhandling	(__math_errhandling)
+# else
+#  define math_errhandling	0
+# endif
 
 #endif /* Use ISO C99.  */
 

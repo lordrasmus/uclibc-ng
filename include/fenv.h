@@ -22,6 +22,10 @@
 #define _FENV_H	1
 
 #include <features.h>
+
+#ifdef __USE_ISOC23
+# define __STDC_VERSION_FENV_H__	202311L
+#endif
 #include <stdbool.h>
 
 /* Get the architecture dependend definitions.  The following definitions
@@ -115,8 +119,7 @@ extern int fesetenv (const fenv_t *__envp) __THROW;
    according to saved exceptions.  */
 extern int feupdateenv (const fenv_t *__envp) __THROW;
 
-#if defined __USE_GNU \
-    || (defined __STDC_VERSION__ && __STDC_VERSION__ > 201710L)
+#if defined __USE_GNU || defined __USE_ISOC23
 
 /* Set the exceptions represented by EXCEPTS, without raising them.  */
 extern int fesetexcept (int __excepts) __THROW;
