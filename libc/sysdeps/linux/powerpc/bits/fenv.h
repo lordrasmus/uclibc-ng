@@ -20,6 +20,13 @@
 
 #include <features.h>
 
+#if defined _SOFT_FLOAT && !defined __CONFIG_E500__
+
+/* Classic PowerPC built for soft-float.  */
+#include <bits/fenv-sw.h>
+
+#else
+
 #ifdef __CONFIG_E500__
 
 /* Define bits representing the exception.  We use the bit positions of
@@ -198,3 +205,5 @@ typedef double femode_t;
 /* Default floating-point control modes.  */
 extern const femode_t __fe_dfl_mode;
 # define FE_DFL_MODE	(&__fe_dfl_mode)
+
+#endif /* _SOFT_FLOAT && !__CONFIG_E500__ */
