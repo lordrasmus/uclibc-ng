@@ -29,8 +29,8 @@
 typedef unsigned int fpu_control_t;
 
 /* Macros for accessing the hardware control word.  */
-#define _FPU_GETCW(cw) 0
-#define _FPU_SETCW(cw) do { } while (0)
+#define _FPU_GETCW(cw) (cw) = 0
+#define _FPU_SETCW(cw) (void) (cw)
 
 #if 0
 /* Default control word set at startup.  */
