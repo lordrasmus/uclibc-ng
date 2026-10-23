@@ -108,6 +108,22 @@ extern int fesetenv (const fenv_t *__envp) __THROW;
    according to saved exceptions.  */
 extern int feupdateenv (const fenv_t *__envp) __THROW;
 
+#if defined __USE_GNU \
+    || (defined __STDC_VERSION__ && __STDC_VERSION__ > 201710L)
+
+/* Set the exceptions represented by EXCEPTS, without raising them.  */
+extern int fesetexcept (int __excepts) __THROW;
+
+/* Store the current floating-point control modes in the object pointed
+   to by MODEP.  */
+extern int fegetmode (femode_t *__modep) __THROW;
+
+/* Establish the floating-point control modes represented by the object
+   pointed to by MODEP.  */
+extern int fesetmode (const femode_t *__modep) __THROW;
+
+#endif
+
 #ifdef __USE_GNU
 
 /* Enable individual exceptions.  Will not enable more exceptions than
