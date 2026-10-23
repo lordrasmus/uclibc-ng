@@ -3,6 +3,11 @@
 
 ifeq ($(UCLIBC_HAS_FENV),y)
 libm_ARCH_SRC:=$(wildcard $(libm_ARCH_DIR)/*.c)
+# The fenv files need the FPU of ABI 2FP+; soft-float takes the fenv of
+# libm/Makefile.in.  e_sqrt.c checks for the FPU itself.
+ifeq ($(call libm_cc_defines,__NDS32_ABI_2FP_PLUS__),0)
+libm_ARCH_SRC:=$(filter %/e_sqrt.c,$(libm_ARCH_SRC))
+endif
 libm_ARCH_OBJ:=$(patsubst $(libm_ARCH_DIR)/%.c,$(libm_ARCH_OUT)/%.o,$(libm_ARCH_SRC))
 endif
 

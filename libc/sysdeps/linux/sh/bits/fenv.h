@@ -18,6 +18,12 @@
 # error "Never use <bits/fenv.h> directly; include <fenv.h> instead."
 #endif
 
+#ifndef __SH_FPU_ANY__
+
+/* No FPU (sh2, sh3).  */
+#include <bits/fenv-sw.h>
+
+#else /* __SH_FPU_ANY__ */
 
 /* Define bits representing the exception.  We use the bit positions
    of the appropriate bits in the FPU control word.  */
@@ -79,3 +85,5 @@ typedef unsigned int femode_t;
 
 /* Default floating-point control modes.  */
 # define FE_DFL_MODE	((const femode_t *) -1L)
+
+#endif /* __SH_FPU_ANY__ */
