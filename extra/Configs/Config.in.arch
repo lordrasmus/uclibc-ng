@@ -163,29 +163,16 @@ config DO_XSI_MATH
 config UCLIBC_HAS_FENV
 	bool "Enable C99 Floating-point environment"
 	depends on UCLIBC_HAS_FLOATS
-	depends on TARGET_i386 || \
-		   TARGET_aarch64 || \
-		   TARGET_arc || \
-		   TARGET_arm || \
-		   TARGET_csky || \
-		   TARGET_loongarch64 || \
-		   TARGET_kvx || \
-		   TARGET_m68k || \
-		   TARGET_metag || \
-		   TARGET_mips || \
-		   TARGET_nds32 || \
-		   TARGET_or1k || \
-		   TARGET_powerpc || \
-		   TARGET_riscv32 || \
-		   TARGET_riscv64 || \
-		   (TARGET_sh && (CONFIG_SH4 || CONFIG_SH4A)) || \
-		   TARGET_sparc || \
-		   TARGET_x86_64 || \
-		   TARGET_xtensa
+	# ia64's bits/fenv.h has exception flags, but there is no port.
+	depends on !TARGET_ia64
 	help
 	  If you want the uClibc math library to contain the C99 floating
 	  point environment, rounding and exception handling functions then
 	  say Y here.
+
+	  Targets without a floating-point unit, or without a port of their
+	  own, get a minimal one, as in glibc: rounding is to nearest only,
+	  and no exception flags are kept.
 
 config UCLIBC_HAS_LONG_DOUBLE_MATH
 	bool "Enable long double support"

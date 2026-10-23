@@ -19,6 +19,13 @@
 # error "Never use <bits/fenv.h> directly; include <fenv.h> instead."
 #endif
 
+#ifndef __riscv_flen
+
+/* No F extension: soft-float.  */
+#include <bits/fenv-sw.h>
+
+#else
+
 enum
   {
     FE_INEXACT   =
@@ -69,3 +76,5 @@ typedef unsigned int femode_t;
 
 /* Default floating-point control modes.  */
 # define FE_DFL_MODE	((const femode_t *) -1L)
+
+#endif /* __riscv_flen */

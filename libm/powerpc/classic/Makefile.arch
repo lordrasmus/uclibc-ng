@@ -5,8 +5,13 @@
 # Licensed under the LGPL v2.1, see the file COPYING.LIB in this tarball.
 #
 
+# Soft-float takes the fenv of libm/Makefile.in; bits/fenv.h matches.
+ifeq ($(UCLIBC_HAS_FENV),y)
+ifeq ($(call libm_cc_defines,_SOFT_FLOAT),0)
 libm_ARCH_SRC:=$(wildcard $(libm_SUBARCH_DIR)/*.c)
 libm_ARCH_OBJ:=$(patsubst $(libm_SUBARCH_DIR)/%.c,$(libm_SUBARCH_OUT)/%.o,$(libm_ARCH_SRC))
+endif
+endif
 
 libm_ARCH_OBJS:=$(libm_ARCH_OBJ)
 
