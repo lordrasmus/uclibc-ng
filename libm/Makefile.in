@@ -34,6 +34,11 @@ CFLAGS-libm := -DNOT_IN_libc -DIS_IN_libm $(SSP_ALL_CFLAGS)
 CFLAGS-y-libm/optimized := $(call check_gcc,-fexcess-precision=standard,)
 # libm/complex is musl's and FreeBSD's code, which both build it that way.
 CFLAGS-y-libm/complex := $(CFLAGS-y-libm/optimized)
+# sqrt and fma have to round in the current mode; without this gcc
+# folds the expressions that find it out as if it were to nearest (musl
+# and glibc build all of libm so).
+CFLAGS-e_sqrt.c := -frounding-math
+CFLAGS-s_fma.c := -frounding-math
 
 libm_DIR:=$(top_srcdir)libm
 libm_OUT:=$(top_builddir)libm
