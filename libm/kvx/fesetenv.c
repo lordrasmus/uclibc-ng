@@ -8,7 +8,7 @@
 int fesetenv(const fenv_t *envp)
 {
   /* Mask *envp to be sure only valid bits are set */
-  fenv_t fe = *envp;
+  fenv_t fe = envp == FE_DFL_ENV ? FE_TONEAREST : *envp;
   fe &= (FE_ALL_EXCEPT|FE_RND_MASK);
 
   /* Set exception flags and rounding mode bit-fields of $cs, with

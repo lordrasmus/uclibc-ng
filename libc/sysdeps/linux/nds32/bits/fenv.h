@@ -77,3 +77,9 @@ fenv_t;
 /* Floating-point environment where none of the exceptions are masked.  */
 # define FE_NOMASK_ENV  ((const fenv_t *) -2)
 #endif
+
+/* Type representing floating-point control modes: the rounding mode.  */
+typedef unsigned int femode_t;
+
+/* Default floating-point control modes.  */
+#define FE_DFL_MODE	((const femode_t *) -1L)
