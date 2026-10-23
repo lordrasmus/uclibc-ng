@@ -1,9 +1,12 @@
 # Makefile for uClibc-ng
 # Licensed under the LGPL v2.1 or later, see the file COPYING.LIB in this tarball.
 
+# Without the F extension libm/Makefile.in takes the generic fenv.
 ifeq ($(UCLIBC_HAS_FENV),y)
+ifneq ($(call libm_cc_defines,__riscv_flen),0)
 libm_ARCH_SRC:=$(wildcard $(libm_ARCH_DIR)/*.c)
 libm_ARCH_OBJ:=$(patsubst $(libm_ARCH_DIR)/%.c,$(libm_ARCH_OUT)/%.o,$(libm_ARCH_SRC))
+endif
 endif
 
 libm_ARCH_OBJS:=$(libm_ARCH_OBJ)
