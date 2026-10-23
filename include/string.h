@@ -24,6 +24,10 @@
 
 #include <features.h>
 
+#ifdef __USE_ISOC23
+# define __STDC_VERSION_STRING_H__	202311L
+#endif
+
 __BEGIN_DECLS
 
 /* Get size_t and NULL from <stddef.h>.  */
