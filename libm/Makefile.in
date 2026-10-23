@@ -49,6 +49,10 @@ libm_SUBARCH_DIR:=$(libm_DIR)/$(TARGET_ARCH)/$(TARGET_SUBARCH)
 libm_SUBARCH_OUT:=$(libm_OUT)/$(TARGET_ARCH)/$(TARGET_SUBARCH)
 endif
 
+# 1 if the compiler predefines the macro $(1), else 0.  An fenv that reads FPU
+# registers asks for its FPU this way: UCLIBC_HAS_FPU may be set while the
+# compiler builds for soft-float, and then the generic fenv has to be used.
+libm_cc_defines = $(shell echo | $(CC) $(CPU_CFLAGS) -dM -E - | grep -c '^\#define $(1) ')
 
 ifeq ($(UCLIBC_HAS_FPU),y)
 ifeq ($(DO_C99_MATH),y)
@@ -340,6 +344,15 @@ ifeq ($(strip $(filter-out %_data.c,$(libm_OPT_SRC))),)
 libm_OPT_SRC :=
 endif
 libm_VARIANT_SRC := $(libm_ACC_SRC) $(libm_OPT_SRC)
+
+# A target without an fenv of its own (no FPU, or not ported) gets the
+# generic one, as in glibc's math/: round to nearest, no exception flags.
+ifeq ($(UCLIBC_HAS_FENV),y)
+ifeq ($(filter %/fegetround.o %/fegetround.os,$(libm-a-y)),)
+libm_VARIANT_SRC += $(wildcard $(libm_DIR)/generic-fenv/*.c)
+endif
+endif
+
 ifneq ($(strip $(libm_VARIANT_SRC)),)
 libm_CSRC := $(filter-out $(notdir $(libm_VARIANT_SRC)),$(libm_CSRC))
 subdirs += $(patsubst $(libm_DIR)/%,libm/%,$(sort $(dir $(libm_VARIANT_SRC))))

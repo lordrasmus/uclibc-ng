@@ -18,6 +18,13 @@
 # error "Never use <bits/fenv.h> directly; include <fenv.h> instead."
 #endif
 
+#ifndef __NDS32_ABI_2FP_PLUS__
+
+/* No FPU: soft-float.  */
+#include <bits/fenv-sw.h>
+
+#else
+
 /* Define bits representing exceptions in the FPCSR status word.  */
 enum
   {
@@ -83,3 +90,5 @@ typedef unsigned int femode_t;
 
 /* Default floating-point control modes.  */
 #define FE_DFL_MODE	((const femode_t *) -1L)
+
+#endif /* __NDS32_ABI_2FP_PLUS__ */

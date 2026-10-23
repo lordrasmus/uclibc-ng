@@ -19,37 +19,4 @@
 # error "Never use <bits/fenv.h> directly; include <fenv.h> instead."
 #endif
 
-
-/* Here should be the exception be defined:
-    FE_INVALID
-    FE_DIVBYZERO
-    FE_OVERFLOW
-    FE_UNDERFLOW
-    FE_INEXACT
-   We define no macro which signals no exception is supported.  */
-
-#define FE_ALL_EXCEPT 0
-
-
-/* Here should the rounding modes be defined:
-    FE_TONEAREST
-    FE_DOWNWARD
-    FE_UPWARD
-    FE_TOWARDZERO
-   We define no macro which signals no rounding mode is selectable.  */
-
-
-/* Type representing exception flags.  */
-typedef unsigned int fexcept_t;
-
-
-/* Type representing floating-point environment.  */
-typedef struct
-  {
-    fexcept_t __excepts;
-    /* XXX I don't know what else we should save.  */
-  }
-fenv_t;
-
-/* If the default argument is used we use this value.  */
-#define FE_DFL_ENV	((const fenv_t *) -1l)
+#include <bits/fenv-sw.h>
