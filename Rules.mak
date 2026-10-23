@@ -384,6 +384,9 @@ ifeq ($(TARGET_ARCH),alpha)
 	# Without -mieee the hardware traps on NaN, infinity and denormals, so
 	# printing them takes a SIGFPE instead of a string.
 	CPU_CFLAGS-y+=-mieee
+	# The rounding mode is encoded in each instruction; only dynamic
+	# rounding follows fesetround, which rint and friends rely on.
+	CPU_CFLAGS-$(UCLIBC_HAS_FENV)+=-mfp-rounding-mode=d
 endif
 
 ifeq ($(TARGET_ARCH),sparc)
