@@ -26,6 +26,10 @@
 # define _TIME_H	1
 # include <features.h>
 
+#ifdef __USE_ISOC23
+# define __STDC_VERSION_TIME_H__	202311L
+#endif
+
 __BEGIN_DECLS
 
 #endif
