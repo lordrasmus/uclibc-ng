@@ -50,4 +50,6 @@ fork:
 #ifdef __UCLIBC_HAS_THREADS__
 strong_alias(fork,__libc_fork)
 #endif
+/* Without NPTL this fork runs no atfork handlers.  */
+strong_alias(fork,_Fork)
 libc_hidden_def(fork)
