@@ -25,6 +25,10 @@
 
 /* Include the needed headers.  */
 #include <math.h>
+
+#ifdef __USE_ISOC23
+# define __STDC_VERSION_TGMATH_H__	202311L
+#endif
 #ifdef __UCLIBC_HAS_COMPLEX_MATH__
 # include <complex.h>
 #endif
