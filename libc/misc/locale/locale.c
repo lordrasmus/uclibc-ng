@@ -128,6 +128,14 @@ char *setlocale(int category, register const char *locale)
 		: NULL;
 }
 
+#ifdef __UCLIBC_HAS_XLOCALE__
+const char *getlocalename_l(int category, __locale_t locobj)
+{
+	(void) locobj;
+	return ((unsigned int)(category)) <= LC_ALL ? C_string : NULL;
+}
+#endif
+
 #else /* ---------------------------------------------- __LOCALE_C_ONLY */
 
 #if !defined(__LOCALE_DATA_NUM_LOCALES) || (__LOCALE_DATA_NUM_LOCALES <= 1)
@@ -141,9 +149,14 @@ static const char utf8[] = "UTF-8";
  * This holds for LC_ALL as well.
  */
 static char hr_locale[(MAX_LOCALE_CATEGORY_STR * LC_ALL) + MAX_LOCALE_STR];
+#ifdef __UCLIBC_HAS_XLOCALE__
+/* Each locale object holds the same layout for getlocalename_l.  */
+typedef char __names_fit[sizeof(((__locale_t) 0)->__names)
+			 == sizeof(hr_locale) ? 1 : -1];
+#endif
 
 
-static void update_hr_locale(const unsigned char *spec)
+static void update_hr_locale(char *names, const unsigned char *spec)
 {
 	const unsigned char *loc;
 	const unsigned char *s;
@@ -153,7 +166,7 @@ static void update_hr_locale(const unsigned char *spec)
 	done = category = 0;
 	do {
 		s = spec + 1;
-		n = hr_locale + category * MAX_LOCALE_CATEGORY_STR;
+		n = names + category * MAX_LOCALE_CATEGORY_STR;
 
 		if (category == LC_ALL) {
 			done = 1;
@@ -234,15 +247,31 @@ char *setlocale(int category, const char *locale)
 		if (!newlocale((1 << category), locale, __global_locale)) {
 			return NULL;		/* Failed! */
 		}
-		update_hr_locale(__global_locale->cur_locale);
+		update_hr_locale(hr_locale, __global_locale->cur_locale);
 	} else if (!*hr_locale) {
 		/* A query before any setlocale: the program starts in "C".  */
-		update_hr_locale(__global_locale->cur_locale);
+		update_hr_locale(hr_locale, __global_locale->cur_locale);
 	}
 
 	/* Either a query or a successful set, so return current locale string. */
 	return hr_locale + (category * MAX_LOCALE_CATEGORY_STR);
 }
+
+#ifdef __UCLIBC_HAS_XLOCALE__
+const char *getlocalename_l(int category, __locale_t locobj)
+{
+	char *names = hr_locale;
+
+	if (((unsigned int)(category)) > LC_ALL)
+		return NULL;
+	if (locobj == LC_GLOBAL_LOCALE)
+		locobj = __global_locale;
+	else
+		names = locobj->__names;
+	update_hr_locale(names, locobj->cur_locale);
+	return names + (category * MAX_LOCALE_CATEGORY_STR);
+}
+#endif
 
 #endif /* __LOCALE_C_ONLY */
 
