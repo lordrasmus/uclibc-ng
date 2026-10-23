@@ -29,4 +29,6 @@ fork:
 
 .size fork, . - fork
 
+/* Without NPTL this fork runs no atfork handlers.  */
+strong_alias(fork,_Fork)
 libc_hidden_def(fork)
