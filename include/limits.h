@@ -25,6 +25,10 @@
 
 #include <features.h>
 
+#ifdef __USE_ISOC23
+# define __STDC_VERSION_LIMITS_H__	202311L
+#endif
+
 
 /* Maximum length of any multibyte character in any locale.
    We define this value here since the gcc header does not define
