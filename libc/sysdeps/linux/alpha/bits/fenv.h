@@ -1,4 +1,4 @@
-/* Copyright (C) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2026 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -12,8 +12,8 @@
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
+   License along with the GNU C Library.  If not, see
+   <https://www.gnu.org/licenses/>.  */
 
 #ifndef _FENV_H
 # error "Never use <bits/fenv.h> directly; include <fenv.h> instead."
@@ -36,30 +36,37 @@
 enum
   {
 #ifdef __USE_GNU
-    FE_DENORMAL =	1UL << 22,
-#define FE_DENORMAL	FE_DENORMAL
+    FE_DENORMAL =
+#define FE_DENORMAL	(1 << 22)
+      FE_DENORMAL,
 #endif
 
-    FE_INEXACT =	1UL << 21,
-#define FE_INEXACT	FE_INEXACT
+    FE_INEXACT =
+#define FE_INEXACT	(1 << 21)
+      FE_INEXACT,
 
-    FE_UNDERFLOW =	1UL << 20,
-#define FE_UNDERFLOW	FE_UNDERFLOW
+    FE_UNDERFLOW =
+#define FE_UNDERFLOW	(1 << 20)
+      FE_UNDERFLOW,
 
-    FE_OVERFLOW =	1UL << 19,
-#define FE_OVERFLOW	FE_OVERFLOW
+    FE_OVERFLOW =
+#define FE_OVERFLOW	(1 << 19)
+      FE_OVERFLOW,
 
-    FE_DIVBYZERO =	1UL << 18,
-#define FE_DIVBYZERO	FE_DIVBYZERO
+    FE_DIVBYZERO =
+#define FE_DIVBYZERO	(1 << 18)
+      FE_DIVBYZERO,
 
-    FE_INVALID =	1UL << 17,
-#define FE_INVALID	FE_INVALID
+    FE_INVALID =
+#define FE_INVALID	(1 << 17)
+      FE_INVALID,
 
-    FE_ALL_EXCEPT =	0x3f << 17
-#define FE_ALL_EXCEPT	FE_ALL_EXCEPT
+    FE_ALL_EXCEPT =
+#define FE_ALL_EXCEPT	(0x3f << 17)
+      FE_ALL_EXCEPT
   };
 
-/* Alpha chips support all four defined rouding modes.
+/* Alpha chips support all four defined rounding modes.
 
    Note that code must be compiled to use dynamic rounding (/d) instructions
    to see these changes.  For gcc this is -mfp-rounding-mode=d; for DEC cc
@@ -70,17 +77,21 @@ enum
 
 enum
   {
-    FE_TOWARDZERO =	0,
-#define FE_TOWARDZERO	FE_TOWARDZERO
+    FE_TOWARDZERO =
+#define FE_TOWARDZERO	0
+      FE_TOWARDZERO,
 
-    FE_DOWNWARD = 	1,
-#define FE_DOWNWARD	FE_DOWNWARD
+    FE_DOWNWARD =
+#define FE_DOWNWARD	1
+      FE_DOWNWARD,
 
-    FE_TONEAREST =	2,
-#define FE_TONEAREST	FE_TONEAREST
+    FE_TONEAREST =
+#define FE_TONEAREST	2
+      FE_TONEAREST,
 
-    FE_UPWARD =		3,
-#define FE_UPWARD	FE_UPWARD
+    FE_UPWARD =
+#define FE_UPWARD	3
+      FE_UPWARD,
   };
 
 #ifdef __USE_GNU
@@ -120,3 +131,9 @@ typedef unsigned long int fenv_t;
 /* The system calls to talk to the kernel's FP code.  */
 extern unsigned long int __ieee_get_fp_control (void) __THROW;
 extern void __ieee_set_fp_control (unsigned long int __value) __THROW;
+
+/* Type representing floating-point control modes.  */
+typedef unsigned long int femode_t;
+
+/* Default floating-point control modes.  */
+# define FE_DFL_MODE	((const femode_t *) 0x8800000000000000UL)
