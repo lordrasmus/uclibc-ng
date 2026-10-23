@@ -345,11 +345,17 @@ libm_OPT_SRC :=
 endif
 libm_VARIANT_SRC := $(libm_ACC_SRC) $(libm_OPT_SRC)
 
-# A target without an fenv of its own (no FPU, or not ported) gets the
-# generic one, as in glibc's math/: round to nearest, no exception flags.
+# A target without an fenv of its own (no FPU, or not ported) keeps it in
+# software when libgcc's soft-fp reports to the C library (Rules.mak), and
+# otherwise gets the generic one, as in glibc's math/: round to nearest, no
+# exception flags.
 ifeq ($(UCLIBC_HAS_FENV),y)
 ifeq ($(filter %/fegetround.o %/fegetround.os,$(libm-a-y)),)
+ifeq ($(LIBGCC_SFP_FENV),y)
+libm_VARIANT_SRC += $(wildcard $(libm_DIR)/softfp-fenv/*.c)
+else
 libm_VARIANT_SRC += $(wildcard $(libm_DIR)/generic-fenv/*.c)
+endif
 endif
 endif
 

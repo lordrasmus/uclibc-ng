@@ -18,6 +18,10 @@
 # error "Never use <bits/fenv.h> directly; include <fenv.h> instead."
 #endif
 
+#if defined __XTENSA_SOFT_FLOAT__ && defined __UCLIBC_LIBGCC_SFP_FENV__
+/* Soft-float, with the environment kept by libgcc and libm.  */
+# include <bits/fenv-softfp.h>
+#else
 
 #if __XCHAL_HAVE_FP && __XCHAL_HAVE_DFP
 
@@ -113,3 +117,5 @@ typedef unsigned int femode_t;
 
 /* Default floating-point control modes.  */
 #define FE_DFL_MODE	((const femode_t *) -1L)
+
+#endif /* __XTENSA_SOFT_FLOAT__ && __UCLIBC_LIBGCC_SFP_FENV__ */

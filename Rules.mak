@@ -795,6 +795,16 @@ LIBGCC_EH_FILE := $(shell if [ -f $(LIBGCC_EH) ]; then echo $(LIBGCC_EH); fi)
 LIBGCC_DIR := $(dir $(LIBGCC_A))
 LIBGCC := $(LIBGCC_A) $(if $(DODEBUG),$(LIBGCC_EH_FILE))
 
+# y when libgcc's soft-fp asks the C library for the rounding mode and hands
+# it the exception flags (__sfp_rounding_mode, __sfp_raise_exceptions); fenv
+# can then be kept in software.  m68k's lb1sf68.S has kept an environment of
+# its own, _fpCCR, all along.  Recorded in uClibc_config.h for the headers.
+ifeq ($(TARGET_ARCH),m68k)
+export LIBGCC_SFP_FENV := $(shell $(NM) $(LIBGCC_A) 2>/dev/null | grep -q ' D _fpCCR$$' && echo y)
+else
+export LIBGCC_SFP_FENV := $(shell $(NM) $(LIBGCC_A) 2>/dev/null | grep -q ' [Uw] _*__sfp_raise_exceptions$$' && echo y)
+endif
+
 # moved from libpthread/linuxthreads
 ifeq ($(UCLIBC_CTOR_DTOR),y)
 SHARED_START_FILES:=$(top_builddir)lib/crti.o $(LIBGCC_DIR)crtbeginS.o
