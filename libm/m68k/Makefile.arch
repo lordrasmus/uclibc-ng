@@ -1,9 +1,12 @@
 # Makefile for uClibc-ng
 # Licensed under the LGPL v2.1 or later, see the file COPYING.LIB in this tarball.
 
+# Without an FPU libm/Makefile.in takes the fenv kept in libgcc's _fpCCR.
 ifeq ($(UCLIBC_HAS_FENV),y)
+ifneq ($(call libm_cc_defines,__HAVE_68881__)$(call libm_cc_defines,__mcffpu__),00)
 libm_ARCH_SRC:=$(wildcard $(libm_ARCH_DIR)/*.c)
 libm_ARCH_OBJ:=$(patsubst $(libm_ARCH_DIR)/%.c,$(libm_ARCH_OUT)/%.o,$(libm_ARCH_SRC))
+endif
 endif
 
 libm_ARCH_OBJS:=$(libm_ARCH_OBJ)

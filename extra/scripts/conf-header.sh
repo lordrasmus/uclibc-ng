@@ -17,6 +17,11 @@ cat <<EOF
 #define __UCLIBC_SUBLEVEL__ ${SUBLEVEL}
 EOF
 
+# Probed from the toolchain by Rules.mak, not configured.
+if [ "$LIBGCC_SFP_FENV" = y ] ; then
+	echo "#define __UCLIBC_LIBGCC_SFP_FENV__ 1"
+fi
+
 exec \
 sed \
 	-e '/^#$/d' \
