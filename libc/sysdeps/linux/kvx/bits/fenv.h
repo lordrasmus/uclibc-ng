@@ -102,5 +102,11 @@ typedef unsigned int fexcept_t;
    register. */
 typedef unsigned int fenv_t;
 
-extern const fenv_t __fe_dfl_env;
-#define FE_DFL_ENV  __fe_dfl_env
+/* If the default argument is used we use this value: nearest, no flags.  */
+#define FE_DFL_ENV	((const fenv_t *) -1)
+
+/* Type representing floating-point control modes: the rounding mode.  */
+typedef unsigned int femode_t;
+
+/* Default floating-point control modes.  */
+#define FE_DFL_MODE	((const femode_t *) -1L)
