@@ -38,6 +38,11 @@ libm_OUT:=$(top_builddir)libm
 
 libm_ARCH_DIR:=$(libm_DIR)/$(TARGET_ARCH)
 libm_ARCH_OUT:=$(libm_OUT)/$(TARGET_ARCH)
+# sparc's fenv serves both word sizes, as glibc's sysdeps/sparc/fpu does.
+ifeq ($(TARGET_ARCH),sparc64)
+libm_ARCH_DIR:=$(libm_DIR)/sparc
+libm_ARCH_OUT:=$(libm_OUT)/sparc
+endif
 
 ifneq ($(TARGET_SUBARCH),)
 libm_SUBARCH_DIR:=$(libm_DIR)/$(TARGET_ARCH)/$(TARGET_SUBARCH)
