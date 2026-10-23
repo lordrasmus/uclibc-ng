@@ -833,6 +833,11 @@ extern __typeof(fork) __libc_fork;
 # endif
 libc_hidden_proto(fork)
 # endif
+# ifdef __USE_XOPEN2K24
+/* Like fork, but without running the pthread_atfork handlers;
+   async-signal-safe.  */
+extern __pid_t _Fork (void) __THROW;
+# endif
 #endif
 
 #if defined __USE_BSD || defined __USE_XOPEN_EXTENDED
