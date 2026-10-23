@@ -253,11 +253,6 @@ FCT (const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 
 		    for (;;)
 		      {
-			if (c1 == CHAR_CLASS_MAX_LENGTH)
-			  /* The name is too long and therefore the pattern
-			     is ill-formed.  */
-			  return FNM_NOMATCH;
-
 			c = *++p;
 			if (c == L(':') && p[1] == L(']'))
 			  {
@@ -272,6 +267,10 @@ FCT (const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 			    c = L('[');
 			    goto normal_bracket;
 			  }
+			if (c1 == CHAR_CLASS_MAX_LENGTH)
+			  /* The name is too long and therefore the pattern
+			     is ill-formed.  */
+			  return FNM_NOMATCH;
 			str[c1++] = c;
 		      }
 		    str[c1] = L('\0');
@@ -889,11 +888,11 @@ FCT (const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 		    while (1)
 		      {
 			c = *++p;
-			if (++c1 == CHAR_CLASS_MAX_LENGTH)
-			  return FNM_NOMATCH;
-
 			if (*p == L(':') && p[1] == L(']'))
 			  break;
+
+			if (++c1 > CHAR_CLASS_MAX_LENGTH)
+			  return FNM_NOMATCH;
 
 			if (c < L('a') || c >= L('z'))
 			  {
