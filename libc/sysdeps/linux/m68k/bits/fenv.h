@@ -64,6 +64,38 @@ enum
       FE_UPWARD
   };
 
+#elif defined __UCLIBC_LIBGCC_SFP_FENV__
+
+/* Soft-float with libgcc's lb1sf68.S, which keeps the environment in
+   _fpCCR.  Only the flags it gets right are offered: it raises inexact
+   only together with the other exceptions, and invalid for a quiet NaN
+   operand too.  The flags are one global, not one per thread.  */
+enum
+  {
+    FE_UNDERFLOW =
+# define FE_UNDERFLOW	0x02
+      FE_UNDERFLOW,
+    FE_OVERFLOW =
+# define FE_OVERFLOW	0x04
+      FE_OVERFLOW,
+    FE_DIVBYZERO =
+# define FE_DIVBYZERO	0x08
+      FE_DIVBYZERO
+  };
+
+# define FE_ALL_EXCEPT \
+	(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW)
+
+/* _fpCCR has the other rounding modes too, but lb1sf68.S gets them wrong
+   (1/3 rounded toward zero gives 1.3333339691162107), so they are not
+   offered.  */
+enum
+  {
+    FE_TONEAREST =
+# define FE_TONEAREST	0
+      FE_TONEAREST
+  };
+
 #else
 
 /* In the soft-float case, only rounding to nearest is supported, with

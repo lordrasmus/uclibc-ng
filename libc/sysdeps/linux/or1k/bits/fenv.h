@@ -19,6 +19,11 @@
 # error "Never use <bits/fenv.h> directly; include <fenv.h> instead."
 #endif
 
+#if !defined __or1k_hard_float__ && defined __UCLIBC_LIBGCC_SFP_FENV__
+/* Soft-float, with the environment kept by libgcc and libm.  */
+# include <bits/fenv-softfp.h>
+#else
+
 #ifdef __or1k_hard_float__
 /* Define bits representing exceptions in the FPCSR status word.  */
 enum
@@ -82,3 +87,5 @@ typedef unsigned int femode_t;
 
 /* Default floating-point control modes.  */
 # define FE_DFL_MODE	((const femode_t *) -1L)
+
+#endif /* !__or1k_hard_float__ && __UCLIBC_LIBGCC_SFP_FENV__ */
