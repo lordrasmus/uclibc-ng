@@ -23,6 +23,7 @@
 #include "pthreadP.h"
 #include <ldsodefs.h>
 #include <atomic.h>
+#include <fork.h>
 #include <resolv.h>
 #include <bits/kernel-features.h>
 
@@ -424,6 +425,13 @@ pthread_create (
      void *arg)
 {
   STACK_VARIABLES;
+
+  /* Once there can be a second thread, fork has stacks to reclaim and
+     dlopen has static TLS to set up in every thread.  */
+#ifdef __ARCH_USE_MMU__
+  __fork_reclaim = __reclaim_stacks;
+#endif
+  GL(dl_init_static_tls) = &__pthread_init_static_tls;
 
   const struct pthread_attr *iattr = (struct pthread_attr *) attr;
   if (iattr == NULL)
