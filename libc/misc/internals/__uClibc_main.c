@@ -25,10 +25,9 @@
 #include <errno.h>
 #include <netdb.h>
 #include <stdio.h>
-#ifndef __ARCH_HAS_NO_LDSO__
 #include <fcntl.h>
 #include <signal.h>
-#endif
+#include <sys/syscall.h>
 #ifdef __UCLIBC_HAS_THREADS_NATIVE__
 #include <not-cancel.h>
 #include <atomic.h>
@@ -217,7 +216,6 @@ weak_alias(__environ, environ)
 # define O_NOFOLLOW	0
 #endif
 
-#ifndef __ARCH_HAS_NO_LDSO__
 /* Raw system calls: this runs before main, in the only thread, and the
    wrappers are cancellation points that bring their machinery along.  */
 #ifdef __NR_fcntl64
@@ -255,6 +253,19 @@ static void __check_one_fd(int fd, int mode)
     }
 }
 
+#ifndef SHARED
+/* Whether the program runs setuid or setgid.  The aux vector says so; on
+   binfmt_flat, which passes none, the kernel is asked.  */
+static int __is_setugid(void)
+{
+#if defined __UCLIBC_FORMAT_FLAT__ || defined __UCLIBC_FORMAT_FLAT_SEP_DATA__ \
+    || defined __UCLIBC_FORMAT_SHARED_FLAT__
+    return getuid() != geteuid() || getgid() != getegid();
+#else
+    return _dl_auxvt[AT_UID].a_un.a_val != _dl_auxvt[AT_EUID].a_un.a_val ||
+	_dl_auxvt[AT_GID].a_un.a_val != _dl_auxvt[AT_EGID].a_un.a_val;
+#endif
+}
 #endif
 
 /* __uClibc_init completely initialize uClibc so it is ready to use.
@@ -425,13 +436,10 @@ void __uClibc_main(int (*main)(int, char **, char **), int argc,
      * __uClibc_init() regardless, to be sure the right thing happens. */
     __uClibc_init();
 
-#ifndef __ARCH_HAS_NO_LDSO__
-
 #ifndef SHARED
     /* Prevent starting SUID binaries where the stdin. stdout, and
      * stderr file descriptors are not already opened. */
-    if (_dl_auxvt[AT_UID].a_un.a_val != _dl_auxvt[AT_EUID].a_un.a_val ||
-	    _dl_auxvt[AT_GID].a_un.a_val != _dl_auxvt[AT_EGID].a_un.a_val)
+    if (__is_setugid())
 #else
     if (_dl_secure)
 #endif
@@ -443,7 +451,6 @@ void __uClibc_main(int (*main)(int, char **, char **), int argc,
     }
     else
 	_pe_secure = 0 ;
-#endif
 
     __uclibc_progname = *argv;
 #if defined __UCLIBC_HAS___PROGNAME__ || (defined __USE_GNU && defined __UCLIBC_HAS_PROGRAM_INVOCATION_NAME__)
