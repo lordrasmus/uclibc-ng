@@ -100,7 +100,30 @@ extern __fpmax_t __wcstofpmax_l(const wchar_t *wcs, wchar_t **endptr,
 
 /* Is an __fpmax_t 0 or +/- infinity?  Classified, not computed. */
 
+#if FPMAX_TYPE == 3 && defined __m68k__ && !defined __HAVE_68881__ \
+	&& LDBL_MANT_DIG == 64
+/* m68k without an FPU: gcc tests isinf as !(|x| <= LDBL_MAX), and
+   libgcc's XFmode comparisons convert to double, where LDBL_MAX is
+   already infinite -- so infinity was never seen and printf("%g", inf)
+   looped.  Read the 96-bit format instead: 15-bit exponent, 16 bits of
+   padding, 64-bit mantissa whose explicit integer bit m68k ignores.  */
+static __inline__ int __fpmax_isinf(__fpmax_t x)
+{
+	union {
+		__fpmax_t x;
+		struct {
+			unsigned short se, pad;
+			unsigned int hi, lo;
+		} w;
+	} u = { x };
+
+	return (u.w.se & 0x7fff) == 0x7fff
+		&& (u.w.hi & 0x7fffffff) == 0 && u.w.lo == 0;
+}
+#define __FPMAX_ZERO_OR_INF_CHECK(x)  ((x) == 0 || __fpmax_isinf(x))
+#else
 #define __FPMAX_ZERO_OR_INF_CHECK(x)  ((x) == 0 || __builtin_isinf(x))
+#endif
 
 #endif /* __UCLIBC_HAS_FLOATS__ */
 
