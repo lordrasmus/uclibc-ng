@@ -169,6 +169,29 @@ extern int shm_open (const char *__name, int __oflag, mode_t __mode);
 /* Remove shared memory segment.  */
 extern int shm_unlink (const char *__name);
 
+#if defined __USE_XOPEN2K && defined __UCLIBC_HAS_ADVANCED_REALTIME__
+/* Typed memory objects.  Linux has none, so _POSIX_TYPED_MEMORY_OBJECTS
+   is -1 and these functions only report that.  */
+# define POSIX_TYPED_MEM_ALLOCATE	0x01
+# define POSIX_TYPED_MEM_ALLOCATE_CONTIG 0x02
+# define POSIX_TYPED_MEM_MAP_ALLOCATABLE 0x04
+
+struct posix_typed_mem_info
+{
+  size_t posix_tmi_length;
+};
+
+extern int posix_mem_offset (const void *__restrict __addr, size_t __len,
+			     off_t *__restrict __off,
+			     size_t *__restrict __contig_len,
+			     int *__restrict __fildes) __THROW;
+extern int posix_typed_mem_get_info (int __fildes,
+				     struct posix_typed_mem_info *__info)
+     __THROW;
+extern int posix_typed_mem_open (const char *__name, int __oflag,
+				 int __tflag);
+#endif
+
 __END_DECLS
 
 #endif	/* sys/mman.h */
