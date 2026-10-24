@@ -290,7 +290,8 @@ __NTH (toupper (int __c))
 #endif /* not __NO_CTYPE */
 
 
-#if defined __USE_GNU && defined __UCLIBC_HAS_XLOCALE__
+#if (defined __USE_GNU || defined __USE_XOPEN2K8) \
+    && defined __UCLIBC_HAS_XLOCALE__
 /* The concept of one static locale per category is not very well
    thought out.  Many applications will need to process its data using
    information from several different locales.  Another application is
