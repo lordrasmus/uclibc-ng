@@ -35,19 +35,31 @@ jobs:
       kernel_dir: v5.x
       kernel_arch: m68k
       config_file: config.m68k_68020
-      qemu_kernel:
-      qemu_cmd:
+      qemu_kernel: kernel-m68k-68020.img
+      # The qemu fork models the 68851 PMMU, which upstream qemu does not;
+      # the kernel is the 68040 config with M68020/M68030 added.
+      qemu_cmd: qemu-system-m68k -M virt -cpu m68020 -m 512M -nographic -kernel kernel.img -initrd rootfs.img.xz
 
   # Same toolchain as the 68040 target, built for the 68020 through
   # UCLIBC_EXTRA_CFLAGS="-mcpu=68020" in the config; gcc ships an m68020
   # multilib, so libgcc matches. The 68020 is the smallest core with CAS,
   # which is what bits/atomic.h keys on.
-  #
-  # Build only: qemu emulates the 68040 MMU, and a 68020 needs an external
-  # 68851 PMMU that it does not model, so an MMU kernel does not come up with
-  # -cpu m68020 (tried: no output at all, while the default 68040 boots).
 
   call_images:
     needs: call_build
     uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+
+  call_qemu:
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit
+
+  call_badge_failed:
+    if: failure()
+    needs: [call_build, call_images]
+    uses: ./.github/workflows/z_badge_failed_workflow.yml
+    with:
+      build_result: ${{ needs.call_build.result }}
+      images_result: ${{ needs.call_images.result }}
     secrets: inherit
