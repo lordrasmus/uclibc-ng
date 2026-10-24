@@ -62,6 +62,9 @@ int __have_futex_clock_realtime;
    libc as well: it is the first symbol td_ta_new looks up.  */
 const char __nptl_version[] = VERSION;
 
+#pragma weak _stdio_openlist
+#pragma weak _stdio_user_locking
+
 struct xid_command *__xidcmd attribute_hidden;
 
 /* For asynchronous cancellation we use a signal.  This is the handler.  */
@@ -282,7 +285,10 @@ __pthread_initialize_minimal_internal (void)
   /* Determine whether the machine is SMP or not.  */
   __is_smp = is_smp_system ();
 
-  /* uClibc-specific stdio initialization for threads. */
+  /* uClibc-specific stdio initialization for threads.  Only if stdio is
+     linked: the references are weak, so that a program without stdio does
+     not get it for this.  */
+  if (&_stdio_user_locking != NULL)
   {
     FILE *fp;
     _stdio_user_locking = 0;       /* 2 if threading not initialized */
