@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <atomic.h>
+#include <bits/wordsize.h>
 
 
 #define CS_PATH "/bin:/usr/bin"
@@ -41,6 +42,40 @@ size_t confstr (int name, char *buf, size_t len)
 	string = cs_path;
 	string_len = sizeof (cs_path);
       }
+      break;
+    /* The one environment the toolchain builds for, with no extra
+       flags; off_t is always 64 bits wide.  */
+    case _CS_V5_WIDTH_RESTRICTED_ENVS:
+    case _CS_V6_WIDTH_RESTRICTED_ENVS:
+    case _CS_V7_WIDTH_RESTRICTED_ENVS:
+      {
+#if __WORDSIZE == 64
+# define ENV_NAME "LP64_OFF64"
+#else
+# define ENV_NAME "ILP32_OFFBIG"
+#endif
+	static const char v5[] = "XBS5_" ENV_NAME;
+	static const char v6[] = "POSIX_V6_" ENV_NAME;
+	static const char v7[] = "POSIX_V7_" ENV_NAME;
+	string = name == _CS_V5_WIDTH_RESTRICTED_ENVS ? v5
+		 : name == _CS_V6_WIDTH_RESTRICTED_ENVS ? v6 : v7;
+	string_len = strlen (string) + 1;
+      }
+      break;
+    case _CS_LFS_CFLAGS ... _CS_POSIX_V7_LPBIG_OFFBIG_LINTFLAGS:
+    case _CS_V6_ENV:
+    case _CS_V7_ENV:
+    case _CS_POSIX_V7_THREADS_CFLAGS:
+      string = "";
+      string_len = 1;
+      break;
+    case _CS_POSIX_V7_THREADS_LDFLAGS:
+#ifdef __UCLIBC_HAS_THREADS__
+      string = "-lpthread";
+#else
+      string = "";
+#endif
+      string_len = strlen (string) + 1;
       break;
     case _CS_UCLIBC_VERSION:
       {
