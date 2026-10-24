@@ -35,14 +35,12 @@ jobs:
       kernel_dir: v6.x
       kernel_arch: m68k
       config_file: config.m68k_68000
-      qemu_kernel:
-      qemu_cmd:
+      qemu_kernel: kernel-m68k-68000.img
+      # The m68328 machine of the qemu fork: a 68000 with the MC68328's
+      # interrupt controller and timer. The rootfs goes in uncompressed,
+      # without an MMU the kernel cannot allocate the xz dictionary.
+      qemu_cmd: qemu-system-m68k -M m68328 -nographic -kernel kernel.img -initrd rootfs.img -append console=ttyS0,115200
 
-  # Build only: qemu has no machine for a 68000. Its m68k machines are the two
-  # ColdFire boards and the 68040 based q800 and virt; the 68328 class parts a
-  # 68000 uClinux runs on are not emulated, and ColdFire is a different
-  # instruction set, not a 68000 superset.
-  #
   # What this target is for: the 68000 and 68010 have no CAS, so they take the
   # kernel helper path in bits/atomic.h that ColdFire uses. That path had no
   # coverage here - every other m68k toolchain is 68040 or ColdFire - until a
@@ -51,4 +49,18 @@ jobs:
   call_images:
     needs: call_build
     uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+
+  call_qemu:
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit
+
+  call_badge_failed:
+    if: failure()
+    needs: [call_build, call_images]
+    uses: ./.github/workflows/z_badge_failed_workflow.yml
+    with:
+      build_result: ${{ needs.call_build.result }}
+      images_result: ${{ needs.call_images.result }}
     secrets: inherit
