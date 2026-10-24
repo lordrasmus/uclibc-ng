@@ -27,6 +27,7 @@
 #include <stdio.h>
 #ifndef __ARCH_HAS_NO_LDSO__
 #include <fcntl.h>
+#include <signal.h>
 #endif
 #ifdef __UCLIBC_HAS_THREADS_NATIVE__
 #include <not-cancel.h>
