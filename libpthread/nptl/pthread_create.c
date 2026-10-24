@@ -426,12 +426,14 @@ pthread_create (
 {
   STACK_VARIABLES;
 
-  /* Once there can be a second thread, fork has stacks to reclaim and
-     dlopen has static TLS to set up in every thread.  */
+  /* Once there can be a second thread, fork has stacks to reclaim,
+     dlopen has static TLS to set up in every thread and setuid has to
+     reach them all.  */
 #ifdef __ARCH_USE_MMU__
   __fork_reclaim = __reclaim_stacks;
 #endif
   GL(dl_init_static_tls) = &__pthread_init_static_tls;
+  setxid_init ();
 
   const struct pthread_attr *iattr = (struct pthread_attr *) attr;
   if (iattr == NULL)
