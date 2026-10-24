@@ -19,6 +19,7 @@
 
 #include <features.h>
 #include <asm/unistd.h>
+#include <sys/syscall.h>
 #include <sysdep.h>
 #define _ERRNO_H	1
 #include <bits/errno.h>
@@ -48,7 +49,7 @@ ENTRY(__clone)
 	mov.l	@(8,r15), r7
 	mov.l	@(4,r15), r0
 	mov	#+SYS_ify(clone), r3
-	trapa	#0x15
+	trapa	#(__SH_SYSCALL_TRAP_BASE + 5)
 	mov     r0, r1
 #ifdef __sh2__
 /* 12 arithmetic shifts for the sh2, because shad doesn't exist! */
@@ -91,7 +92,7 @@ ENTRY(__clone)
 	/* we are done, passing the return value through r0  */
 	mov	r0, r4
 	mov	#+SYS_ify(exit), r3
-	trapa	#0x15
+	trapa	#(__SH_SYSCALL_TRAP_BASE + 5)
 
 PSEUDO_END (__clone)
 weak_alias (__clone, clone)
