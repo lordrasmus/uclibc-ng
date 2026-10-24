@@ -166,11 +166,9 @@ jobs:
             git clone -q --depth=1 https://github.com/lordrasmus/uclibc-ng-test.git "$TESTREPO"
           fi
           cp -a "$TESTREPO" uclibc-ng-test
-          echo "export $(./uclibc-ng-test/get_disabled_tests.py uclibc-ng-config)" > tests_disable
-          
-          echo "### Disabled Tests :bulb:" >> $GITHUB_STEP_SUMMARY
-          cat tests_disable >> "$GITHUB_STEP_SUMMARY"
-          . tests_disable
+          # What does not run, test/Makefile decides itself: it calls
+          # get_disabled_tests.py with the CC and CFLAGS below and logs the
+          # answer as "disabled by get_disabled_tests.py:".
           # FLAT-specific flags (mirror openadk mk/vars.mk):
           # -Wl,-elf2flt=-r triggers FLAT output through ld-elf2flt; for
           # rv32/rv64 the compiler also needs -fPIC so GOT slots get
@@ -237,6 +235,8 @@ jobs:
           fi
           CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_CFLAGS $CF_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_LDFLAGS $STATIC_LDFLAGS $CF_CFLAGS"   nice -n 19 make -C uclibc-ng-test -j20 $MK_FLAGS 2>&1  | tee  testsuite_build.log
           CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_CFLAGS $CF_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_LDFLAGS $STATIC_LDFLAGS $CF_CFLAGS"   make -C uclibc-ng-test install DESTDIR=../rootfs $MK_FLAGS > /dev/null 2>&1
+          echo "### Disabled Tests :bulb:" >> $GITHUB_STEP_SUMMARY
+          grep -m1 "disabled by get_disabled_tests.py:" testsuite_build.log >> "$GITHUB_STEP_SUMMARY" || true
           find rootfs -type f -name '*.gdb' -exec rm {} \;
           # The same targets also strip the test binaries: their symbol tables
           # are 9-18 % of the suite, and arc and xtensa no longer fit the slot
