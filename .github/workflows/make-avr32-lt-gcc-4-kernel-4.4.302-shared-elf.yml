@@ -36,12 +36,29 @@ jobs:
       kernel_dir: v4.x
       kernel_arch: avr32
       config_file: config.avr32
-      qemu_kernel: 
-      qemu_cmd: 
+      qemu_kernel: kernel-avr32.img
+      # -m 64M: the rootfs is unpacked into tmpfs, which gets half of the
+      # memory, and the test rootfs does not fit into half of the board's
+      # 32 MiB.
+      qemu_cmd: qemu-system-avr32 -M atngw100 -m 64M -nographic -kernel kernel.img -initrd rootfs.img.xz -append console=ttyS0
 
 
   call_images:
     needs: call_build
     uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+
+  call_qemu:
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit
+
+  call_badge_failed:
+    if: failure()
+    needs: [call_build, call_images]
+    uses: ./.github/workflows/z_badge_failed_workflow.yml
+    with:
+      build_result: ${{ needs.call_build.result }}
+      images_result: ${{ needs.call_images.result }}
     secrets: inherit
     
