@@ -245,7 +245,11 @@ static void __check_one_fd(int fd, int mode)
 	 * some other wierd file... [removed in uclibc] */
 	if (nullfd!=fd)
 	{
-		abort();
+		/* Not abort(): it needs sigaction and sigprocmask to get past
+		   an inherited mask or SIG_IGN.  SIGKILL gets past both.  */
+		INTERNAL_SYSCALL (kill, err, 2,
+				  INTERNAL_SYSCALL (getpid, err, 0), SIGKILL);
+		INTERNAL_SYSCALL (exit_group, err, 1, 127);
 	}
     }
 }
