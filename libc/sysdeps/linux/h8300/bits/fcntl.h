@@ -67,7 +67,7 @@
 #endif
 
 #ifdef __USE_LARGEFILE64
-# define O_LARGEFILE	0400000
+# define O_LARGEFILE	0100000
 #endif
 
 /* Values for the second argument to `fcntl'.  */
