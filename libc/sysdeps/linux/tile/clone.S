@@ -146,9 +146,10 @@ ENTRY (__clone)
 
 .Linvalid:
 	{
+	 movei r0, -EINVAL
 	 movei r1, EINVAL
-	 j .Ldone
 	}
+	j .Ldone
 
 /* This function expects to receive:
 
