@@ -38,13 +38,15 @@ __clone:
 	; index 1 points to the forth argument and is to be moved to B6
 	LDW .D2T2	*+B15[1],B5
 	NOP     4
-	OR .D2X	B4,A4,B2	; sanity check arguments, no NULL function or stack pointers
-||	MV .S2	B4,B9
+	MV .L2X	A4,B1		; sanity check arguments, no NULL function
+||	MV .S2	B4,B2		; or stack pointer
+||	MV .D2	B4,B9
 ||	MV .D1	A4,A9		; backup fn and child_stack pointers
+  [!B1]	ZERO .L2	B2
 
   [!B2]	B .S2	__syscall_error
-||[!B2] MVK .S1	EINVAL,A4
-	NOP	4
+||[!B2] MVK .S1	-EINVAL,A4	; __syscall_error negates it
+	NOP	5
 
 	MV .D1	A6,A4		; get flags as arg0, arg1 is the new stack
 ||	AND .D2	~7,B4,B4
