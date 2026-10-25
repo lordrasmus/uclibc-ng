@@ -523,6 +523,8 @@ ifeq ($(TARGET_ARCH),c6x)
 	CPU_CFLAGS-$(CONFIG_TMS320C64XPLUS) += -march=c64x+
 	CPU_CFLAGS-$(ARCH_LITTLE_ENDIAN)+=-mlittle-endian
 	CPU_CFLAGS-$(ARCH_BIG_ENDIAN)+=-mbig-endian
+	# gcc enables this for c6x by default; 1/0 would give NaN, not inf
+	CPU_CFLAGS-y += -fno-reciprocal-math
 	CPU_LDFLAGS-y += $(CPU_CFLAGS)
 endif
 
