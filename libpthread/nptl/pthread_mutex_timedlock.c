@@ -31,13 +31,6 @@
 # define FUTEX_LOCK_PI2	13
 #endif
 
-extern int __lll_clocklock_wait (int *futex, clockid_t clockid,
-				 const struct timespec *abstime, int private)
-     attribute_hidden;
-extern int __lll_robust_clocklock_wait (int *futex, int id, clockid_t clockid,
-					const struct timespec *abstime,
-					int private) attribute_hidden;
-
 /* CLOCK_REALTIME keeps the lll_timedlock of the target, which may be
    written in assembler.  */
 #define lll_clocklock(futex, clockid, abstime, private)			\
