@@ -153,7 +153,7 @@ jobs:
           # ldscripts on arches whose binutils does not embed them, e.g.
           # nds32); they contain no libc so there is no leak.
           shopt -s nullglob
-          for L in "$CONFIG_TOOLCHAIN"/usr/*-*linux-uclibc*/lib; do
+          for L in "$CONFIG_TOOLCHAIN"/usr/*-*linux*/lib; do
             if [ -L "$L" ]; then
               rm "$L"
               mkdir -p "$L"
