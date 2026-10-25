@@ -25,8 +25,15 @@ int attribute_hidden __libc_fallocate64(int fd, int mode, __off64_t offset,
 {
 	int ret;
 	INTERNAL_SYSCALL_DECL(err);
+#  ifdef __TMS320C6X__
+	/* The kernel's sys_fallocate_c6x wants the high word first.  */
+	ret = (int) (INTERNAL_SYSCALL(fallocate, err, 6, fd, mode,
+		OFF64_HI (offset), OFF64_LO (offset),
+		OFF64_HI (len), OFF64_LO (len)));
+#  else
 	ret = (int) (INTERNAL_SYSCALL(fallocate, err, 6, fd, mode,
 		OFF64_HI_LO (offset), OFF64_HI_LO (len)));
+#  endif
 	if (unlikely(INTERNAL_SYSCALL_ERROR_P (ret, err))) {
 		__set_errno(INTERNAL_SYSCALL_ERRNO (ret, err));
 		ret = -1;
