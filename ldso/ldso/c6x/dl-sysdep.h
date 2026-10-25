@@ -228,3 +228,5 @@ else if (dpnt->d_tag == DT_C6000_DSBT_SIZE) \
 else if (dpnt->d_tag == DT_C6000_DSBT_INDEX) \
      dynamic[DT_DSBT_INDEX_IDX] = dpnt->d_un.d_val; \
 } while (0)
+
+#define DL_MALLOC_ALIGN 8	/* LDDW and STDW need 8 byte alignment */
