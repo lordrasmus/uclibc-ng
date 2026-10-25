@@ -71,7 +71,7 @@ jobs:
           # Also re-expose the binutils ldscripts (needed by ld on arches
           # whose binutils doesn't embed them, e.g. nds32; no libc in there).
           shopt -s nullglob
-          for L in "$CONFIG_TOOLCHAIN"/usr/*-*linux-uclibc*/lib; do
+          for L in "$CONFIG_TOOLCHAIN"/usr/*-*linux*/lib; do
             if [ -L "$L" ]; then
               rm "$L"
               mkdir -p "$L"
