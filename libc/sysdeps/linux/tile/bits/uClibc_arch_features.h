@@ -13,7 +13,12 @@
 /* does your target use statx */
 #undef __UCLIBC_HAVE_STATX__
 
+/* 64-bit arguments go in aligned register pairs only on the 32-bit ABI */
+#ifdef __LP64__
+#undef __UCLIBC_SYSCALL_ALIGN_64BIT__
+#else
 #define __UCLIBC_SYSCALL_ALIGN_64BIT__
+#endif
 
 /* does your target have a broken create_module() ? */
 #define __UCLIBC_BROKEN_CREATE_MODULE__
