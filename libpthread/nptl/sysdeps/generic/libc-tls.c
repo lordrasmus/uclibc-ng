@@ -123,6 +123,21 @@ init_static_tls (size_t memsz, size_t align)
   GL(dl_tls_static_nelem) = GL(dl_tls_max_dtv_idx);
 }
 
+/* The main thread's TLS block when it is small, as it is unless the
+   program has much TLS of its own or links dlopen: the thread
+   descriptor and room for the variables.  */
+#if __UCLIBC_STATIC_TLS_RESERVE_SIZE__ > 0
+# if defined(TLS_TCB_AT_TP)
+#  define TLS_RESERVE_SIZE (TLS_TCB_SIZE + TLS_TCB_ALIGN \
+			    + __UCLIBC_STATIC_TLS_RESERVE_SIZE__)
+# else
+#  define TLS_RESERVE_SIZE (TLS_PRE_TCB_SIZE + TLS_TCB_SIZE + TLS_TCB_ALIGN \
+			    + __UCLIBC_STATIC_TLS_RESERVE_SIZE__)
+# endif
+static char tls_reserve[TLS_RESERVE_SIZE]
+	__attribute__ ((aligned (TLS_TCB_ALIGN)));
+#endif
+
 #if !defined(__FDPIC__) && !defined(SHARED) && defined(STATIC_PIE)
 ElfW(Addr) _dl_load_base;
 #endif
@@ -138,6 +153,7 @@ __libc_setup_tls (size_t tcbsize, size_t tcbalign)
   size_t align = 0;
   size_t max_align = tcbalign;
   size_t tcb_offset;
+  size_t tlssize;
   ElfW(Phdr) *phdr;
 #if !defined(__FDPIC__) && !defined(SHARED) && defined(STATIC_PIE)
   ElfW(Addr) load_base = _dl_load_base;
@@ -185,7 +201,8 @@ __libc_setup_tls (size_t tcbsize, size_t tcbalign)
 
   /* We have to set up the TCB block which also (possibly) contains
      'errno'.  Therefore we avoid 'malloc' which might touch 'errno'.
-     Instead we use 'sbrk' which would only uses 'errno' if it fails.
+     A block that fits the reserve in bss takes no system call; a larger
+     one comes from 'sbrk', which would only use 'errno' if it fails.
      In this case we are right away out of memory and the user gets
      what she/he deserves.
 
@@ -203,27 +220,32 @@ __libc_setup_tls (size_t tcbsize, size_t tcbalign)
   /* The thread pointer is the TLS block's end; the block below it is
      laid out for a thread pointer aligned like its most aligned part.  */
   tcb_offset = roundup (memsz + GL(dl_tls_static_size), max_align);
-#  if defined(__FDPIC__) || (!defined(__ARCH_USE_MMU__) && defined(STATIC_PIE))
-  tlsblock = mmap (NULL, tcb_offset + tcbsize + max_align,
-                   PROT_READ|PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-#  else
-  tlsblock = sbrk (tcb_offset + tcbsize + max_align);
-#  endif
+  tlssize = tcb_offset + tcbsize + max_align;
 # elif defined(TLS_DTV_AT_TP)
   tcb_offset = roundup (tcbsize, align ?: 1);
-#  if defined(__FDPIC__) || (!defined(__ARCH_USE_MMU__) && defined(STATIC_PIE))
-  tlsblock = mmap (NULL, tcb_offset + memsz + max_align + TLS_PRE_TCB_SIZE + GL(dl_tls_static_size),
-                   PROT_READ|PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-#  else
-  tlsblock = sbrk (tcb_offset + memsz + max_align
-		     + TLS_PRE_TCB_SIZE + GL(dl_tls_static_size));
-#  endif
-  memset(tlsblock, '\0', tcb_offset + memsz + max_align + TLS_PRE_TCB_SIZE + GL(dl_tls_static_size));
-  tlsblock += TLS_PRE_TCB_SIZE;
+  tlssize = tcb_offset + memsz + max_align + TLS_PRE_TCB_SIZE
+	    + GL(dl_tls_static_size);
 # else
   /* In case a model with a different layout for the TCB and DTV
      is defined add another #elif here and in the following #ifs.  */
 #  error "Either TLS_TCB_AT_TP or TLS_DTV_AT_TP must be defined"
+# endif
+#if __UCLIBC_STATIC_TLS_RESERVE_SIZE__ > 0
+  if (tlssize <= sizeof tls_reserve)
+    tlsblock = tls_reserve;
+  else
+#endif
+    {
+# if defined(__FDPIC__) || (!defined(__ARCH_USE_MMU__) && defined(STATIC_PIE))
+      tlsblock = mmap (NULL, tlssize, PROT_READ|PROT_WRITE,
+		       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+# else
+      tlsblock = sbrk (tlssize);
+# endif
+      memset (tlsblock, '\0', tlssize);
+    }
+# if defined(TLS_DTV_AT_TP)
+  tlsblock += TLS_PRE_TCB_SIZE;
 # endif
 
   /* Align the TLS block.  */
@@ -246,7 +268,7 @@ __libc_setup_tls (size_t tcbsize, size_t tcbalign)
 #  error "Either TLS_TCB_AT_TP or TLS_DTV_AT_TP must be defined"
 # endif
   static_dtv[2].pointer.is_static = true;
-  /* sbrk gives us zero'd memory, so we don't need to clear the remainder.  */
+  /* The block is zeroed, so we don't need to clear the remainder.  */
   memcpy (static_dtv[2].pointer.val, initimage, filesz);
 
   /* Install the pointer to the dtv.  */

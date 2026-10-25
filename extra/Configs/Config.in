@@ -642,6 +642,23 @@ config UCLIBC_HAS_TLS
 	  which is not on stack. It needs __thread support enabled in
 	  gcc.
 
+config UCLIBC_STATIC_TLS_RESERVE_SIZE
+	int "Room for thread-local variables in a static program"
+	depends on UCLIBC_HAS_TLS
+	default 128
+	range 0 65536
+	help
+	  A statically linked program keeps its main thread's TLS block,
+	  the thread descriptor plus the program's __thread variables, in
+	  a reserve in its bss, as long as the variables fit into this many
+	  bytes; otherwise the block comes from sbrk, or from mmap without
+	  an MMU, at startup.  uClibc itself uses 8 of them, and 0 leaves
+	  the reserve out.
+
+	  Every static program carries the reserve, so a larger value only
+	  pays off if your own programs have more thread-local data.  It has
+	  no effect on dynamically linked programs.
+
 config PTHREADS_DEBUG_SUPPORT
 	bool "Build pthreads debugging support"
 	depends on UCLIBC_HAS_THREADS
