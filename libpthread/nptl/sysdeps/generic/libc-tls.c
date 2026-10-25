@@ -28,6 +28,10 @@
 #include <stdlib.h>
 #include <sys/mman.h>
 #include <signal.h>
+#include <sys/syscall.h>
+#if !defined __NR_getpid && defined __NR_getxpid
+# define __NR_getpid __NR_getxpid	/* alpha */
+#endif
 
 #ifdef SHARED
  #error makefile bug, this file is for static only
