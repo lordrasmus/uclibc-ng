@@ -36,16 +36,26 @@ jobs:
       kernel_dir: v4.x
       kernel_arch: h8300
       config_file: config.h8300
-      qemu_kernel: 
-      qemu_cmd: 
+      qemu_kernel: kernel-h8300.img
+      qemu_cmd: qemu-system-h8300 -M edosk2674,ram-base=0x100000 -m 14M -nographic -kernel kernel.img -drive file=rootfs.ext2,format=raw,if=none,id=hd -device virtio-blk-device,drive=hd
 
-#
-#   hier geht schon der compiler aus openadk nicht
-#
-#             cannot find -lgcc: Datei oder Verzeichnis nicht gefunden
-#
-#  call_images:
-#    needs: call_build
-#    uses: ./.github/workflows/z_images_workflow.yml
-#    secrets: inherit
-    
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+
+
+
+  call_qemu:
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit
+
+  call_badge_failed:
+    if: failure()
+    needs: [call_build, call_images]
+    uses: ./.github/workflows/z_badge_failed_workflow.yml
+    with:
+      build_result: ${{ needs.call_build.result }}
+      images_result: ${{ needs.call_images.result }}
+    secrets: inherit
