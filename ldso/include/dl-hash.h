@@ -184,5 +184,6 @@ extern char * _dl_library_path;
 #define LD_WRONG_RELOCS 9
 #define LD_BAD_HANDLE 10
 #define LD_NO_SYMBOL 11
+#define LD_ERROR_STATIC_TLS 12
 
 #endif /* _DL_HASH_H */
