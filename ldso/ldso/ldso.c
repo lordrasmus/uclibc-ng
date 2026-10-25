@@ -513,6 +513,10 @@ void *_dl_get_ready_to_run(struct elf_resolve *tpnt, DL_LOADADDR_TYPE load_addr,
 #ifdef __LDSO_LD_LIBRARY_PATH__
 		_dl_library_path = _dl_getenv("LD_LIBRARY_PATH", envp);
 #endif
+#if defined(USE_TLS) && USE_TLS
+		_dl_tls_static_surplus_size =
+			_dl_static_tls_surplus(_dl_getenv("LD_STATIC_TLS_EXTRA", envp));
+#endif
 	} else {
 		static const char unsecure_envvars[] =
 #ifdef EXTRA_UNSECURE_ENVVARS

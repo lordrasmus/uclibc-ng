@@ -79,9 +79,9 @@ size_t _dl_tls_static_nelem;
 /* Size of the static TLS block.  Initialized, so that it is no common
    symbol: one would make the linker pull in libdl.os for its definition.  */
 size_t _dl_tls_static_size = 0;
-/* Surplus for modules with IE-model TLS loaded by dlopen; libdl.c
+/* Room for modules with IE-model TLS loaded by dlopen; libdl.c
    defines it, so a program without dlopen has none.  */
-extern const size_t _dl_tls_static_surplus attribute_hidden
+extern size_t (*const _dl_tls_static_surplus) (void) attribute_hidden
 	__attribute__ ((weak));
 /* Size actually allocated in the static TLS block.  */
 size_t _dl_tls_static_used;
@@ -164,7 +164,7 @@ __libc_setup_tls (size_t tcbsize, size_t tcbalign)
 #endif
 
   if (&_dl_tls_static_surplus != NULL)
-    GL(dl_tls_static_size) = _dl_tls_static_surplus;
+    GL(dl_tls_static_size) = _dl_tls_static_surplus ();
 
 #if !defined(__FDPIC__) && !defined(SHARED) && defined(STATIC_PIE)
 
