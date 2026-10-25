@@ -118,11 +118,22 @@ struct r_debug *_dl_debug_addr = NULL;
 
 # if defined(USE_TLS) && USE_TLS
 /*
- * Surplus bytes preallocated in the static TLS area when a static
- * program links dlopen, see __libc_setup_tls (libc-tls.c).
+ * Room preallocated in the static TLS area when a static program links
+ * dlopen, see __libc_setup_tls (libc-tls.c).  It runs before setuid and
+ * setgid programs are told apart, so it asks the kernel itself.
  */
-extern const size_t _dl_tls_static_surplus attribute_hidden;
-const size_t _dl_tls_static_surplus = 2048;
+#include <stdlib.h>
+#include <unistd.h>
+static size_t static_tls_surplus (void)
+{
+	if (getuid() != geteuid() || getgid() != getegid())
+		return _dl_static_tls_surplus(NULL);
+	return _dl_static_tls_surplus(getenv("LD_STATIC_TLS_EXTRA"));
+}
+/* Data, not the function: libc-tls.c refers to it weakly, and a weak
+   call would cost every static program a PLT entry.  */
+extern size_t (*const _dl_tls_static_surplus) (void) attribute_hidden;
+size_t (*const _dl_tls_static_surplus) (void) = static_tls_surplus;
 # endif
 #include LDSO_ELFINTERP
 #include "../ldso/dl-hash.c"
@@ -167,7 +178,8 @@ static const char *const dl_error_names[] = {
 	"Unable to process RELA relocs",
 #endif
 	"Bad handle",
-	"Unable to resolve symbol"
+	"Unable to resolve symbol",
+	"Cannot allocate memory in static TLS block"
 };
 
 
@@ -542,6 +554,24 @@ static void *do_dlopen(const char *libname, int flag, ElfW(Addr) from)
 	 * after all the libraries have been loaded.
 	 */
 	_dl_perform_mips_global_got_relocations(tpnt, !now_flag);
+#endif
+
+#if defined(USE_TLS) && USE_TLS
+	/* A library built for initial-exec TLS needs room in the static TLS
+	   block of every thread.  Find it before relocating, where failing
+	   could only stop the program.  */
+	for (rpnt = dyn_chain; rpnt; rpnt = rpnt->next) {
+		struct elf_resolve *t = rpnt->dyn;
+		struct link_map *map = (struct link_map *) t;
+
+		if (!(t->init_flag & RELOCS_DONE) && map->l_tls_blocksize > 0
+		    && (t->dynamic_info[DT_FLAGS] & DF_STATIC_TLS)
+		    && map->l_tls_offset == NO_TLS_OFFSET
+		    && _dl_try_allocate_static_tls(map)) {
+			_dl_error_number = LD_ERROR_STATIC_TLS;
+			goto oops;
+		}
+	}
 #endif
 
 	if (_dl_fixup(dyn_chain, &_dl_loaded_modules->symbol_scope, now_flag))
