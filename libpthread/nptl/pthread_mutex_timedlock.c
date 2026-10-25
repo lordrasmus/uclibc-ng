@@ -565,3 +565,8 @@ pthread_mutex_clocklock (pthread_mutex_t *mutex, clockid_t clockid,
 
   return __pthread_mutex_clocklock_common (mutex, clockid, abstime);
 }
+
+/* uClibc's own locks unlock through __pthread_mutex_unlock, which
+   __uClibc_main.o defines as a dummy: a static program that locks a
+   mutex but never unlocks one must still get the real unlock.  */
+PTHREAD_STATIC_FN_REQUIRE (pthread_mutex_unlock)
