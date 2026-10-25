@@ -51,16 +51,23 @@ __vfork:
 	CMPGTU	.L2X	B4,A4,B2	; check error
   [B2]	BNOP	.S2	B3,5
 
+	; B14 is still the caller's; the PLT call needs libc's
 	NEG	.S1	A4,A4
-	STW	.D2T1	A4,*B15--[2]
-	STW	.D2T2	B3,*+B15[1]
+||	SUB	.D2	B15,16,B15
+	STW	.D2T1	A4,*+B15(8)
+	STW	.D2T2	B3,*+B15(12)
+	STW	.D2T2	B14,*+B15(16)
+	LDW	.D2T2	*+B14($DSBT_index(__c6xabi_DSBT_BASE)),B14
+	NOP	4
 	CALLP	.S2	__errno_location,B3
-	LDW	.D2T2	*+B15[1],B3
-	LDW	.D2T1	*++B15[2],A5
-	NOP	3
-	BNOP	.S2	B3,3
+	LDW	.D2T1	*+B15(8),A5
+	LDW	.D2T2	*+B15(12),B3
+	LDW	.D2T2	*+B15(16),B14
+	NOP	4
 	STW	.D1T1	A5,*A4
-	MVK	.L1	-1,A4
+||	MVK	.L1	-1,A4
+||	ADDK	.S2	16,B15
+	BNOP	.S2	B3,5
 
 weak_alias(__vfork,vfork)
 libc_hidden_weak(vfork)
