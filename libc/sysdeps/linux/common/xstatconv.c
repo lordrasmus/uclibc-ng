@@ -31,8 +31,7 @@
    which still has __NR_fstat).  Modern asm-generic arches go through
    statx/fstatat64, never reference these, and have no kernel_stat in their
    bits/kernel_stat.h -- so compile to nothing there.  */
-#if defined(__ARCH_HAS_DEPRECATED_SYSCALLS__) \
-    || (defined(__NR_fstat) && !(__WORDSIZE == 64 && defined(__NR_newfstatat)))
+#ifdef __KERNEL_STAT_NEEDS_CONV
 
 void __xstat_conv(struct kernel_stat *kbuf, struct stat *buf)
 {
@@ -103,4 +102,4 @@ void __xstat64_conv(struct kernel_stat64 *kbuf, struct stat64 *buf)
 	buf->st_ctim.tv_nsec = kbuf->st_ctim.tv_nsec;
 }
 
-#endif /* __ARCH_HAS_DEPRECATED_SYSCALLS__ || __NR_fstat */
+#endif /* __KERNEL_STAT_NEEDS_CONV */

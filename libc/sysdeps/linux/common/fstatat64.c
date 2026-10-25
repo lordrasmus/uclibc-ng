@@ -29,7 +29,7 @@
 # include "xstatconv.h"
 int fstatat64(int fd, const char *file, struct stat64 *buf, int flag)
 {
-# ifdef __ARCH_HAS_DEPRECATED_SYSCALLS__
+# ifdef __KERNEL_STAT_NEEDS_CONV
 	int ret;
 	struct kernel_stat64 kbuf;
 
