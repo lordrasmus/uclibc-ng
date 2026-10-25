@@ -35,10 +35,26 @@ jobs:
       kernel_dir: v4.x
       kernel_arch: tile
       config_file: config.tile
-      qemu_kernel: 
-      qemu_cmd: 
+      qemu_kernel: kernel-tile.img
+      qemu_cmd: qemu-system-tilegx -M tilegx -m 512M -nographic -kernel kernel.img -initrd rootfs.img.xz -append console=hvc0
 
   call_images:
     needs: call_build
     uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+    
+    
+    
+  call_qemu:    
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit
+
+  call_badge_failed:
+    if: failure()
+    needs: [call_build, call_images]
+    uses: ./.github/workflows/z_badge_failed_workflow.yml
+    with:
+      build_result: ${{ needs.call_build.result }}
+      images_result: ${{ needs.call_images.result }}
     secrets: inherit
