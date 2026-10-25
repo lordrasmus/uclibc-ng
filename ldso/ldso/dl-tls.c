@@ -202,14 +202,8 @@ _dl_nothread_init_static_tls (struct link_map *map)
 #  error "Either TLS_TCB_AT_TP or TLS_DTV_AT_TP must be defined"
 # endif
 
-	/* Fill in the DTV slot so that a later LD/GD access will find it.  */
-	dtv_t *dtv = THREAD_DTV ();
-	if (!(map->l_tls_modid <= dtv[-1].counter)) {
-		_dl_dprintf(2, "map->l_tls_modid <= dtv[-1].counter FAILED!\n");
-		_dl_exit(30);
-	}
-	dtv[map->l_tls_modid].pointer.val = dest;
-	dtv[map->l_tls_modid].pointer.is_static = true;
+	/* The DTV slot is __tls_get_addr's to fill: the module's slot may lie
+	   beyond this thread's DTV, which only it grows.  */
 
 	/* Initialize the memory.  */
 	_dl_memcpy(dest, map->l_tls_initimage, map->l_tls_initimage_size);
@@ -816,6 +810,19 @@ _dl_update_slotinfo (unsigned long int req_modid)
 }
 
 
+/* This thread's copy of the TLS of MAP, which is in the static block.  */
+static void *
+static_tls_block (struct link_map *map)
+{
+# ifdef TLS_TCB_AT_TP
+	return (char *) THREAD_SELF - map->l_tls_offset;
+# elif defined(TLS_DTV_AT_TP)
+	return (char *) THREAD_SELF + map->l_tls_offset + TLS_PRE_TCB_SIZE;
+# else
+#  error "Either TLS_TCB_AT_TP or TLS_DTV_AT_TP must be defined"
+# endif
+}
+
 /* The generic dynamic and local dynamic model cannot be used in
    statically linked applications.  */
 void *
@@ -851,8 +858,18 @@ __tls_get_addr (GET_ADDR_ARGS)
 	  the_map = listp->slotinfo[idx].map;
 	}
 
-      p = dtv[GET_ADDR_MODULE].pointer.val = allocate_and_init (the_map);
-      dtv[GET_ADDR_MODULE].pointer.is_static = false;
+      if (the_map->l_tls_offset != NO_TLS_OFFSET)
+	{
+	  /* dlopen put the module into the static TLS block.  */
+	  p = static_tls_block (the_map);
+	  dtv[GET_ADDR_MODULE].pointer.is_static = true;
+	}
+      else
+	{
+	  p = allocate_and_init (the_map);
+	  dtv[GET_ADDR_MODULE].pointer.is_static = false;
+	}
+      dtv[GET_ADDR_MODULE].pointer.val = p;
     }
 
   return (char *) p + GET_ADDR_OFFSET;
