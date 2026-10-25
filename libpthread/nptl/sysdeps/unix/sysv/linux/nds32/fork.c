@@ -19,11 +19,12 @@
 #include <sysdep.h>
 #include <tls.h>
 
-/* nds32 uses the generic clone argument order, i.e. the child tid pointer
-   comes before the TLS argument.  */
+/* nds32 clone() takes (flags, newsp, parent_tid, tls, child_tid): mainline
+   selects CLONE_BACKWARDS, and the Andes linux-3.4 sys_clone has the same
+   order.  */
 #define ARCH_FORK() \
   INLINE_SYSCALL (clone, 5,                                                  \
                  CLONE_CHILD_SETTID | CLONE_CHILD_CLEARTID | SIGCHLD, 0,     \
-                 NULL, &THREAD_SELF->tid, NULL)
+                 NULL, NULL, &THREAD_SELF->tid)
 
 #include "../fork.c"
