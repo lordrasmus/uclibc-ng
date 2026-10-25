@@ -55,11 +55,8 @@ extern void *_dl_allocate_tls (void *mem) internal_function;
 extern void _dl_get_tls_static_info (size_t *sizep, size_t *alignp)
      internal_function;
 
-extern void _dl_allocate_static_tls (struct link_map *map)
-     internal_function attribute_hidden;
-/* Not hidden: libdl's dlopen calls it, as it does _dl_add_to_slotinfo.  */
 extern int _dl_try_allocate_static_tls (struct link_map* map)
-     internal_function;
+     internal_function attribute_hidden;
 
 /* The room in the static TLS block for libraries dlopen loads later:
    the configured size, or LD_STATIC_TLS_EXTRA, ENV here, if that is a
@@ -79,11 +76,19 @@ _dl_static_tls_surplus (const char *env)
 	return *env == '\0' && val > size ? val : size;
 }
 
-/* Taken from glibc/elf/dl-reloc.c */
+extern unsigned long _dl_error_number;
+
+/* For a relocation that needs the module's TLS in the static block.  When
+   there is no room, the relocation fails: dlopen returns NULL and dlerror
+   says why, and a program that needs the module from the start does not
+   start.  Only for use in a relocation function, where 1 means failure.  */
 #define CHECK_STATIC_TLS(sym_map)											\
 	do {																	\
-		if (__builtin_expect ((sym_map)->l_tls_offset == NO_TLS_OFFSET, 0))	\
-			_dl_allocate_static_tls (sym_map);								\
+		if (__builtin_expect ((sym_map)->l_tls_offset == NO_TLS_OFFSET, 0)	\
+		    && _dl_try_allocate_static_tls (sym_map)) {						\
+			_dl_error_number = LD_ERROR_STATIC_TLS;						\
+			return 1;													\
+		}																	\
 	} while (0)
 #define TRY_STATIC_TLS(sym_map)												\
 	(__builtin_expect ((sym_map)->l_tls_offset != NO_TLS_OFFSET, 1)			\

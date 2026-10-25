@@ -556,24 +556,6 @@ static void *do_dlopen(const char *libname, int flag, ElfW(Addr) from)
 	_dl_perform_mips_global_got_relocations(tpnt, !now_flag);
 #endif
 
-#if defined(USE_TLS) && USE_TLS
-	/* A library built for initial-exec TLS needs room in the static TLS
-	   block of every thread.  Find it before relocating, where failing
-	   could only stop the program.  */
-	for (rpnt = dyn_chain; rpnt; rpnt = rpnt->next) {
-		struct elf_resolve *t = rpnt->dyn;
-		struct link_map *map = (struct link_map *) t;
-
-		if (!(t->init_flag & RELOCS_DONE) && map->l_tls_blocksize > 0
-		    && (t->dynamic_info[DT_FLAGS] & DF_STATIC_TLS)
-		    && map->l_tls_offset == NO_TLS_OFFSET
-		    && _dl_try_allocate_static_tls(map)) {
-			_dl_error_number = LD_ERROR_STATIC_TLS;
-			goto oops;
-		}
-	}
-#endif
-
 	if (_dl_fixup(dyn_chain, &_dl_loaded_modules->symbol_scope, now_flag))
 		goto oops;
 
