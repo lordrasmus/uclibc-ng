@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# uClibc-ng 1.0.58 C Library Configuration
+# uClibc-ng 1.0.59 C Library Configuration
 #
 # TARGET_aarch64 is not set
 # TARGET_alpha is not set
@@ -17,6 +17,7 @@ TARGET_c6x=y
 # TARGET_i386 is not set
 # TARGET_ia64 is not set
 # TARGET_kvx is not set
+# TARGET_loongarch64 is not set
 # TARGET_lm32 is not set
 # TARGET_m68k is not set
 # TARGET_metag is not set
@@ -46,8 +47,8 @@ CONFIG_GENERIC_C6X=y
 # CONFIG_TMS320C64X is not set
 # CONFIG_TMS320C64XPLUS is not set
 TARGET_SUBARCH=""
-# UCLIBC_FORMAT_DSBT_ELF is not set
-UCLIBC_FORMAT_FLAT=y
+UCLIBC_FORMAT_DSBT_ELF=y
+# UCLIBC_FORMAT_FLAT is not set
 # UCLIBC_FORMAT_FLAT_SEP_DATA is not set
 ARCH_ANY_ENDIAN=y
 ARCH_LITTLE_ENDIAN=y
@@ -62,6 +63,7 @@ UCLIBC_HAS_FLOATS=y
 UCLIBC_HAS_FPU=y
 DO_C99_MATH=y
 DO_XSI_MATH=y
+UCLIBC_HAS_COMPLEX_MATH=y
 UCLIBC_HAS_FENV=y
 UCLIBC_HAS_LONG_DOUBLE_MATH=y
 KERNEL_HEADERS="linux-headers/include"
@@ -72,11 +74,28 @@ HAVE_DOT_CONFIG=y
 # General Library Settings
 #
 DOPIC=y
-ARCH_HAS_NO_SHARED=y
-ARCH_HAS_NO_LDSO=y
+HAVE_LDSO=y
+HAVE_SHARED=y
+# FORCE_SHAREABLE_TEXT_SEGMENTS is not set
+LDSO_LDD_SUPPORT=y
+LDSO_CACHE_SUPPORT=y
+LDSO_PRELOAD_ENV_SUPPORT=y
+# LDSO_PRELOAD_FILE_SUPPORT is not set
+LDSO_BASE_FILENAME="ld.so"
+# LDSO_STANDALONE_SUPPORT is not set
+# LDSO_PRELINK_SUPPORT is not set
+UCLIBC_STATIC_LDCONFIG=y
+LDSO_RUNPATH=y
+LDSO_RUNPATH_OF_EXECUTABLE=y
+LDSO_SAFE_RUNPATH=y
+LDSO_SEARCH_INTERP_PATH=y
+LDSO_LD_LIBRARY_PATH=y
 UCLIBC_CTOR_DTOR=y
-HAS_NO_THREADS=y
-# UCLIBC_HAS_LINUXTHREADS is not set
+# LDSO_GNU_HASH_SUPPORT is not set
+# HAS_NO_THREADS is not set
+UCLIBC_HAS_LINUXTHREADS=y
+UCLIBC_HAS_THREADS=y
+# PTHREADS_DEBUG_SUPPORT is not set
 PTHREADS_STACK_DEFAULT_SIZE=2097152
 UCLIBC_HAS_SYSLOG=y
 UCLIBC_HAS_LFS=y
@@ -105,6 +124,13 @@ UCLIBC_HAS_TZ_FILE=y
 UCLIBC_HAS_TZ_FILE_READ_MANY=y
 UCLIBC_TZ_FILE_PATH="/etc/TZ"
 UCLIBC_FALLBACK_TO_ETC_LOCALTIME=y
+
+#
+# Math library
+#
+UCLIBC_LIBM_SMALL=y
+# UCLIBC_LIBM_OPTIMIZED is not set
+# UCLIBC_LIBM_ACCURATE is not set
 
 #
 # Advanced Library Settings
@@ -221,8 +247,10 @@ HARDWIRED_ABSPATH=y
 # Security options
 #
 UCLIBC_HAS_SSP=y
-# SSP_QUICK_CANARY is not set
+# UCLIBC_HAS_SSP_SYSLOG is not set
 # UCLIBC_BUILD_SSP is not set
+UCLIBC_BUILD_RELRO=y
+# UCLIBC_BUILD_NOW is not set
 UCLIBC_BUILD_NOEXECSTACK=y
 
 #
@@ -231,8 +259,12 @@ UCLIBC_BUILD_NOEXECSTACK=y
 CROSS_COMPILER_PREFIX=""
 UCLIBC_EXTRA_CFLAGS="-fworking-directory -fvar-tracking-assignments -frecord-gcc-switches -rdynamic -funwind-tables -ggdb3 -gdwarf-4  -Os -Wno-undef -Wno-array-parameter -Wno-unused-function -Wno-unused-variable -Wno-missing-prototypes -Wno-shift-count-overflow -Wno-missing-declarations -Wno-stringop-overflow -Wno-nonnull-compare -Wno-shadow -Wno-attribute-alias -Wno-old-style-definition -Wno-format -Wno-zero-length-bounds -Wno-pointer-sign -Wno-parentheses -Wno-missing-braces -Wno-int-conversion -Wno-misleading-indentation -Wno-restrict -Wno-suggest-attribute -Wno-nested-externs -Wno-shift-overflow -Wno-maybe-uninitialized"
 # DODEBUG is not set
+# DODEBUG_PT is not set
 DOSTRIP=y
 DOASSERTS=y
+# SUPPORT_LD_DEBUG is not set
+# SUPPORT_LD_DEBUG_EARLY is not set
 UCLIBC_MALLOC_DEBUGGING=y
+# UCLIBC_HAS_BACKTRACE is not set
 WARNINGS="-Wall -pipe -pipe"
 EXTRA_WARNINGS=y
