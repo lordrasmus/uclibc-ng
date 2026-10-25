@@ -27,8 +27,15 @@
 #include <sys/syscall.h>
 #include <bits/kernel_stat.h>
 
+/* The kernel returns its own legacy struct stat/stat64 layout, which needs
+   converting: the deprecated-syscall arches, and nds32 against the Andes
+   linux-3.4 headers (which still have __NR_fstat).  */
 #if defined(__ARCH_HAS_DEPRECATED_SYSCALLS__) \
     || (defined(__NR_fstat) && !(__WORDSIZE == 64 && defined(__NR_newfstatat)))
+# define __KERNEL_STAT_NEEDS_CONV 1
+#endif
+
+#ifdef __KERNEL_STAT_NEEDS_CONV
 extern void __xstat_conv(struct kernel_stat *kbuf, struct stat *buf) attribute_hidden;
 extern void __xstat32_conv(struct kernel_stat64 *kbuf, struct stat *buf) attribute_hidden;
 extern void __xstat64_conv(struct kernel_stat64 *kbuf, struct stat64 *buf) attribute_hidden;
