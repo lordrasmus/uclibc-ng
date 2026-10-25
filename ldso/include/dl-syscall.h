@@ -25,7 +25,13 @@ extern int _dl_errno;
 #define _SYS_MMAN_H 1
 #include <bits/mman.h>
 
-#if defined(__ARCH_HAS_DEPRECATED_SYSCALLS__) && (!defined(__UCLIBC_USE_TIME64__) || defined(__sparc__))
+#include <bits/wordsize.h>
+/* Same test as __KERNEL_STAT_NEEDS_CONV in libc's xstatconv.h: the kernel
+ * hands back its own legacy struct stat.  Besides the deprecated-syscall
+ * arches that is nds32 against the Andes linux-3.4 headers.  */
+#if (defined(__ARCH_HAS_DEPRECATED_SYSCALLS__) \
+     || (defined(__NR_fstat) && !(__WORDSIZE == 64 && defined(__NR_newfstatat)))) \
+    && (!defined(__UCLIBC_USE_TIME64__) || defined(__sparc__))
 /* Pull in whatever this particular arch's kernel thinks the kernel version of
  * struct stat should look like.  It turns out that each arch has a different
  * opinion on the subject, and different kernel revs use different names... */

@@ -20,7 +20,7 @@ static __always_inline _syscall2(int, __syscall_fstat64,
 
 int fstat64(int fd, struct stat64 *buf)
 {
-#ifdef __ARCH_HAS_DEPRECATED_SYSCALLS__
+#ifdef __KERNEL_STAT_NEEDS_CONV
 	int result;
 	struct kernel_stat64 kbuf;
 
