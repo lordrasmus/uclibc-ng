@@ -197,6 +197,14 @@ jobs:
               # saying no is our job.
               FLAT_CFLAGS="-fPIC -Wl,--no-relax $FLAT_CFLAGS"
             fi
+            # h8300: gcc defaults to the plain H8/300 with 16-bit int, for
+            # which the toolchain has neither libc.a nor libgcc.a ("cannot
+            # find -lgcc").  Same -mh/-ms -mint32 Rules.mak builds uClibc-ng with.
+            if grep -q '^CONFIG_H8300H=y' uclibc-ng-config 2>/dev/null ; then
+              FLAT_CFLAGS="-mh -mint32 $FLAT_CFLAGS"
+            elif grep -q '^CONFIG_H8S=y' uclibc-ng-config 2>/dev/null ; then
+              FLAT_CFLAGS="-ms -mint32 $FLAT_CFLAGS"
+            fi
           elif [[ $UCLIBC_MMU == "No" && $UCLIBC_FORMAT_ELF == "y" ]] ; then
             PIE_CFLAGS="-fpie"
             PIE_LDFLAGS="-fpie -pie"
@@ -307,6 +315,12 @@ jobs:
             if [[ $UCLIBC_ARCH == riscv* ]] ; then
               FLAT_CFLAGS="-fPIC $FLAT_CFLAGS"
             fi
+            # h8300: -mh/-ms -mint32, see the testsuite step
+            if grep -q '^CONFIG_H8300H=y' uclibc-ng-config 2>/dev/null ; then
+              FLAT_CFLAGS="-mh -mint32 $FLAT_CFLAGS"
+            elif grep -q '^CONFIG_H8S=y' uclibc-ng-config 2>/dev/null ; then
+              FLAT_CFLAGS="-ms -mint32 $FLAT_CFLAGS"
+            fi
             # Compose with any existing CONFIG_EXTRA_CFLAGS (e.g. xtensa -mlongcalls)
             ESC=$(printf '%s\n' "$FLAT_CFLAGS$CF_CFLAGS" | sed 's/[\/&]/\\&/g')
             sed -i 's|^CONFIG_EXTRA_CFLAGS="\(.*\)"$|CONFIG_EXTRA_CFLAGS="\1 '"$ESC"'"|'  busybox-1.36.1/.config
@@ -340,6 +354,15 @@ jobs:
           ( cd rootfs/usr ; ln -s lib libx32 )
           ( cd rootfs ; find . | sort | cpio -o -H newc ) > rootfs.img
           nice -n 19 xz --check=crc32 -k rootfs.img
+          # h8300's edosk2674 has 14 MiB of RAM in a 16 MiB address space: the
+          # rootfs cannot be an initramfs there and comes as an ext2 disk on
+          # virtio instead.  Built for every target whose qemu command names it,
+          # twice the rootfs size plus room for the .out files.
+          if [[ $CONFIG_QEMU_CMD == *rootfs.ext2* ]] ; then
+            SIZE=$(du -sm rootfs | cut -f1)
+            mke2fs -q -t ext2 -b 1024 -d rootfs rootfs.ext2 $((SIZE * 2 + 32))M
+            echo "rootfs.ext2: $(du -h --apparent-size rootfs.ext2 | cut -f1) for ${SIZE} MB"
+          fi
 
       - name: Fetch Qemu Kernel Image
         run: |
@@ -381,6 +404,7 @@ jobs:
             kernel.config
             rootfs.img
             rootfs.img.xz
+            rootfs.ext2
             infos.json  
             linux-*
             sysroot.tar  
