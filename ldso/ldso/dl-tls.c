@@ -179,21 +179,6 @@ fail:
 	return 0;
 }
 
-/*
- * This function intentionally does not return any value but signals error
- * directly, as static TLS should be rare and code handling it should
- * not be inlined as much as possible.
- */
-void
-internal_function __attribute_noinline__
-_dl_allocate_static_tls (struct link_map *map)
-{
-	if (_dl_try_allocate_static_tls (map)) {
-		_dl_dprintf(2, "cannot allocate memory in static TLS block\n");
-		_dl_exit(30);
-	}
-}
-
 #ifdef SHARED
 /* Initialize static TLS area and DTV for current (only) thread.
    libpthread implementations should provide their own hook
