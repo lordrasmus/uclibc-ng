@@ -28,6 +28,9 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/syscall.h>
+#if !defined __NR_getpid && defined __NR_getxpid
+# define __NR_getpid __NR_getxpid	/* alpha */
+#endif
 #ifdef __UCLIBC_HAS_THREADS_NATIVE__
 #include <not-cancel.h>
 #include <atomic.h>
