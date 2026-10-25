@@ -29,11 +29,16 @@
 #include <dl-tls.h>
 #include <ldsodefs.h>
 
+/* ld.so includes this file, and so does libpthread/nptl/sysdeps/generic/
+   dl-tls.c for static programs, mapping the _dl_ helpers to libc's.  */
+
+#ifdef SHARED
 void *(*_dl_calloc_function) (size_t __nmemb, size_t __size) = NULL;
 void *(*_dl_realloc_function) (void *__ptr, size_t __size) = NULL;
 void *(*_dl_memalign_function) (size_t __boundary, size_t __size) = NULL;
 
 void (*_dl_free_function) (void *__ptr);
+#endif
 void *_dl_memalign (size_t __boundary, size_t __size);
 struct link_map *_dl_update_slotinfo (unsigned long int req_modid);
 
@@ -41,6 +46,7 @@ struct link_map *_dl_update_slotinfo (unsigned long int req_modid);
    --- without using libgcc division routines.  */
 #define roundup_pow2(n, p) (((n) + (p) - 1) & ~((p) - 1))
 
+#ifdef SHARED
 void *
 _dl_calloc (size_t __nmemb, size_t __size)
 {
@@ -66,6 +72,7 @@ _dl_realloc (void * __ptr, size_t __size)
 	_dl_debug_early("NOT IMPLEMENTED PROPERLY!!!\n");
 	return NULL;
 }
+#endif
 
 /* The __tls_get_addr function has two basic forms which differ in the
    arguments.  The IA-64 form takes two parameters, the module ID and
@@ -212,13 +219,15 @@ _dl_nothread_init_static_tls (struct link_map *map)
 }
 #endif
 
+#ifdef SHARED
 /* Taken from glibc/sysdeps/generic/dl-tls.c */
 static void
 oom (void)
 {
-	_dl_debug_early("cannot allocate thread-local memory: ABORT\n");
-	_dl_exit(30);
+	_dl_dprintf(2, "cannot allocate thread-local memory: ABORT\n");
+	_dl_exit(127);
 }
+#endif
 
 size_t
 internal_function
@@ -280,6 +289,8 @@ _dl_next_tls_modid (void)
   return result;
 }
 
+#ifdef SHARED
+/* A static program has libc-tls.c lay out its one static TLS block.  */
 void
 internal_function
 _dl_determine_tlsoffset (void)
@@ -424,6 +435,7 @@ _dl_determine_tlsoffset (void)
   /* The alignment requirement for the static TLS block.  */
   _dl_tls_static_align = max_align;
 }
+#endif
 
 
 static void *
@@ -455,7 +467,9 @@ allocate_dtv (void *result)
   return result;
 }
 
-/* Get size and alignment requirements of the static TLS block.  */
+#ifdef SHARED
+/* Get size and alignment requirements of the static TLS block.  Static
+   programs have it in libc-tls.c.  */
 void
 internal_function
 _dl_get_tls_static_info (size_t *sizep, size_t *alignp)
@@ -463,7 +477,11 @@ _dl_get_tls_static_info (size_t *sizep, size_t *alignp)
   *sizep = _dl_tls_static_size;
   *alignp = _dl_tls_static_align;
 }
+#endif
 
+#ifdef SHARED
+/* NPTL hands _dl_allocate_tls the new thread's memory; only ld.so asks
+   for the main thread's block.  */
 void *
 internal_function
 _dl_allocate_tls_storage (void)
@@ -510,6 +528,7 @@ _dl_allocate_tls_storage (void)
 
   return result;
 }
+#endif
 
 void *
 internal_function
@@ -597,9 +616,13 @@ void *
 internal_function
 _dl_allocate_tls (void *mem)
 {
+#ifdef SHARED
   return _dl_allocate_tls_init (mem == NULL
 				? _dl_allocate_tls_storage ()
 				: allocate_dtv (mem));
+#else
+  return _dl_allocate_tls_init (allocate_dtv (mem));
+#endif
 }
 
 void
@@ -616,7 +639,11 @@ _dl_deallocate_tls (void *tcb, bool dealloc_tcb)
       _dl_free (dtv[1 + cnt].pointer.val);
 
   /* The array starts with dtv[-1].  */
+#ifdef SHARED
   if (dtv != _dl_initial_dtv)
+#else
+  if (dtv - 1 != &static_dtv)
+#endif
     _dl_free (dtv - 1);
 
   if (dealloc_tcb)
@@ -633,6 +660,10 @@ _dl_deallocate_tls (void *tcb, bool dealloc_tcb)
     }
 }
 
+#ifdef SHARED
+/* What follows serves the general and local dynamic TLS models, which a
+   static program does not use: the linker turns its accesses into
+   offsets from the thread pointer.  */
 static void *
 allocate_and_init (struct link_map *map)
 {
@@ -640,10 +671,7 @@ allocate_and_init (struct link_map *map)
 
 	newp = _dl_memalign (map->l_tls_align, map->l_tls_blocksize);
 	if (newp == NULL)
-	{
-		_dl_dprintf(2, "%s:%d: Out of memory!!!\n", __func__, __LINE__);
-		_dl_exit(1);
-	}
+		oom ();
 
 	/* Initialize the memory.  */
 	_dl_memcpy (newp, map->l_tls_initimage, map->l_tls_initimage_size);
@@ -913,6 +941,7 @@ _dl_tls_get_addr_soft (struct link_map *map)
 
   return p;
 }
+#endif
 
 void
 _dl_add_to_slotinfo (struct link_map  *l)
@@ -982,6 +1011,7 @@ _dl_add_to_slotinfo (struct link_map  *l)
   _dl_tls_generation++;
 }
 
+#ifdef SHARED
 /* Taken from glibc/elf/rtld.c */
 static bool tls_init_tp_called;
 
@@ -1000,7 +1030,6 @@ _dl_initial_error_catch_tsd (void)
 	return &__tsd_data;
 }
 
-#ifdef SHARED
 void*
 internal_function
 init_tls (void);
