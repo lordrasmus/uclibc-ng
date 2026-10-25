@@ -57,8 +57,27 @@ extern void _dl_get_tls_static_info (size_t *sizep, size_t *alignp)
 
 extern void _dl_allocate_static_tls (struct link_map *map)
      internal_function attribute_hidden;
+/* Not hidden: libdl's dlopen calls it, as it does _dl_add_to_slotinfo.  */
 extern int _dl_try_allocate_static_tls (struct link_map* map)
-     internal_function attribute_hidden;
+     internal_function;
+
+/* The room in the static TLS block for libraries dlopen loads later:
+   the configured size, or LD_STATIC_TLS_EXTRA, ENV here, if that is a
+   larger number of bytes.  */
+static __inline__ size_t
+_dl_static_tls_surplus (const char *env)
+{
+	size_t size = __UCLIBC_DLOPEN_STATIC_TLS__, val = 0;
+
+	if (env == NULL || *env == '\0')
+		return size;
+	for (; *env >= '0' && *env <= '9'; env++) {
+		if (val > ((size_t) -1 - 9) / 10)
+			return size;
+		val = val * 10 + (*env - '0');
+	}
+	return *env == '\0' && val > size ? val : size;
+}
 
 /* Taken from glibc/elf/dl-reloc.c */
 #define CHECK_STATIC_TLS(sym_map)											\

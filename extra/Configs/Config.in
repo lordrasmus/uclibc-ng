@@ -642,6 +642,26 @@ config UCLIBC_HAS_TLS
 	  which is not on stack. It needs __thread support enabled in
 	  gcc.
 
+config UCLIBC_DLOPEN_STATIC_TLS
+	int "Static TLS kept for libraries loaded by dlopen"
+	depends on UCLIBC_HAS_TLS
+	default 2048
+	help
+	  Bytes every thread's static TLS block keeps free for libraries
+	  loaded with dlopen whose TLS has to lie there: those built for the
+	  initial-exec TLS model (DF_STATIC_TLS), and, where there are TLS
+	  descriptors, others while there is room.  A library that needs the
+	  room and does not find it makes dlopen fail.  The room costs address
+	  space in every thread, and memory once a library uses it.
+
+	  glibc keeps 1664 bytes (sixteen dlmopen namespaces of 100 bytes in
+	  its old reckoning, which uClibc does not have); 2048 is at least as
+	  much, so what fits there fits here.
+
+	  LD_STATIC_TLS_EXTRA, a number of bytes, can raise it when a program
+	  starts, not lower it; setuid and setgid programs ignore it.  In a
+	  static program it only exists if the program links dlopen.
+
 config UCLIBC_STATIC_TLS_RESERVE_SIZE
 	int "Room for thread-local variables in a static program"
 	depends on UCLIBC_HAS_TLS

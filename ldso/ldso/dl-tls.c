@@ -91,11 +91,12 @@ _dl_realloc (void * __ptr, size_t __size)
 # define GET_ADDR_OFFSET	ti->ti_offset
 #endif
 
-/*
- * Amount of excess space to allocate in the static TLS area
- * to allow dynamic loading of modules defining IE-model TLS data.
- */
-#define TLS_STATIC_SURPLUS	64 + DL_NNS * 100
+#ifdef SHARED
+/* Room in the static TLS block for modules dlopen loads later, which
+   ld.so sets from LD_STATIC_TLS_EXTRA.  Static programs get theirs from
+   libdl, see __libc_setup_tls (libc-tls.c).  */
+size_t _dl_tls_static_surplus_size = __UCLIBC_DLOPEN_STATIC_TLS__;
+#endif
 
 /* Value used for dtv entries for which the allocation is delayed. */
 #define TLS_DTV_UNALLOCATED	((void *) -1l)
@@ -188,7 +189,7 @@ internal_function __attribute_noinline__
 _dl_allocate_static_tls (struct link_map *map)
 {
 	if (_dl_try_allocate_static_tls (map)) {
-		_dl_dprintf(2, "cannot allocate memory in static TLS block");
+		_dl_dprintf(2, "cannot allocate memory in static TLS block\n");
 		_dl_exit(30);
 	}
 }
@@ -381,7 +382,8 @@ _dl_determine_tlsoffset (void)
     }
 
   _dl_tls_static_used = offset;
-  _dl_tls_static_size = (roundup_pow2 (offset + TLS_STATIC_SURPLUS, max_align)
+  _dl_tls_static_size = (roundup_pow2 (offset + _dl_tls_static_surplus_size,
+				      max_align)
 			    + TLS_TCB_SIZE);
 # elif defined(TLS_DTV_AT_TP)
   /* The TLS blocks start right after the TCB.  */
@@ -426,7 +428,7 @@ _dl_determine_tlsoffset (void)
     }
 
   _dl_tls_static_used = offset;
-  _dl_tls_static_size = roundup_pow2 (offset + TLS_STATIC_SURPLUS,
+  _dl_tls_static_size = roundup_pow2 (offset + _dl_tls_static_surplus_size,
                                       TLS_TCB_ALIGN);
 # else
 #  error "Either TLS_TCB_AT_TP or TLS_DTV_AT_TP must be defined"
