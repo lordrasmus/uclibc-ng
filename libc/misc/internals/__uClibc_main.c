@@ -236,9 +236,12 @@ weak_alias(__environ, environ)
 static void __check_one_fd(int fd, int mode)
 {
     INTERNAL_SYSCALL_DECL (err);
+    /* Not inside INTERNAL_SYSCALL_ERROR_P: mips, alpha and ia64 ignore its
+       first argument there, so the call would never be made.  */
+    int ret = CHECK_FCNTL (fd, F_GETFD);
 
     /* Check if the specified fd is already open */
-    if (INTERNAL_SYSCALL_ERROR_P (CHECK_FCNTL (fd, F_GETFD), err))
+    if (INTERNAL_SYSCALL_ERROR_P (ret, err))
     {
 	/* The descriptor is probably not open, so try to use /dev/null */
 	int nullfd = CHECK_OPEN (_PATH_DEVNULL, mode);
