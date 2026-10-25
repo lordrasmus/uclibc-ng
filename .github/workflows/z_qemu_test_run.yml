@@ -53,6 +53,7 @@ jobs:
             kernel.config
             rootfs.img
             rootfs.img.xz
+            rootfs.ext2
             infos.json  
             linux-*
             sysroot.tar  
