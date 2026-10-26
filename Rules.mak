@@ -118,6 +118,8 @@ export ARCH
 # Make certain these contain a final "/", but no "//"s.
 scrub_path = $(strip $(subst //,/, $(subst ,/, $(call qstrip,$(1)))))
 TARGET_SUBARCH := $(call qstrip,$(TARGET_SUBARCH))
+# The NPTL code of sparc covers both word sizes; sparc64 builds it too.
+NPTL_ARCH := $(if $(filter sparc64,$(TARGET_ARCH)),sparc,$(TARGET_ARCH))
 RUNTIME_PREFIX := $(call scrub_path,$(RUNTIME_PREFIX))
 DEVEL_PREFIX   := $(call scrub_path,$(DEVEL_PREFIX))
 MULTILIB_DIR   := $(call scrub_path,$(MULTILIB_DIR))
@@ -727,10 +729,10 @@ PTDIR := libpthread/$(PTNAME)
 ifeq ($(UCLIBC_HAS_THREADS_NATIVE),y)
 PTINC:= -I$(top_builddir)$(PTDIR)					\
 	-I$(top_srcdir)$(PTDIR)						\
-	$(if $(TARGET_SUBARCH),-I$(top_srcdir)$(PTDIR)/sysdeps/unix/sysv/linux/$(TARGET_ARCH)/$(TARGET_SUBARCH)) \
-	-I$(top_srcdir)$(PTDIR)/sysdeps/unix/sysv/linux/$(TARGET_ARCH)	\
-	-I$(top_builddir)$(PTDIR)/sysdeps/$(TARGET_ARCH)		\
-	-I$(top_srcdir)$(PTDIR)/sysdeps/$(TARGET_ARCH)			\
+	$(if $(TARGET_SUBARCH),-I$(top_srcdir)$(PTDIR)/sysdeps/unix/sysv/linux/$(NPTL_ARCH)/$(TARGET_SUBARCH)) \
+	-I$(top_srcdir)$(PTDIR)/sysdeps/unix/sysv/linux/$(NPTL_ARCH)	\
+	-I$(top_builddir)$(PTDIR)/sysdeps/$(NPTL_ARCH)		\
+	-I$(top_srcdir)$(PTDIR)/sysdeps/$(NPTL_ARCH)			\
 	-I$(top_builddir)$(PTDIR)/sysdeps/unix/sysv/linux		\
 	-I$(top_srcdir)$(PTDIR)/sysdeps/unix/sysv/linux			\
 	-I$(top_srcdir)$(PTDIR)/sysdeps/pthread				\
