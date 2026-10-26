@@ -16,6 +16,6 @@
 
 _syscall_noerr0(pid_t, getpid)
 libc_hidden_weak(getpid)
-#ifndef __NR_getppid
+#if !defined __NR_getppid && !defined __NR_getxpid
 strong_alias(getpid,getppid)
 #endif
