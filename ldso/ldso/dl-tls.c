@@ -101,6 +101,7 @@ size_t _dl_tls_static_surplus_size = __UCLIBC_DLOPEN_STATIC_TLS__;
 /* Value used for dtv entries for which the allocation is delayed. */
 #define TLS_DTV_UNALLOCATED	((void *) -1l)
 
+#ifndef __ARCH_HAS_NO_LDSO__
 /*
  * We are trying to perform a static TLS relocation in MAP, but it was
  * dynamically loaded.  This can only work if there is enough surplus in
@@ -178,6 +179,7 @@ fail:
 
 	return 0;
 }
+#endif
 
 #ifdef SHARED
 /* Initialize static TLS area and DTV for current (only) thread.

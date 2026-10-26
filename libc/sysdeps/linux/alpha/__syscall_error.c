@@ -10,7 +10,13 @@
    an error number into errno.  */
 long attribute_hidden __syscall_error (void)
 {
-	register int err_no __asm__("$0");
+	register long v0 __asm__("$0");
+	int err_no;
+
+	/* Copy $0 first: with TLS, reaching errno reads the thread pointer
+	   through rduniq, which returns it in $0 too.  Taking v0 as an input
+	   orders the copy before that.  */
+	__asm__ ("mov %1,%0" : "=r" (err_no) : "r" (v0));
 	__set_errno (err_no);
 	return -1;
 }

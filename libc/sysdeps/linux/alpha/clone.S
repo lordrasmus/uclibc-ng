@@ -25,7 +25,8 @@
 #include <sys/syscall.h>
 #include <sys/regdef.h>
 
-/* int clone(int (*fn)(void *arg), void *child_stack, int flags, void *arg) */
+/* int clone(int (*fn)(void *arg), void *child_stack, int flags, void *arg,
+	     pid_t *ptid, void *tls, pid_t *ctid) */
 
 .text
 .globl  clone;
@@ -46,8 +47,14 @@ clone:
 	stq	a0,0(a1)
 	stq	a3,8(a1)
 
-	/* Do the system call */
+	/* The kernel takes clone(flags, usp, ptid, ctid, tls); usp is in
+	   place already, ctid is the seventh argument and on the stack.  */
 	mov	a2,a0
+	mov	a4,a2
+	ldq	a3,0($30)
+	mov	a5,a4
+
+	/* Do the system call */
 	ldiq	v0,__NR_clone
 	call_pal 131
 
