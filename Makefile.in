@@ -253,6 +253,7 @@ HEADERS_RM- := \
 	bits/stackinfo.h \
 	atomic.h \
 	bits/atomic.h \
+	bits/atomic-builtins.h \
 	tls.h
 ifeq ($(UCLIBC_STRICT_HEADERS),y)
 HEADERS_RM- += sgtty.h
@@ -294,7 +295,7 @@ HEADERS_RM-$(UCLIBC_HAS_SYSLOG)              += syslog.h sys/syslog.h bits/syslo
 HEADERS_RM-$(UCLIBC_HAS_THREADS)             += *thread*.h semaphore.h \
 	bits/*thread*.h \
 	bits/initspin.h
-HEADERS_RM-$(UCLIBC_HAS_THREADS_NATIVE)      += atomic.h bits/atomic.h
+HEADERS_RM-$(UCLIBC_HAS_THREADS_NATIVE)      += atomic.h bits/atomic.h bits/atomic-builtins.h
 HEADERS_RM-$(UCLIBC_HAS_UTMP)               += bits/utmp.h utmp.h
 HEADERS_RM-$(UCLIBC_HAS_UTMPX)               += bits/utmpx.h utmpx.h
 HEADERS_RM-$(UCLIBC_HAS_UCHAR)               += uchar.h
