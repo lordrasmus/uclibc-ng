@@ -98,6 +98,11 @@ _start:
 	 * be NULL.  */
 	mov	%g1, %o5
 
+	/* stack_end, the seventh argument, goes on the stack -- into the
+	 * slot argc came in, which has been read already.  */
+	add	%sp, STACK_BIAS, %g1
+	stx	%g1, [%sp+STACK_BIAS+22*8]
+
 	/* Let libc do the rest of the initialization, and call main.  */
 	call __uClibc_main
 	nop
