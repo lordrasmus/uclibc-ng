@@ -357,9 +357,11 @@ jobs:
           # h8300's edosk2674 has 14 MiB of RAM in a 16 MiB address space: the
           # rootfs cannot be an initramfs there and comes as an ext2 disk on
           # virtio instead.  Built for every target whose qemu command names it,
-          # twice the rootfs size plus room for the .out files.
+          # twice the rootfs size plus room for the .out files.  The size is
+          # the apparent one: on a compressing file system (the runners sit on
+          # ZFS) plain du reports far less than the files hold.
           if [[ $CONFIG_QEMU_CMD == *rootfs.ext2* ]] ; then
-            SIZE=$(du -sm rootfs | cut -f1)
+            SIZE=$(du -sm --apparent-size rootfs | cut -f1)
             mke2fs -q -t ext2 -b 1024 -d rootfs rootfs.ext2 $((SIZE * 2 + 32))M
             echo "rootfs.ext2: $(du -h --apparent-size rootfs.ext2 | cut -f1) for ${SIZE} MB"
           fi
