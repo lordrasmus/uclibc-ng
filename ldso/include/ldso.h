@@ -189,6 +189,11 @@ extern void *_dl_get_ready_to_run(struct elf_resolve *tpnt, DL_LOADADDR_TYPE loa
 #include <dl-defs.h>
 #include <dl-elf.h>
 
+/* For the static TLS setup (dl-tls.c) of arches without a loader.  */
+# include <assert.h>
+# define _dl_assert(expr) assert(expr)
+# define _dl_debug_early(fmt, args...) do {} while (0)
+
 #endif
 
 #include <dl-auxvt.h>

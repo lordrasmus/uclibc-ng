@@ -21,6 +21,10 @@
 #include <sysdep.h>
 #include <internal-signals.h>
 
+#if !defined __NR_getpid && defined __NR_getxpid
+# define __NR_getpid __NR_getxpid	/* alpha */
+#endif
+
 int
 raise (int sig)
 {
