@@ -381,16 +381,26 @@ static int pthread_allocate_stack(const pthread_attr_t *attr,
       new_thread = default_new_thread;
       new_thread_bottom = (char *) (new_thread + 1) - stacksize;
       void * new_stack_addr = NULL;
-      new_stack_addr = mmap((caddr_t)((char *)(new_thread + 1) - INITIAL_STACK_SIZE),
-               INITIAL_STACK_SIZE, PROT_READ | PROT_WRITE | PROT_EXEC,
-               MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE | MAP_GROWSDOWN,
-               -1, 0);
+#ifdef NEED_SEPARATE_REGISTER_STACK
+      /* The register stack grows up from the bottom of the area, the
+         memory stack down from the top: map all of it.  */
+      char *map_addr = new_thread_bottom;
+      size_t map_size = (char *)(new_thread + 1) - new_thread_bottom;
+      int map_flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE;
+#else
+      char *map_addr = (char *)(new_thread + 1) - INITIAL_STACK_SIZE;
+      size_t map_size = INITIAL_STACK_SIZE;
+      int map_flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE |
+                      MAP_GROWSDOWN;
+#endif
+      new_stack_addr = mmap((caddr_t) map_addr, map_size,
+               PROT_READ | PROT_WRITE | PROT_EXEC, map_flags, -1, 0);
       if (new_stack_addr == MAP_FAILED){
         /* Bad luck, this segment is already mapped. */
         return -1;
-      } else if ( new_stack_addr != (caddr_t)((char *)(new_thread + 1) - INITIAL_STACK_SIZE)) {
+      } else if ( new_stack_addr != (caddr_t) map_addr) {
         /* Worse luck, we almost overwrote an existing page */
-        munmap(new_stack_addr, INITIAL_STACK_SIZE);
+        munmap(new_stack_addr, map_size);
         return -2;
       }
       /* We manage to get a stack.  Now see whether we need a guard
