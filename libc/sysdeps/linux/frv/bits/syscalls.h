@@ -53,27 +53,27 @@
 #define LOAD_ARGS_2(a1, a2)			\
   int __a2tmp = (int) (a2);			\
   LOAD_ARGS_1 (a1)				\
-  register int __a2 __asm__ ("gr8") = __a2tmp;
+  register int __a2 __asm__ ("gr9") = __a2tmp;
 #define ASM_ARGS_2	ASM_ARGS_1, "r" (__a2)
 #define LOAD_ARGS_3(a1, a2, a3)			\
   int __a3tmp = (int) (a3);			\
   LOAD_ARGS_2 (a1, a2)				\
-  register int __a3 __asm__ ("gr9") = __a3tmp;
+  register int __a3 __asm__ ("gr10") = __a3tmp;
 #define ASM_ARGS_3	ASM_ARGS_2, "r" (__a3)
 #define LOAD_ARGS_4(a1, a2, a3, a4)		\
   int __a4tmp = (int) (a4);			\
   LOAD_ARGS_3 (a1, a2, a3)			\
-  register int __a4 __asm__ ("gr10") = __a4tmp;
+  register int __a4 __asm__ ("gr11") = __a4tmp;
 #define ASM_ARGS_4	ASM_ARGS_3, "r" (__a4)
 #define LOAD_ARGS_5(a1, a2, a3, a4, a5)		\
   int __v1tmp = (int) (a5);			\
   LOAD_ARGS_4 (a1, a2, a3, a4)			\
-  register int __v1 __asm__ ("gr11") = __v1tmp;
+  register int __v1 __asm__ ("gr12") = __v1tmp;
 #define ASM_ARGS_5	ASM_ARGS_4, "r" (__v1)
 #define LOAD_ARGS_6(a1, a2, a3, a4, a5, a6)	\
   int __v2tmp = (int) (a6);			\
   LOAD_ARGS_5 (a1, a2, a3, a4, a5)		\
-  register int __v2 __asm__ ("gr12") = __v2tmp;
+  register int __v2 __asm__ ("gr13") = __v2tmp;
 #define ASM_ARGS_6	ASM_ARGS_5, "r" (__v2)
 
 #endif /* __ASSEMBLER__ */
