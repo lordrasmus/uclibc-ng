@@ -5,10 +5,17 @@
 # Licensed under the LGPL v2.1, see the file COPYING.LIB in this tarball.
 #
 
+ifeq ($(TARGET_ARCH),sparc64)
+# v9 always has casa: the generic lock, semaphore and barrier code.
+libpthread_linux_arch_CSRC = pthread_once.c
+libc_linux_arch_CSRC = fork.c
+else
+# These keep a lock byte in the object for the sparc32 casa emulation.
 libpthread_linux_arch_CSRC = pthread_once.c lowlevellock.c \
 	pthread_barrier_init.c pthread_barrier_wait.c pthread_barrier_destroy.c \
 	sem_init.c sem_post.c sem_timedwait.c sem_trywait.c sem_wait.c
 
 libc_linux_arch_CSRC = fork.c libc-lowlevellock.c
+endif
 
 ASFLAGS += -DUSE___THREAD

@@ -6,15 +6,15 @@
 #
 
 subdirs += libpthread/nptl/sysdeps/unix/sysv/linux \
-	   libpthread/nptl/sysdeps/unix/sysv/linux/$(TARGET_ARCH)
-ifneq ($(abspath libpthread/nptl/sysdeps/unix/sysv/linux/$(TARGET_ARCH)),$(abspath libpthread/nptl/sysdeps/unix/sysv/linux/$(TARGET_ARCH)/$(TARGET_SUBARCH)))
-subdirs += libpthread/nptl/sysdeps/unix/sysv/linux/$(TARGET_ARCH)/$(TARGET_SUBARCH)
+	   libpthread/nptl/sysdeps/unix/sysv/linux/$(NPTL_ARCH)
+ifneq ($(abspath libpthread/nptl/sysdeps/unix/sysv/linux/$(NPTL_ARCH)),$(abspath libpthread/nptl/sysdeps/unix/sysv/linux/$(NPTL_ARCH)/$(TARGET_SUBARCH)))
+subdirs += libpthread/nptl/sysdeps/unix/sysv/linux/$(NPTL_ARCH)/$(TARGET_SUBARCH)
 endif
 
 libpthread_linux_DIR := $(top_srcdir)libpthread/nptl/sysdeps/unix/sysv/linux
 libpthread_linux_OUT := $(top_builddir)libpthread/nptl/sysdeps/unix/sysv/linux
-libpthread_linux_arch_DIR := $(libpthread_linux_DIR)/$(TARGET_ARCH)
-libpthread_linux_arch_OUT := $(libpthread_linux_OUT)/$(TARGET_ARCH)
+libpthread_linux_arch_DIR := $(libpthread_linux_DIR)/$(NPTL_ARCH)
+libpthread_linux_arch_OUT := $(libpthread_linux_OUT)/$(NPTL_ARCH)
 
 libc_linux_CSRC :=
 libpthread_linux_CSRC :=
@@ -113,7 +113,7 @@ objclean-y += CLEAN_libpthread/nptl/sysdeps/unix/sysv/linux
 headers_clean-y += HEADERCLEAN_libpthread/nptl/sysdeps/unix/sysv/linux
 
 CFLAGS-pthread_getcpuclockid.c = -I$(top_srcdir)librt
-CFLAGS-pt-pread_pwrite.c = -I$(top_srcdir)libc/sysdeps/linux/$(TARGET_ARCH) \
+CFLAGS-pt-pread_pwrite.c = -I$(top_srcdir)libc/sysdeps/linux/$(NPTL_ARCH) \
 			    -I$(top_srcdir)libc/sysdeps/linux/common
 CFLAGS-mq_notify.c = -I$(top_srcdir)librt
 CFLAGS-timer_create.c = -I$(top_srcdir)librt
@@ -154,11 +154,11 @@ HEADERCLEAN_libpthread/nptl/sysdeps/unix/sysv/linux:
 CLEAN_libpthread/nptl/sysdeps/unix/sysv/linux:
 	$(do_rm) $(addprefix $(libpthread_linux_OUT)/*., o os oS)
 
-objclean-y+=CLEAN_libpthread/nptl/sysdeps/unix/sysv/linux/$(TARGET_ARCH)
-CLEAN_libpthread/nptl/sysdeps/unix/sysv/linux/$(TARGET_ARCH):
+objclean-y+=CLEAN_libpthread/nptl/sysdeps/unix/sysv/linux/$(NPTL_ARCH)
+CLEAN_libpthread/nptl/sysdeps/unix/sysv/linux/$(NPTL_ARCH):
 	$(do_rm) $(addprefix $(libpthread_linux_arch_OUT)/*., o os oS)
 ifneq ($(TARGET_SUBARCH),)
-objclean-y+=CLEAN_libpthread/nptl/sysdeps/unix/sysv/linux/$(TARGET_ARCH)/$(TARGET_SUBARCH)
-CLEAN_libpthread/nptl/sysdeps/unix/sysv/linux/$(TARGET_ARCH)/$(TARGET_SUBARCH):
+objclean-y+=CLEAN_libpthread/nptl/sysdeps/unix/sysv/linux/$(NPTL_ARCH)/$(TARGET_SUBARCH)
+CLEAN_libpthread/nptl/sysdeps/unix/sysv/linux/$(NPTL_ARCH)/$(TARGET_SUBARCH):
 	$(do_rm) $(addprefix $(libpthread_linux_subarch_OUT)/*., o os oS)
 endif
