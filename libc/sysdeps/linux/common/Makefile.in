@@ -84,7 +84,7 @@ ifeq ($(UCLIBC_HAS_THREADS),y)
 CSRC- += raise.c
 endif
 ifeq ($(UCLIBC_HAS_THREADS_NATIVE),y)
-CSRC- += fork.c getpid.c
+CSRC- += fork.c
 CSRC- += $(if $(findstring =arm=,=$(TARGET_ARCH)=),vfork.c)
 CSRC- += $(if $(findstring =x86_64=,=$(TARGET_ARCH)=),vfork.c)
 CSRC- += $(if $(findstring =metag=,=$(TARGET_ARCH)=),vfork.c)
