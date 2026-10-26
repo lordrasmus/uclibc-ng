@@ -20,6 +20,13 @@
 #include "internals.h"
 #include <stdio.h>
 
+#if !defined SHARED && defined INIT_THREAD_SELF
+/* thread_self() is a register here, set for the initial thread by
+   __pthread_initialize_minimal, which __uClibc_init only references
+   weakly: whatever reads it must bring it.  */
+__asm__ (".globl __pthread_initialize_minimal");
+#endif
+
 int *
 __errno_location (void)
 {
