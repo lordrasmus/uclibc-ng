@@ -11,7 +11,9 @@
 #include <errno.h>
 #include <sys/mman.h>
 
-#ifndef __NR_mmap2
+/* ia64's mmap2 counts in the kernel's PAGE_SIZE, a configuration choice
+   user space cannot know; its mmap takes a 64-bit byte offset anyway.  */
+#if !defined __NR_mmap2 || defined __ia64__
 
 /*
  * This version is a stub that just chops off everything at the mmap 32 bit
