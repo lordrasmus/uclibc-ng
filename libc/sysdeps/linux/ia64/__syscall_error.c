@@ -13,7 +13,11 @@
 long __syscall_error(void) attribute_hidden;
 long __syscall_error(void)
 {
-	register int err_no __asm__("%r8");
+	int err_no;
+
+	/* Read r8 before anything else: __set_errno may be a call that
+	   returns in r8 itself.  */
+	__asm__ __volatile__ ("mov %0 = r8" : "=r" (err_no));
 	__set_errno(err_no);
 	return -1;
 }
