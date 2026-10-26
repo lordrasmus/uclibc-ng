@@ -1,0 +1,61 @@
+name: sh4-le-npt-gcc-13-kernel-6.1.60-shared-elf
+
+# https://app.assembla.com/wiki/show/qemu-sh4/BuildingEnvironment/31
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [test-update]
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - master
+
+      
+concurrency:
+  # Zwei Laeufe desselben Ziels duerfen sich nicht ueberholen: der Badge ist
+  # eine Datei auf dem Server, es gewinnt also der, der spaeter fertig wird --
+  # nicht der mit dem neueren Commit. Am 2026-08-26 hat so ein dispatch-Lauf
+  # auf dem aelteren Commit den gruenen Badge eines Pushs ueberschrieben, eine
+  # Minute nach ihm. Die Gruppe ist (Workflow, Ref), die Ziele laufen also
+  # weiter parallel zueinander; nur derselbe Workflow reiht sich auf. Wartende
+  # Laeufe belegen keinen Runner, und kommt ein dritter Trigger, verwirft
+  # GitHub den wartenden und behaelt den neuesten -- fuer den Badge richtig.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-sh4-gcc-13.5.0-npt-shared
+      gcc_prefix: sh4-openadk-linux-uclibc-
+      kernel_vers: 6.1.60
+      kernel_dir: v6.x
+      kernel_arch: sh
+      config_file: config.sh4_npt
+      qemu_kernel: kernel-sh4.img
+      qemu_cmd: qemu-system-sh4 -M r2d -m 1024M -kernel kernel.img -drive if=ide,format=raw,file=rootfs.ext2 -append root=/dev/sda -nographic -serial vc
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+
+
+  call_qemu:     
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit
+
+  call_badge_failed:
+    if: failure()
+    needs: [call_build, call_images]
+    uses: ./.github/workflows/z_badge_failed_workflow.yml
+    with:
+      build_result: ${{ needs.call_build.result }}
+      images_result: ${{ needs.call_images.result }}
+    secrets: inherit
