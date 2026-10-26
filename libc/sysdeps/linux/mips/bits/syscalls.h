@@ -33,17 +33,12 @@
 ({									\
 	INTERNAL_SYSCALL_DECL(err);					\
 	ARG_TYPE res = INTERNAL_SYSCALL_NCS(name, err, nr, args);	\
-	if (unlikely(INTERNAL_SYSCALL_ERROR_P(res, err))) {		\
-	    res = -res;							\
-	}								\
         res;								\
 })
 
-#define INTERNAL_SYSCALL_DECL(err) long err attribute_unused
-
-#define INTERNAL_SYSCALL_ERROR_P(val, err)   ((long) (err))
-
-#define INTERNAL_SYSCALL_ERRNO(val, err)     (val)
+/* internal_syscallN fold the a3 error flag into -errno.  */
+#define INTERNAL_SYSCALL_ERROR_P(val, err) \
+	((unsigned ARG_TYPE) (val) >= (unsigned ARG_TYPE) -4095)
 
 #define INTERNAL_SYSCALL(name, err, nr, args...) \
 	internal_syscall##nr (, "li\t$2, %2\t\t\t# " #name "\n\t",	\
@@ -73,8 +68,7 @@
 	: "=r" (__v0), "=r" (__a3)					\
 	: input								\
 	: __SYSCALL_CLOBBERS);						\
-	err = __a3;							\
-	_sys_result = __v0;						\
+	_sys_result = __a3 ? -__v0 : __v0;				\
 	}								\
 	_sys_result;							\
 })
@@ -95,8 +89,7 @@
 	: "=r" (__v0), "=r" (__a3)					\
 	: input, "r" (__a0)						\
 	: __SYSCALL_CLOBBERS);						\
-	err = __a3;							\
-	_sys_result = __v0;						\
+	_sys_result = __a3 ? -__v0 : __v0;				\
 	}								\
 	_sys_result;							\
 })
@@ -118,8 +111,7 @@
 	: "=r" (__v0), "=r" (__a3)					\
 	: input, "r" (__a0), "r" (__a1)					\
 	: __SYSCALL_CLOBBERS);						\
-	err = __a3;							\
-	_sys_result = __v0;						\
+	_sys_result = __a3 ? -__v0 : __v0;				\
 	}								\
 	_sys_result;							\
 })
@@ -142,8 +134,7 @@
 	: "=r" (__v0), "=r" (__a3)					\
 	: input, "r" (__a0), "r" (__a1), "r" (__a2)			\
 	: __SYSCALL_CLOBBERS);						\
-	err = __a3;							\
-	_sys_result = __v0;						\
+	_sys_result = __a3 ? -__v0 : __v0;				\
 	}								\
 	_sys_result;							\
 })
@@ -166,8 +157,7 @@
 	: "=r" (__v0), "+r" (__a3)					\
 	: input, "r" (__a0), "r" (__a1), "r" (__a2)			\
 	: __SYSCALL_CLOBBERS);						\
-	err = __a3;							\
-	_sys_result = __v0;						\
+	_sys_result = __a3 ? -__v0 : __v0;				\
 	}								\
 	_sys_result;							\
 })
@@ -204,8 +194,7 @@
 	: input, "r" (__a0), "r" (__a1), "r" (__a2),			\
 	  "r" ((long)arg5), "r" (array)					\
 	: __SYSCALL_CLOBBERS);						\
-	err = __a3;							\
-	_sys_result = __v0;						\
+	_sys_result = __a3 ? -__v0 : __v0;				\
 	}								\
 	_sys_result;							\
 })
@@ -235,8 +224,7 @@
 	: input, "r" (__a0), "r" (__a1), "r" (__a2),			\
 	  "r" ((long)arg5), "r" ((long)arg6), "r" (array)		\
 	: __SYSCALL_CLOBBERS);						\
-	err = __a3;							\
-	_sys_result = __v0;						\
+	_sys_result = __a3 ? -__v0 : __v0;				\
 	}								\
 	_sys_result;							\
 })
@@ -268,8 +256,7 @@
 	  "r" ((long)arg5), "r" ((long)arg6), "r" ((long)arg7),		\
 	  "r" (array)							\
 	: __SYSCALL_CLOBBERS);						\
-	err = __a3;							\
-	_sys_result = __v0;						\
+	_sys_result = __a3 ? -__v0 : __v0;				\
 	}								\
 	_sys_result;							\
 })
@@ -303,8 +290,7 @@
 	: "=r" (__v0), "+r" (__a3) 					\
 	: input, "r" (__a0), "r" (__a1), "r" (__a2), "r" (__a4)		\
 	: __SYSCALL_CLOBBERS); 						\
-	err = __a3;							\
-	_sys_result = __v0;						\
+	_sys_result = __a3 ? -__v0 : __v0;				\
 	}								\
 	_sys_result;							\
 })
@@ -330,8 +316,7 @@
 	: input, "r" (__a0), "r" (__a1), "r" (__a2), "r" (__a4),	\
 	  "r" (__a5)							\
 	: __SYSCALL_CLOBBERS); 						\
-	err = __a3;							\
-	_sys_result = __v0;						\
+	_sys_result = __a3 ? -__v0 : __v0;				\
 	}								\
 	_sys_result;							\
 })
