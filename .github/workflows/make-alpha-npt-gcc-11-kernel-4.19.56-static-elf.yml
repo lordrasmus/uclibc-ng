@@ -1,0 +1,61 @@
+name: alpha-npt-gcc-11-kernel-4.19.56-static-elf
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [test-update]
+  push:
+    branches:
+      - '**'
+      - qemu_test
+  pull_request:
+    branches:
+      - master
+
+concurrency:
+  # Zwei Laeufe desselben Ziels duerfen sich nicht ueberholen: der Badge ist
+  # eine Datei auf dem Server, es gewinnt also der, der spaeter fertig wird --
+  # nicht der mit dem neueren Commit. Am 2026-08-26 hat so ein dispatch-Lauf
+  # auf dem aelteren Commit den gruenen Badge eines Pushs ueberschrieben, eine
+  # Minute nach ihm. Die Gruppe ist (Workflow, Ref), die Ziele laufen also
+  # weiter parallel zueinander; nur derselbe Workflow reiht sich auf. Wartende
+  # Laeufe belegen keinen Runner, und kommt ein dritter Trigger, verwirft
+  # GitHub den wartenden und behaelt den neuesten -- fuer den Badge richtig.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+
+
+  call_build:
+    uses: ./.github/workflows/z_build_workflow.yml
+    with:
+      toolchain: toolchain-alpha-gcc-11.5.0-npt-static
+      gcc_prefix: alpha-openadk-linux-uclibc-
+      kernel_vers: 4.19.56
+      kernel_dir: v4.x
+      kernel_arch: alpha
+      config_file: config.alpha_npt
+      qemu_kernel: kernel-alpha.img
+      qemu_cmd:  qemu-system-alpha -nographic -m 512M -append "console=ttyS0 root=/dev/sda rw" -kernel kernel.img -drive if=ide,format=raw,file=rootfs.ext2
+
+
+  call_images:
+    needs: call_build
+    uses: ./.github/workflows/z_images_workflow.yml
+    secrets: inherit
+
+
+  call_qemu:
+    needs: call_images
+    uses: ./.github/workflows/z_qemu_test_run.yml
+    secrets: inherit
+
+  call_badge_failed:
+    if: failure()
+    needs: [call_build, call_images]
+    uses: ./.github/workflows/z_badge_failed_workflow.yml
+    with:
+      build_result: ${{ needs.call_build.result }}
+      images_result: ${{ needs.call_images.result }}
+    secrets: inherit
