@@ -25,6 +25,20 @@ License along with the GNU C Library; if not, see
 # error "Never use <bits/syscalls.h> directly; include <sys/syscall.h> instead."
 #endif
 
+/* The headers number these, but a 64-bit task gets sys_nis_syscall for
+   them (syscall.tbl lists them for 32-bit only).  Without the numbers,
+   the callers take the replacements they have for other arches --
+   pause() went out as syscall 29 and always failed with ENOSYS.  */
+#undef __NR_execv
+#undef __NR_pause
+#undef __NR_sigpending
+#undef __NR_sigaction
+#undef __NR_sigsuspend
+#undef __NR_readdir
+#undef __NR_sigreturn
+#undef __NR_sigprocmask
+#undef __NR_nfsservctl
+
 #ifndef __ASSEMBLER__
 
 #define __SYSCALL_CLOBBERS						\
