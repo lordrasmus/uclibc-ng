@@ -11,7 +11,7 @@ define arch_and_subarch
 	$(addprefix $(1)/,$(notdir $(2))) $(if $(TARGET_SUBARCH),$(addprefix $(1)/$(TARGET_SUBARCH)/,$(notdir $(2))))
 endef
 define base_and_arch_and_subarch
-	$(addprefix $(1)/,$(notdir $(2))) $(addprefix $(1)/$(TARGET_ARCH)/,$(notdir $(2))) $(if $(TARGET_SUBARCH),$(addprefix $(1)/$(TARGET_ARCH)/$(TARGET_SUBARCH)/,$(notdir $(2))))
+	$(addprefix $(1)/,$(notdir $(2))) $(addprefix $(1)/$(NPTL_ARCH)/,$(notdir $(2))) $(if $(TARGET_SUBARCH),$(addprefix $(1)/$(NPTL_ARCH)/$(TARGET_SUBARCH)/,$(notdir $(2))))
 endef
 
 include $(libpthread_DIR)/sysdeps/unix/sysv/linux/Makefile.commonarch
