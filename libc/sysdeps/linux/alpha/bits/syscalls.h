@@ -44,13 +44,10 @@
  ({							\
 	long _sc_ret, _sc_err;				\
 	inline_syscall##nr(name, args);			\
-	err_out = _sc_err;				\
-	_sc_ret;					\
+	/* $19 flags the error; fold it into -errno. */ \
+	_sc_err ? -_sc_ret : _sc_ret;			\
   }) \
 )
-#define INTERNAL_SYSCALL_DECL(err)		long int err
-#define INTERNAL_SYSCALL_ERROR_P(val, err)	err
-#define INTERNAL_SYSCALL_ERRNO(val, err)	val
 
 #define inline_syscall_clobbers				\
 	"$1", "$2", "$3", "$4", "$5", "$6", "$7", "$8",	\
