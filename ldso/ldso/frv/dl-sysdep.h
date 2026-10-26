@@ -83,6 +83,8 @@ while (0)
 
 #include "../fdpic/dl-sysdep.h"
 
+#define DL_MALLOC_ALIGN 8	/* function descriptors are loaded with ldd */
+
 static __always_inline Elf32_Addr
 elf_machine_load_address (void)
 {
