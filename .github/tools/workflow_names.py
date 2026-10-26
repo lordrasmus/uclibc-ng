@@ -75,6 +75,7 @@ def config_arch( conf ):
                 if arch == "cris":     break
                 if arch == "h8300":    break
                 if arch == "hppa":     return arch
+                if arch == "ia64":     return arch
                 if arch == "kvx":      break
                 if arch == "m68k":     return arch
                 if arch == "nios2":    return arch
