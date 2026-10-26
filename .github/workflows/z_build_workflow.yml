@@ -70,6 +70,10 @@ jobs:
           fetch-depth: 1
           
       - name: Setup
+        # qemu_cmd goes through env: written into the script with ${{ }}
+        # it would lose its inner quotes, e.g. -append "console=ttyS0 root=...".
+        env:
+          QEMU_CMD: ${{ inputs.qemu_cmd }}
         run: |
           echo "CONFIG_TOOLCHAIN=${{ inputs.toolchain }}" >> "$GITHUB_ENV"
           echo "CONFIG_GCC_PREFIX=${{ inputs.gcc_prefix }}" >> "$GITHUB_ENV"
@@ -78,7 +82,7 @@ jobs:
           echo "CONFIG_KERNEL_ARCH=${{ inputs.kernel_arch }}" >> "$GITHUB_ENV"
           echo "CONFIG_FILE=${{ inputs.config_file }}" >> "$GITHUB_ENV"
           echo "CONFIG_QEMU_KERNEL=${{ inputs.qemu_kernel }}" >> "$GITHUB_ENV"
-          echo "CONFIG_QEMU_CMD=${{ inputs.qemu_cmd }}" >> "$GITHUB_ENV"
+          echo "CONFIG_QEMU_CMD=$QEMU_CMD" >> "$GITHUB_ENV"
           echo "CONFIG_QEMU_MAX_MINUTES=${{ inputs.qemu_max_minutes }}" >> "$GITHUB_ENV"
 
 
