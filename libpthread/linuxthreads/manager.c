@@ -614,7 +614,8 @@ static int pthread_handle_create(pthread_t *thread, const pthread_attr_t *attr,
 
 	  /* We have to report this event.  */
 #ifdef __ia64__
-	  pid = __clone2(pthread_start_thread_event, new_thread_top,
+	  /* clone2 takes the base of the area, see pthread.c */
+	  pid = __clone2(pthread_start_thread_event, new_thread_bottom,
 			new_thread_top - new_thread_bottom,
 			CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SIGHAND |
 			__pthread_sig_cancel, new_thread);
@@ -652,7 +653,7 @@ static int pthread_handle_create(pthread_t *thread, const pthread_attr_t *attr,
     {
       PDEBUG("cloning new_thread = %p\n", new_thread);
 #ifdef __ia64__
-      pid = __clone2(pthread_start_thread, new_thread_top,
+      pid = __clone2(pthread_start_thread, new_thread_bottom,
 		    new_thread_top - new_thread_bottom,
 		    CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SIGHAND |
 		    __pthread_sig_cancel, new_thread);
