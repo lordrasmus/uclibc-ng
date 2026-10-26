@@ -77,22 +77,10 @@ ENTRY (__brk)
 	/* What a horrible way to die.  */
 .Lerr0:	set	ENOMEM, %o0
 .Lerr1:
-#ifndef _LIBC_REENTRANT
-#ifndef __PIC__
-	sethi	%hi(errno), %g1
-	or	%g1, %lo(errno), %g1
-#else
-	sethi	%gdop_hix22(errno), %g1
-	xor	%g1, %gdop_lox10(errno), %g1
-	ldx	[%l7 + %g1], %g1, %gdop(errno)
-#endif
-	st	%o0, [%g1]
-#else
-	call	HIDDEN_JUMPTARGET(__errno_location)
-	 mov	%o0,%l1
-	st	%l1, [%o0]
-#endif
-	sub	%g0, 1, %i0
+	/* Sets errno, plain or thread-local, and returns -1.  */
+	call	__syscall_error
+	 nop
+	mov	%o0, %i0
 	jmpl	%i7+8, %g0
 	 restore
 END (__brk)
