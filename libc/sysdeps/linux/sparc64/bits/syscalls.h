@@ -47,18 +47,15 @@ License along with the GNU C Library; if not, see
 #define INTERNAL_SYSCALL_NCS(name, err, nr, args...) 		\
 ({                                               		\
             register long __o0 __asm__("o0");            	\
-	    long err = name;					\
+	    register long __g1 __asm__("g1") = name;		\
             LOAD_ARGS_##nr(args)                           	\
 								\
             __asm__ __volatile__( __SYSCALL_STRING          	\
-                : "=r" (err), "=r" (__o0)                   	\
-                : "0" (err), "1" (__o0) ASM_ARGS_##nr       	\
+                : "=r" (__g1), "=r" (__o0)                   	\
+                : "0" (__g1), "1" (__o0) ASM_ARGS_##nr       	\
                 : __SYSCALL_CLOBBERS );	                    	\
             __o0;					    	\
 })
-
-#define INTERNAL_SYSCALL_ERROR_P(val, err) \
-  ((unsigned int) (val) >= 0xfffff001u)
 
 #define INLINE_CLONE_SYSCALL(arg1,arg2,arg3,arg4,arg5)			\
 ({									\
