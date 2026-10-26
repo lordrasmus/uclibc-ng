@@ -5,6 +5,12 @@
  * struct kernel_stat should look like...  It turns out each arch has a
  * different opinion on the subject... */
 
+/* The kernel stores each time stamp as nanoseconds, then seconds.  */
+struct __kernel_stat_time {
+	unsigned long tv_nsec;
+	unsigned long tv_sec;
+};
+
 struct kernel_stat {
 	unsigned char __pad1[6];
 	unsigned short st_dev;
@@ -34,9 +40,9 @@ struct kernel_stat {
 	unsigned long __pad10;	/* future possible st_blocks high bits */
 	unsigned long st_blocks;	/* Number 512-byte blocks allocated. */
 
-	struct timespec st_atim;
-	struct timespec st_mtim;
-	struct timespec st_ctim;
+	struct __kernel_stat_time st_atim;
+	struct __kernel_stat_time st_mtim;
+	struct __kernel_stat_time st_ctim;
 
 	unsigned long long __uclibc_unused4;
 };
@@ -64,9 +70,9 @@ struct kernel_stat64 {
 	unsigned long __pad4;		/* future possible st_blocks high bits */
 	unsigned long st_blocks;	/* Number 512-byte blocks allocated. */
 
-	struct timespec st_atim;
-	struct timespec st_mtim;
-	struct timespec st_ctim;
+	struct __kernel_stat_time st_atim;
+	struct __kernel_stat_time st_mtim;
+	struct __kernel_stat_time st_ctim;
 
 	unsigned long long __uclibc_unused4;
 };
