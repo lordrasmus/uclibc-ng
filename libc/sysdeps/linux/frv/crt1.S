@@ -79,12 +79,17 @@ _start:
 	the last entry in the ROFIXUP list, and __self_reloc returns
 	the last entry, relocated.  */
 
-	/* Prepare arguments for uClibc main.  */
-	ld	@(gr21, gr0), gr8
-	slli	gr8, #2, gr10
-	add	gr21, gr10, gr10
-	addi.p	gr21, #4, gr9
-	addi	gr10, #8, gr10
+	/* Prepare the arguments of __uClibc_main (main, argc, argv,
+	   app_init, app_fini, rtld_fini, stack_end).  The loader passes
+	   no rtld_fini on FR-V.  */
+	sethi	#gotfuncdeschi(main), gr8
+	setlo	#gotfuncdesclo(main), gr8
+	ld	@(gr8, gr17), gr8
+	ld	@(gr21, gr0), gr9
+	addi	gr21, #4, gr10
+	setlos	#0, gr13
+	addi	sp, #-8, sp
+	st	gr21, @(sp, gr0)
 
 	/* Set up an invalid (NULL return address, NULL frame pointer)
 	   callers stack frame so anybody unrolling the stack knows where
@@ -93,7 +98,7 @@ _start:
 	movgs	gr0, lr
 
 #if (defined L_crt1 || defined L_Scrt1) && defined __UCLIBC_CTOR_DTOR__
-	/* Pass .init and .fini arguments to __uClibc_start_main().  */
+	/* Pass .init and .fini arguments to __uClibc_main().  */
 	sethi.p	#gotfuncdeschi(_init), gr11
 	sethi	#gotfuncdeschi(_fini), gr12
 	setlo.p	#gotfuncdesclo(_init), gr11
@@ -103,6 +108,8 @@ _start:
 	ld.p	@(gr12, gr17), gr12
 	call	__uClibc_main
 #else
+	setlos	#0, gr11
+	setlos	#0, gr12
 	mov.p	gr17, gr15
 	call	__uClibc_main
 #endif
