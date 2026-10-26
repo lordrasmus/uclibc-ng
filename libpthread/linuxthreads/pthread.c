@@ -470,8 +470,10 @@ int __pthread_initialize_manager(void)
 	 __pthread_lock(__pthread_manager_thread.p_lock, NULL);
 
 #ifdef __ia64__
+	  /* clone2 takes the base of the area: the memory stack grows
+	     down from its top, the register stack up from its base.  */
 	  pid = __clone2(__pthread_manager_event,
-			(void **) __pthread_manager_thread_tos,
+			(void **) __pthread_manager_thread_bos,
 			THREAD_MANAGER_STACK_SIZE,
 			CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SIGHAND,
 			(void *)(long)manager_pipe[0]);
@@ -505,7 +507,7 @@ int __pthread_initialize_manager(void)
 
   if (pid == 0) {
 #ifdef __ia64__
-    pid = __clone2(__pthread_manager, (void **) __pthread_manager_thread_tos,
+    pid = __clone2(__pthread_manager, (void **) __pthread_manager_thread_bos,
 		  THREAD_MANAGER_STACK_SIZE,
 		  CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SIGHAND,
 		  (void *)(long)manager_pipe[0]);
