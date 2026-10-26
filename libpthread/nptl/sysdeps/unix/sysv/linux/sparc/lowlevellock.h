@@ -57,6 +57,9 @@
    word carries the owner tid together with FUTEX_WAITERS in bit 31 and
    does not fit in 24 bits.  */
 
+/* sparc64 has casa and takes the generic operations as they are.  */
+#ifndef __arch64__
+
 /* FUTEX_WAKE_OP has the kernel clear the lock word, and the kernel
    knows about neither of the two schemes above.  Report failure so
    pthread_cond_signal wakes and unlocks in two separate steps.  */
@@ -128,6 +131,8 @@
     })
 #undef lll_unlock
 #define lll_unlock(futex, private) __lll_unlock (&(futex), private)
+
+#endif /* !__arch64__ */
 
 #endif /* __ASSEMBLER__ */
 

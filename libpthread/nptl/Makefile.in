@@ -79,7 +79,7 @@ libpthread_include_BITS_H := $(addprefix $(top_builddir)include/bits/,libc-lock.
 libpthread_include_STD_IMPL_OS_ARCH_BITS_H := $(addprefix $(top_builddir)include/bits/,pthreadtypes.h semaphore.h)
 
 $(libpthread_include_STD_IMPL_OS_ARCH_BITS_H): $(top_builddir)include/bits/%:
-	$(do_ln) $(call rel_srcdir)$(PTDIR)/sysdeps/unix/sysv/linux/$(TARGET_ARCH)/bits/$(@F) $@
+	$(do_ln) $(call rel_srcdir)$(PTDIR)/sysdeps/unix/sysv/linux/$(NPTL_ARCH)/bits/$(@F) $@
 $(libpthread_include_BITS_H): $(top_builddir)include/bits/%:
 	$(do_ln) $(call rel_srcdir)$(PTDIR)/sysdeps/pthread/bits/$(@F) $@
 $(libpthread_include_H): $(top_builddir)include/%:
