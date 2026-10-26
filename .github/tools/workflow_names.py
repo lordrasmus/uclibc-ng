@@ -73,6 +73,7 @@ def config_arch( conf ):
                 if arch == "avr32":    return arch
                 if arch == "bfin":     return arch
                 if arch == "cris":     break
+                if arch == "frv":      return arch
                 if arch == "h8300":    break
                 if arch == "hppa":     return arch
                 if arch == "ia64":     return arch
