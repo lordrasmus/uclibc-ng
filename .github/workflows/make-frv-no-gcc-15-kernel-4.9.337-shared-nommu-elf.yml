@@ -36,7 +36,7 @@ jobs:
       kernel_arch: frv
       config_file: config.frv
       qemu_kernel: kernel-frv.img
-      qemu_cmd: qemu-system-frv -M mb93091 -nographic -kernel kernel.img -initrd rootfs.img.xz -append console=ttyS0
+      qemu_cmd: qemu-system-frv -M mb93091 -nographic -kernel kernel.img -drive if=none,id=hd,format=raw,file=rootfs.ext2 -device virtio-blk-device,drive=hd -append "console=ttyS0 root=/dev/vda rootfstype=ext2 rw virtio_mmio.device=0x200@0xfc000000:5"
 
   call_images:
     needs: call_build
