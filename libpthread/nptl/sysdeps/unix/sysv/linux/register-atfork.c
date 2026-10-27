@@ -127,7 +127,9 @@ __register_atfork (
      void (*child) (void),
      void *dso_handle)
 {
-    return EPERM;
+    /* There is no fork to run the handlers, and POSIX allows
+       pthread_atfork no error but ENOMEM.  */
+    return 0;
 }
 libc_hidden_def (__register_atfork)
 #endif
