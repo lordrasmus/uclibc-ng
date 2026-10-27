@@ -1,0 +1,6 @@
+# Makefile for uClibc-ng NPTL
+# Licensed under the LGPL v2.1 or later, see the file COPYING.LIB in this tarball.
+
+libpthread_linux_arch_SSRC =
+
+libc_linux_arch_CSRC = fork.c
