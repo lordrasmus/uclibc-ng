@@ -453,6 +453,9 @@ ifeq ($(TARGET_ARCH),cris)
 	CPU_LDFLAGS-$(CONFIG_CRIS)+=-Wl,-mcrislinux
 	CPU_LDFLAGS-$(CONFIG_CRISV32)+=-Wl,-mcrislinux
 	CPU_CFLAGS-$(CONFIG_CRIS)+=-mlinux
+	# gcc calls __cris_atcmpxchgr32 for compare-and-swap on Linux unless
+	# told the data is aligned, and nobody provides that function.
+	CPU_CFLAGS-y+=-mno-unaligned-atomic-may-use-library
 	PICFLAG:=-fpic
 	PIEFLAG_NAME:=-fpie
 endif
