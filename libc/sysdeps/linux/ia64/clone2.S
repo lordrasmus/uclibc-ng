@@ -72,11 +72,12 @@ ENTRY(__clone2)
 	mov b6=out1
 	br.call.dptk.many rp=b6	/* Call fn(arg) in the child 	*/
 	;;
-	mov out0=r8		/* Argument to _exit		*/
-	mov gp=loc0
-	.globl HIDDEN_JUMPTARGET(_exit)
-	br.call.dpnt.many rp=HIDDEN_JUMPTARGET(_exit)
-				/* call _exit with result from fn.	*/
+	mov out0=r8		/* Argument to exit		*/
+	/* The exit syscall, not _exit: that is exit_group and would take
+	   the whole thread group with it.  */
+	mov r15=SYS_ify (exit)
+	;;
+	break __BREAK_SYSCALL
 	ret			/* Not reached.		*/
 PSEUDO_END(__clone2)
 
