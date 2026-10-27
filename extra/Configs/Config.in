@@ -621,7 +621,6 @@ config UCLIBC_HAS_THREADS_NATIVE
 		   !TARGET_cris && \
 		   !TARGET_frv && \
 		   !TARGET_h8300 && \
-		   !TARGET_hppa && \
 		   !TARGET_ia64 && \
 		   (ARCH_USE_MMU || TARGET_arm || TARGET_xtensa || TARGET_riscv32)
 	help

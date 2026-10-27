@@ -49,10 +49,10 @@
 	__asm__ __volatile__(					\
 		K_STW_ASM_PIC					\
 		"	ble  0x100(%%sr2, %%r0)\n"		\
-		"	ldi %1, %%r20\n"			\
+		"	copy %1, %%r20\n"			\
 		K_LDW_ASM_PIC					\
 		: "=r" (__res)					\
-		: "i" (name) K_ASM_ARGS_##nr			\
+		: "r" (name) K_ASM_ARGS_##nr			\
 		: "memory", K_CALL_CLOB_REGS K_CLOB_ARGS_##nr	\
 	);							\
 	__res;							\
