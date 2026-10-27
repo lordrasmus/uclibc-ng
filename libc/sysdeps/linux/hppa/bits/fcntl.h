@@ -39,7 +39,7 @@
 #define O_EXCL		00002000 /* not fcntl */
 #define O_ASYNC		00020000
 #define O_SYNC		00100000
-#define O_NONBLOCK	00200004 /* HPUX has separate NDELAY & NONBLOCK */
+#define O_NONBLOCK	00200000
 #define O_NDELAY	O_NONBLOCK
 #define O_NOCTTY	00400000 /* not fcntl */
 

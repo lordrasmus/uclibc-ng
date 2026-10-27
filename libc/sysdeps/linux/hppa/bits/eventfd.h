@@ -26,7 +26,6 @@ enum
 #define EFD_SEMAPHORE EFD_SEMAPHORE
     EFD_CLOEXEC   = 010000000,
 #define EFD_CLOEXEC EFD_CLOEXEC
-/* the below value looks suspicious, should be 000200004 for consistency */
-    EFD_NONBLOCK  = 00200004 /* HPUX has separate NDELAY & NONBLOCK */
+    EFD_NONBLOCK  = 00200000
 #define EFD_NONBLOCK EFD_NONBLOCK
   };
