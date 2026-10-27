@@ -36,7 +36,6 @@
 #define __ASSEMBLY__
 #include "sysdep.h"
 
-#include <asm/unistd.h>
 #include <asm/fpu.h>
 
 /*
