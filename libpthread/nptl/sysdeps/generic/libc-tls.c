@@ -41,7 +41,11 @@
 extern ElfW(Phdr) *_dl_phdr;
 extern size_t _dl_phnum;
 
-#ifdef __FDPIC__
+#if defined __FDPIC__ || defined __FRV_FDPIC__
+# define TLS_FDPIC 1
+#endif
+
+#ifdef TLS_FDPIC
 /* phdr->p_vaddr is not valid in FDPIC mode. To find tdata start we
    use the linker script defined symbol __tdata_start.  */
 extern int __tdata_start;
@@ -142,7 +146,7 @@ static char tls_reserve[TLS_RESERVE_SIZE]
 	__attribute__ ((aligned (TLS_TCB_ALIGN)));
 #endif
 
-#if !defined(__FDPIC__) && !defined(SHARED) && defined(STATIC_PIE)
+#if !defined(TLS_FDPIC) && !defined(SHARED) && defined(STATIC_PIE)
 ElfW(Addr) _dl_load_base;
 #endif
 
@@ -159,14 +163,14 @@ __libc_setup_tls (size_t tcbsize, size_t tcbalign)
   size_t tcb_offset;
   size_t tlssize;
   ElfW(Phdr) *phdr;
-#if !defined(__FDPIC__) && !defined(SHARED) && defined(STATIC_PIE)
+#if !defined(TLS_FDPIC) && !defined(SHARED) && defined(STATIC_PIE)
   ElfW(Addr) load_base = _dl_load_base;
 #endif
 
   if (&_dl_tls_static_surplus != NULL)
     GL(dl_tls_static_size) = _dl_tls_static_surplus ();
 
-#if !defined(__FDPIC__) && !defined(SHARED) && defined(STATIC_PIE)
+#if !defined(TLS_FDPIC) && !defined(SHARED) && defined(STATIC_PIE)
 
   /* reloc_static_pie() sets _dl_load_base only when the program
      relocates itself; one started through ld-uClibc (noMMU ELF) is
@@ -189,7 +193,7 @@ __libc_setup_tls (size_t tcbsize, size_t tcbalign)
 	  /* Remember the values we need.  */
 	  memsz = phdr->p_memsz;
 	  filesz = phdr->p_filesz;
-#ifdef __FDPIC__
+#ifdef TLS_FDPIC
 	  initimage = (void *) &__tdata_start;
 #else
 	  initimage = (void *) phdr->p_vaddr;
@@ -240,7 +244,7 @@ __libc_setup_tls (size_t tcbsize, size_t tcbalign)
   else
 #endif
     {
-# if defined(__FDPIC__) || (!defined(__ARCH_USE_MMU__) && defined(STATIC_PIE))
+# if defined(TLS_FDPIC) || (!defined(__ARCH_USE_MMU__) && defined(STATIC_PIE))
       tlsblock = mmap (NULL, tlssize, PROT_READ|PROT_WRITE,
 		       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 # else
