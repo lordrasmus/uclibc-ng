@@ -60,7 +60,7 @@ librt_linux_arch_OBJS := $(librt_linux_subarch_SOBJ) $(librt_linux_arch_SOBJ) $(
 libpthread_linux_CSRC += pthread_attr_getaffinity.c pthread_attr_setaffinity.c \
 	pthread_getaffinity.c pthread_setaffinity.c		\
 	pthread_getcpuclockid.c pthread_kill.c			\
-	pthread_mutex_cond_lock.c pthread_yield.c		\
+	pthread_mutex_cond_lock.c pthread_once.c pthread_yield.c	\
 	sem_post.c sem_timedwait.c sem_trywait.c sem_wait.c	\
 	pthread_sigqueue.c \
 	lowlevellock.c lowlevelrobustlock.c lowlevelclocklock.c
