@@ -63,19 +63,14 @@ clone:
 #
 ###############################################################################
 .Lthread_start:
-	/* Save the PIC register.  */
-	mov	gr15, gr17
-
 	/* Call the user's function.  */
 	ldd.p	@(gr4, gr0), gr14
 	mov	gr5, gr8
 	calll	@(gr14, gr0)
 
-	/* Call _exit, rather simply inlining the syscall, such that
-	   breakpoints work.*/
-
-	mov.p	gr17, gr15
-	call	HIDDEN_JUMPTARGET(_exit)
+	/* Only this thread exits: _exit would be exit_group.  */
+	setlos	#__NR_exit, gr7
+	tra	gr0,gr0
 
 	/* Should never get here.  */
 	jmpl	@(gr0, gr0)
