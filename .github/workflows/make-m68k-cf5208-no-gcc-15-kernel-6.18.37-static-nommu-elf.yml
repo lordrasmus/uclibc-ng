@@ -37,7 +37,7 @@ jobs:
       kernel_arch: m68k
       config_file: config.m68k_cf5208_elf_nommu
       qemu_kernel: kernel-m68k-cf5208.img
-      qemu_cmd: qemu-system-m68k -nographic -M mcf5208evb -cpu m5208 -kernel kernel.img -m 512
+      qemu_cmd: qemu-system-m68k -nographic -M mcf5208evb -cpu m5208 -kernel kernel.img -m 512 -drive if=none,id=hd,format=raw,file=rootfs.ext2 -device virtio-blk-device,drive=hd -append "console=ttyS0 root=/dev/vda rootfstype=ext2 rw virtio_mmio.device=0x200@0xfc0f0000:94"
 
   call_images:
     needs: call_build
