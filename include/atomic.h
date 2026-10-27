@@ -178,6 +178,9 @@
 
 /* Store NEWVALUE in *MEM and return the old value.  */
 #ifndef atomic_exchange_acq
+/* Built from compare-and-exchange: a caller that only wants 0 -> 1 is
+   better off with a single CAS.  */
+# define __ATOMIC_EXCHANGE_IS_CAS 1
 # define atomic_exchange_acq(mem, newvalue) \
   ({ __typeof (*(mem)) __atg5_oldval;					      \
      __typeof (mem) __atg5_memp = (mem);				      \
@@ -549,6 +552,9 @@
 /* Each arch can request to use compiler built-ins for C11 atomics.  If it
    does, all atomics will be based on these.  */
 #if defined USE_ATOMIC_COMPILER_BUILTINS
+
+/* The compiler picks the exchange for atomic_exchange_acquire.  */
+# undef __ATOMIC_EXCHANGE_IS_CAS
 
 /* We require 32b atomic operations; some archs also support 64b atomic
    operations.  */
