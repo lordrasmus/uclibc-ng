@@ -25,10 +25,11 @@
 #include <bits/errno.h>
 
 	.text
-	.globl	clone
-	.type clone,@function
-/* int clone(int (*fn)(void *arg), void *child_stack, int flags, void *arg) */
-clone:
+	.globl	__clone
+	.type __clone,@function
+/* int clone(int (*fn)(void *arg), void *child_stack, int flags, void *arg,
+	     pid_t *ptid, void *tls, pid_t *ctid) */
+__clone:
 	/* Sanity check arguments.  */
 	cmp.p	gr8, gr0, icc0
 	cmp	gr9, gr0, icc1
@@ -37,7 +38,11 @@ clone:
 	mov.p	gr11, gr5
 	beq	icc1, #0, .Lerror
 
-	mov.p	gr10, gr8
+	/* The kernel takes flags, stack, ptid, ctid, tls in gr8..gr12.  */
+	mov	gr10, gr8
+	mov	gr12, gr10
+	mov	gr13, gr12
+	ld	@(sp, gr0), gr11
 	setlos	#__NR_clone, gr7
 	tra	gr0,gr0
 
@@ -74,4 +79,7 @@ clone:
 
 	/* Should never get here.  */
 	jmpl	@(gr0, gr0)
-	.size	clone,.-clone
+	.size	__clone,.-__clone
+
+weak_alias(__clone,clone)
+libc_hidden_def(clone)
