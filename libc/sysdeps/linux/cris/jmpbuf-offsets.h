@@ -5,4 +5,9 @@
  * Licensed under the LGPL v2.1, see the file COPYING.LIB in this tarball.
  */
 
-#define JB_SP		1
+#ifdef __arch_v32
+/* setjmp.S stores r0..r9 first and the stack pointer at word 14.  */
+# define JB_SP		14
+#else
+# define JB_SP		1
+#endif
