@@ -85,6 +85,16 @@ jobs:
         run: |
           wget -nv  "https://github.com/lordrasmus/uclibc-ng-qemu-imgs/blob/main/qemu-inst.tar.xz?raw=true" -O qemu-inst.tar.xz
           nice -n 19 tar -xaf qemu-inst.tar.xz
+          # A single, statically linked binary in qemu-bin/ replaces the one
+          # from the tarball, so one machine can change without rebuilding
+          # all of them.  Most have none, and then the tarball's stays.
+          bin=${CONFIG_QEMU_CMD%% *}
+          if wget -nv "https://raw.githubusercontent.com/lordrasmus/uclibc-ng-qemu-imgs/main/qemu-bin/$bin.xz" -O "$bin.xz" && [ -s "$bin.xz" ] ; then
+            xz -d -c "$bin.xz" > "qemu-inst/bin/$bin"
+            chmod +x "qemu-inst/bin/$bin"
+            echo "$bin from qemu-bin/"
+          fi
+          rm -f "$bin.xz"
       
           
       - name: run Qemu
@@ -102,11 +112,6 @@ jobs:
           # Zeit, als die virt-Maschine kein -initrd kannte. arc700 nimmt
           # -initrd und hat keinen Platzhalter, deshalb an -cpu archs gebunden.
           if [[ $CONFIG_QEMU_CMD == *"-cpu archs"* ]] ; then python3 .github/tools/xtensa-cpio-hack.py; fi
-          # ColdFire: the mcf5208evb machine has no initrd support at all, so the
-          # rootfs goes into the kernel image. Keyed on the qemu machine, not on
-          # the arch, because m68k also has the 68040 virt target which uses -initrd.
-          # Its image carries a 24M placeholder, the m68k rootfs does not fit in 17M.
-          if [[ $CONFIG_QEMU_CMD == *mcf5208* ]] ;    then python3 .github/tools/xtensa-cpio-hack.py 25165824; fi
           # leon3_generic kennt kein -initrd. Hier geht das *gepackte* Rootfs in
           # den Platzhalter: der Kernel erkennt die Kompression des eingebauten
           # Blobs selbst, deshalb reichen 16M statt der 80M, die das rohe cpio
