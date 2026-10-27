@@ -89,6 +89,10 @@ libc_hidden_proto(waitpid)
 #elif defined __sparc__
 # define FORK() \
   INLINE_CLONE_SYSCALL (CLONE_PARENT_SETTID | SIGCHLD, 0, &pid, NULL, NULL)
+#elif defined __CRIS__
+/* CLONE_BACKWARDS2: the stack pointer comes first.  */
+# define FORK() \
+  INLINE_SYSCALL (clone, 3, 0, CLONE_PARENT_SETTID | SIGCHLD, &pid)
 #else
 # define FORK() \
   INLINE_SYSCALL (clone, 3, CLONE_PARENT_SETTID | SIGCHLD, 0, &pid)
