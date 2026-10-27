@@ -20,112 +20,86 @@
 # error "Never use <bits/syscalls.h> directly; include <sys/syscall.h> instead."
 #endif
 
-/* Define a macro which expands inline into the wrapper code for a system
-   call.  */
-# undef INLINE_SYSCALL
-# define INLINE_SYSCALL(name, nr, args...)                              \
-  ({                                                                    \
-    INTERNAL_SYSCALL_DECL (_sc_err);                                    \
-    unsigned long _sc_val = INTERNAL_SYSCALL (name, _sc_err, nr, args); \
-    if (__builtin_expect (INTERNAL_SYSCALL_ERROR_P (_sc_val, _sc_err), 0)) \
-    {                                                                   \
-      __set_errno (INTERNAL_SYSCALL_ERRNO (_sc_val, _sc_err));          \
-      _sc_val = -1;                                                     \
-    }                                                                   \
-    (long) _sc_val;                                                     \
-  })
-
-#undef INTERNAL_SYSCALL
-#define INTERNAL_SYSCALL(name, err, nr, args...)        \
-  internal_syscall##nr (SYS_ify (name), err, args)
-
+/* The kernel leaves -errno in r0 and copies the positive errno to r1;
+   r0 alone is enough.  */
 #undef INTERNAL_SYSCALL_NCS
 #define INTERNAL_SYSCALL_NCS(number, err, nr, args...)  \
-  internal_syscall##nr (number, err, args)
+  internal_syscall##nr (number, args)
 
-#undef INTERNAL_SYSCALL_DECL
-#define INTERNAL_SYSCALL_DECL(err) int err
-
-#undef INTERNAL_SYSCALL_ERROR_P
-#define INTERNAL_SYSCALL_ERROR_P(val, err) ({ (void) (val); (err) != 0; })
-
-#undef INTERNAL_SYSCALL_ERRNO
-#define INTERNAL_SYSCALL_ERRNO(val, err) ({ (void) (val); (err); })
-
-#define internal_syscall0(num, err, dummy...)                           \
+#define internal_syscall0(num, dummy...)                           \
   ({                                                                    \
     long _sys_result, __SYSCALL_CLOBBER_DECLS;                          \
     __asm__ __volatile__ (                                              \
       "swint1"                                                          \
-      : "=R00" (_sys_result), "=R01" (err), __SYSCALL_CLOBBER_OUTPUTS   \
+      : "=R00" (_sys_result), "=R01" (_clobber_r1), __SYSCALL_CLOBBER_OUTPUTS   \
       : "R10" (num)                                                     \
       : __SYSCALL_CLOBBERS);                                            \
     _sys_result;                                                        \
   })
 
-#define internal_syscall1(num, err, arg0)                               \
+#define internal_syscall1(num, arg0)                               \
   ({                                                                    \
     long _sys_result, __SYSCALL_CLOBBER_DECLS;                          \
     __asm__ __volatile__ (                                              \
       "swint1"                                                          \
-      : "=R00" (_sys_result), "=R01" (err), __SYSCALL_CLOBBER_OUTPUTS   \
+      : "=R00" (_sys_result), "=R01" (_clobber_r1), __SYSCALL_CLOBBER_OUTPUTS   \
       : "R10" (num), "R00" (arg0)                                       \
       : __SYSCALL_CLOBBERS);                                            \
     _sys_result;                                                        \
   })
 
-#define internal_syscall2(num, err, arg0, arg1)                         \
+#define internal_syscall2(num, arg0, arg1)                         \
   ({                                                                    \
     long _sys_result, __SYSCALL_CLOBBER_DECLS;                          \
     __asm__ __volatile__ (                                              \
       "swint1"                                                          \
-      : "=R00" (_sys_result), "=R01" (err), __SYSCALL_CLOBBER_OUTPUTS   \
+      : "=R00" (_sys_result), "=R01" (_clobber_r1), __SYSCALL_CLOBBER_OUTPUTS   \
       : "R10" (num), "R00" (arg0), "R01" (arg1)                         \
       : __SYSCALL_CLOBBERS);                                            \
     _sys_result;                                                        \
   })
 
-#define internal_syscall3(num, err, arg0, arg1, arg2)                   \
+#define internal_syscall3(num, arg0, arg1, arg2)                   \
   ({                                                                    \
     long _sys_result, __SYSCALL_CLOBBER_DECLS;                          \
     __asm__ __volatile__ (                                              \
       "swint1"                                                          \
-      : "=R00" (_sys_result), "=R01" (err), __SYSCALL_CLOBBER_OUTPUTS   \
+      : "=R00" (_sys_result), "=R01" (_clobber_r1), __SYSCALL_CLOBBER_OUTPUTS   \
       : "R10" (num), "R00" (arg0), "R01" (arg1), "R02" (arg2)           \
       : __SYSCALL_CLOBBERS);                                            \
     _sys_result;                                                        \
   })
 
-#define internal_syscall4(num, err, arg0, arg1, arg2, arg3)             \
+#define internal_syscall4(num, arg0, arg1, arg2, arg3)             \
   ({                                                                    \
     long _sys_result, __SYSCALL_CLOBBER_DECLS;                          \
     __asm__ __volatile__ (                                              \
       "swint1"                                                          \
-      : "=R00" (_sys_result), "=R01" (err), __SYSCALL_CLOBBER_OUTPUTS   \
+      : "=R00" (_sys_result), "=R01" (_clobber_r1), __SYSCALL_CLOBBER_OUTPUTS   \
       : "R10" (num), "R00" (arg0), "R01" (arg1), "R02" (arg2),          \
         "R03" (arg3)                                                    \
       : __SYSCALL_CLOBBERS);                                            \
     _sys_result;                                                        \
   })
 
-#define internal_syscall5(num, err, arg0, arg1, arg2, arg3, arg4)       \
+#define internal_syscall5(num, arg0, arg1, arg2, arg3, arg4)       \
   ({                                                                    \
     long _sys_result, __SYSCALL_CLOBBER_DECLS;                          \
     __asm__ __volatile__ (                                              \
       "swint1"                                                          \
-      : "=R00" (_sys_result), "=R01" (err), __SYSCALL_CLOBBER_OUTPUTS   \
+      : "=R00" (_sys_result), "=R01" (_clobber_r1), __SYSCALL_CLOBBER_OUTPUTS   \
       : "R10" (num), "R00" (arg0), "R01" (arg1), "R02" (arg2),          \
         "R03" (arg3), "R04" (arg4)                                      \
       : __SYSCALL_CLOBBERS);                                            \
     _sys_result;                                                        \
   })
 
-#define internal_syscall6(num, err, arg0, arg1, arg2, arg3, arg4, arg5) \
+#define internal_syscall6(num, arg0, arg1, arg2, arg3, arg4, arg5) \
   ({                                                                    \
     long _sys_result, __SYSCALL_CLOBBER_DECLS;                          \
     __asm__ __volatile__ (                                              \
       "swint1"                                                          \
-      : "=R00" (_sys_result), "=R01" (err), __SYSCALL_CLOBBER_OUTPUTS   \
+      : "=R00" (_sys_result), "=R01" (_clobber_r1), __SYSCALL_CLOBBER_OUTPUTS   \
       : "R10" (num), "R00" (arg0), "R01" (arg1), "R02" (arg2),          \
         "R03" (arg3), "R04" (arg4), "R05" (arg5)                        \
       : __SYSCALL_CLOBBERS);                                            \
@@ -142,7 +116,7 @@
 /* gcc doesn't seem to allow an input operand to be clobbered, so we
    fake it with dummy outputs. */
 #define __SYSCALL_CLOBBER_DECLS                                         \
-  _clobber_r2, _clobber_r3, _clobber_r4, _clobber_r5, _clobber_r10
+  _clobber_r1, _clobber_r2, _clobber_r3, _clobber_r4, _clobber_r5, _clobber_r10
 
 #define __SYSCALL_CLOBBER_OUTPUTS                                       \
   "=R02" (_clobber_r2), "=R03" (_clobber_r3), "=R04" (_clobber_r4),     \
