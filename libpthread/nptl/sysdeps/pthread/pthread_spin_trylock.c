@@ -1,5 +1,5 @@
 /* pthread_spin_trylock -- trylock a spin lock.  Generic version.
-   Copyright (C) 2012-2016 Free Software Foundation, Inc.
+   Copyright (C) 2012-2026 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -22,5 +22,11 @@
 int
 pthread_spin_trylock (pthread_spinlock_t *lock)
 {
-  return atomic_exchange_acq (lock, 1) ? EBUSY : 0;
+  /* A held lock costs only a read: no store, no exclusive cache line,
+     no trap into the kernel on the arches that take one for a CAS.  */
+  if (*lock != 0)
+    return EBUSY;
+
+  return atomic_compare_and_exchange_bool_acq ((int *) lock, 1, 0)
+	 ? EBUSY : 0;
 }
