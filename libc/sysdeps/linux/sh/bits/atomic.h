@@ -181,6 +181,39 @@ typedef uintmax_t uatomic_max_t;
 #define atomic_exchange_and_add(mem, value) \
   __atomic_val_bysize (__arch_exchange_and_add, int, mem, value)
 
+/* Exchange: load the old value and store the new one, a two-insn
+   sequence, so r15 is -4.  */
+#define __arch_exchange_n(mem, newval, bwl) \
+  ({ signed long __arch_result; \
+     __asm__ __volatile__ ("\
+	.align 2\n\
+	mova 1f,r0\n\
+	nop\n\
+	mov r15,r1\n\
+	mov #-4,r15\n\
+     0: mov." #bwl " @%1,%0\n\
+	mov." #bwl " %2,@%1\n\
+     1: mov r1,r15\n"				\
+	: "=&r" (__arch_result)			\
+	: rNOSP (mem), rNOSP (newval)		\
+	: "r0", "r1", "memory");		\
+     __arch_result; })
+
+#define __arch_exchange_8_int(mem, newval) \
+  __arch_exchange_n(mem, newval, b)
+
+#define __arch_exchange_16_int(mem, newval) \
+  __arch_exchange_n(mem, newval, w)
+
+#define __arch_exchange_32_int(mem, newval) \
+  __arch_exchange_n(mem, newval, l)
+
+#define __arch_exchange_64_int(mem, newval) \
+  (abort (), 0)
+
+#define atomic_exchange_acq(mem, newval) \
+  __atomic_val_bysize (__arch_exchange, int, mem, newval)
+
 
 /* Again, another template. We get a slight optimisation when the old value
    does not need to be returned. Parameters:
