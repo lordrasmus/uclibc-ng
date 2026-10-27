@@ -11,3 +11,15 @@
    variable at ADDRESS.  */
 #define _JMPBUF_UNWINDS(_jmpbuf, _address)				\
      ((void *)(_address) > (void *)(((unsigned long *) _jmpbuf)[JB_SP]))
+
+#ifdef __UCLIBC_HAS_THREADS_NATIVE__
+#include <stdint.h>
+#include <unwind.h>
+
+#define _JMPBUF_CFA_UNWINDS_ADJ(_jmpbuf, _context, _adj) \
+  _JMPBUF_UNWINDS_ADJ (_jmpbuf, (void *) _Unwind_GetCFA (_context), _adj)
+
+/* The stack grows up.  */
+#define _JMPBUF_UNWINDS_ADJ(_jmpbuf, _address, _adj) \
+  ((uintptr_t) (_address) - (_adj) > (uintptr_t) (((unsigned long *) _jmpbuf)[JB_SP]) - (_adj))
+#endif
