@@ -365,4 +365,7 @@ typedef uintmax_t uatomic_max_t;
 # define atomic_full_barrier()	__asm__ ("mb" : : : "memory");
 # define atomic_read_barrier()	__asm__ ("mb" : : : "memory");
 # define atomic_write_barrier()	__asm__ ("wmb" : : : "memory");
+/* wmb orders stores only; a release must also keep earlier loads ahead
+   of the store.  */
+# define atomic_thread_fence_release()	__asm__ ("mb" : : : "memory")
 #endif
