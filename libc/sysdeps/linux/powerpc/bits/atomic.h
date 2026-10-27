@@ -148,6 +148,11 @@ typedef uintmax_t uatomic_max_t;
 # endif
 #endif
 
+/* eieio, the write barrier, orders stores only; a release must also keep
+   earlier loads ahead of the store.  */
+#define atomic_thread_fence_release() \
+  __asm__ __volatile__ (__ARCH_REL_INSTR ::: "memory")
+
 #ifndef MUTEX_HINT_ACQ
 # define MUTEX_HINT_ACQ
 #endif
