@@ -1,0 +1,7 @@
+#include <sysdep.h>
+#include <tls.h>
+
+--
+
+-- The thread pointer points just past struct pthread.
+MULTIPLE_THREADS_OFFSET		offsetof (struct pthread, header.multiple_threads) - TLS_PRE_TCB_SIZE
