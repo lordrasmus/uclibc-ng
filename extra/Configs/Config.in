@@ -622,7 +622,7 @@ config UCLIBC_HAS_THREADS_NATIVE
 		   !TARGET_frv && \
 		   !TARGET_h8300 && \
 		   !TARGET_ia64 && \
-		   (ARCH_USE_MMU || TARGET_arm || TARGET_xtensa || TARGET_riscv32)
+		   (ARCH_USE_MMU || TARGET_arm || TARGET_m68k || TARGET_xtensa || TARGET_riscv32)
 	help
 	  If you want to compile uClibc with NPTL support, then answer Y.
 
