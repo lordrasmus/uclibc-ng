@@ -21,15 +21,18 @@
 #define _ERRNO_H	1
 #include <bits/errno.h>
 
-/* int clone(int (*fn)(void *arg), void *child_stack, int flags, void *arg); */
+/* int clone(int (*fn)(void *arg), void *child_stack, int flags, void *arg,
+	      pid_t *ptid, void *tls, pid_t *ctid); */
 
 	.syntax no_register_prefix
 
         .text
-ENTRY (clone)
-	/* Sanity check arguments: No NULL function pointers.  Allow a NULL
-	   stack pointer though; it makes the kernel allocate stack.  */
+ENTRY (__clone)
+	/* Sanity check arguments: no NULL function or stack pointer.  */
 	cmpq	0,r10
+	beq	1f
+	nop
+	cmpq	0,r11
 	beq	1f
 	nop
 
@@ -42,9 +45,23 @@ ENTRY (clone)
 	move.d	r10,r0
 	move.d	r13,r1
 
-        /* Move the other arguments into place for the system call.  */
+	/* The kernel takes newsp, flags, ptid, ctid in r10..r13 and tls in
+	   mof (CLONE_BACKWARDS2).  ptid, tls and ctid are the fifth to
+	   seventh argument, on the stack above the two saved registers.  */
 	move.d	r11,r10
 	move.d	r12,r11
+#ifdef __arch_v32
+	addoq	8,sp,acr
+	move.d	[acr],r12
+	addoq	12,sp,acr
+	move	[acr],mof
+	addoq	16,sp,acr
+	move.d	[acr],r13
+#else
+	move.d	[sp+8],r12
+	move	[sp+12],mof
+	move.d	[sp+16],r13
+#endif
 
 	/* Do the system call.  */
 	movu.w	SYS_ify (clone),r9
@@ -76,8 +93,9 @@ ENTRY (clone)
 	jsr	r0
 #endif
 
-	SETUP_PIC
-	PLTCALL	(HIDDEN_JUMPTARGET(_exit))
+	/* Only this thread exits: _exit would be exit_group.  */
+	movu.w	SYS_ify (exit),r9
+	break	13
 
 	/* Die horribly.  */
 	move.d 6809,r13
@@ -92,4 +110,7 @@ ENTRY (clone)
 1:
 	movs.w	-EINVAL,r10
 	/* Drop through into the ordinary error handler.  */
-PSEUDO_END (clone)
+PSEUDO_END (__clone)
+
+weak_alias (__clone, clone)
+libc_hidden_def (clone)
