@@ -74,6 +74,10 @@ ENTRY(__clone)
 	comib,=,n  0, %arg0, .LerrorSanity        /* no NULL function pointers */
 	comib,=,n  0, %arg1, .LerrorSanity        /* no NULL stack pointers */
 
+	/* Loads and stores need natural alignment.  */
+	ldo	7(%r25), %r25
+	depi	0, 31, 3, %r25
+
 	/* Save the function pointer, arg, and flags on the new stack.  */
 	stwm    %r26, 64(%r25)
 	stw	%r23, -60(%r25)
