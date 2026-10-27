@@ -22,7 +22,11 @@
 
 #include <common/sysdep.h>
 #include <features.h>
-#include <asm/unistd.h>
+/* The syscall numbers come from <sys/syscall.h>.  */
+#include <asm/break.h>
+#ifndef __BREAK_SYSCALL
+# define __BREAK_SYSCALL __IA64_BREAK_SYSCALL
+#endif
 
 #ifdef __ASSEMBLER__
 
@@ -33,6 +37,7 @@
 #define ASM_UNW_PRLG_PR			0x1
 #define ASM_UNW_PRLG_GRSAVE(ninputs)	(32+(ninputs))
 
+#undef C_LABEL
 #ifdef	__STDC__
 #define C_LABEL(name)		name :
 #else
