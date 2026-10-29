@@ -22,7 +22,7 @@ int __libc_clock_gettime(clockid_t clock_id, struct timespec *tp)
 {
 	struct __ts64_struct __ts64;
 	int __ret = INLINE_SYSCALL(clock_gettime64, 2, clock_id, &__ts64);
-	if (tp) {
+	if (__ret == 0 && tp) {
 		tp->tv_sec = __ts64.tv_sec;
 		tp->tv_nsec = __ts64.tv_nsec;
 	}
