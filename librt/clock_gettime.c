@@ -35,7 +35,7 @@
   {                               \
   struct __ts64_struct __ts64;    \
   retval = INLINE_SYSCALL (clock_gettime64, 2, clock_id, &__ts64); \
-  if (tp) {                       \
+  if (retval == 0 && tp) {        \
     tp->tv_sec = __ts64.tv_sec;   \
     tp->tv_nsec = __ts64.tv_nsec; \
   }                               \
