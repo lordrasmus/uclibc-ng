@@ -60,7 +60,7 @@ typedef uintmax_t uatomic_max_t;
                : "=&r" (val), "=&r" (offset), "=&r" (temp)  \
                : "r" (mem), "r" (newval)                    \
                : "memory" );                                \
-       val; })
+       (__typeof (*(mem))) val; })
 
 #define atomic_compare_and_exchange_val_acq(mem, newval, oldval)  \
   ({   unsigned long val, offset, temp;                     \
@@ -82,7 +82,7 @@ typedef uintmax_t uatomic_max_t;
                : "=&r" (val), "=&r" (offset), "=&r" (temp)  \
                : "r" (mem), "r" (newval), "r" (oldval)      \
                : "memory" ); \
-       val; })
+       (__typeof (*(mem))) val; })
 
 #define atomic_compare_and_exchange_bool_acq(mem, newval, oldval) \
   ({   unsigned long val, offset, temp;                     \
