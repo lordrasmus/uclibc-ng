@@ -36,7 +36,7 @@ jobs:
       kernel_arch: tile
       config_file: config.tile_npt
       qemu_kernel: kernel-tile.img
-      qemu_cmd: qemu-system-tilegx -M tilegx -m 512M -nographic -kernel kernel.img -initrd rootfs.img.xz -append console=hvc0
+      qemu_cmd: qemu-system-tilegx -M tilegx -m 1G -nographic -kernel kernel.img -initrd rootfs.img.xz -append console=hvc0
 
   call_images:
     needs: call_build
