@@ -124,9 +124,16 @@ register void *__thread_pointer __asm__ ("$r25");
     ((struct pthread *) (__thread_pointer \
 			 - TLS_TCB_OFFSET - TLS_PRE_TCB_SIZE))
 
-/* Magic for libthread_db to know how to do THREAD_SELF.  */
-# define DB_THREAD_SELF \
-  REGISTER (32, 32, 152, - TLS_TCB_OFFSET - TLS_PRE_TCB_SIZE)
+/* Magic for libthread_db to know how to do THREAD_SELF: $r25 in
+   struct user_regs, see <sys/user.h>.  */
+# include <linux/version.h>
+# if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 17, 0)
+#  define DB_THREAD_SELF \
+  REGISTER (32, 32, 25 * 4, - TLS_TCB_OFFSET - TLS_PRE_TCB_SIZE)
+# else
+#  define DB_THREAD_SELF \
+  REGISTER (32, 32, 38 * 4, - TLS_TCB_OFFSET - TLS_PRE_TCB_SIZE)
+# endif
 
 /* Read member of the thread descriptor directly.  */
 # define THREAD_GETMEM(descr, member) (descr->member)
