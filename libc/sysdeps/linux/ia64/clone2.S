@@ -32,11 +32,16 @@ ENTRY(__clone2)
 	cmp.eq p7,p0=0,in1
 	mov r8=EINVAL
 	mov out0=in3		/* Flags are first syscall argument.	*/
-	mov out1=in1		/* Stack address.			*/
+	add r14=7,in1		/* Backing store base, rounded up.	*/
+	add r16=in1,in2		/* Stack top, rounded down below.	*/
 (p6)	br.cond.spnt.many __syscall_error	/* no NULL function pointers */
 (p7)	br.cond.spnt.many __syscall_error	/* no NULL stack pointers */
 	;;
-	mov out2=in2		/* Stack size.				*/
+	and r14=-8,r14
+	and r16=-16,r16		/* The kernel puts sp 16 below the top.	*/
+	;;
+	mov out1=r14		/* Stack address.			*/
+	sub out2=r16,r14	/* Stack size.				*/
 	mov out3=in5		/* Parent TID Pointer			*/
 	mov out4=in7		/* Child TID Pointer			*/
  	mov out5=in6		/* TLS pointer				*/
