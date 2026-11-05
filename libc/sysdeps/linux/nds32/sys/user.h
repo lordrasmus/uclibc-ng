@@ -45,9 +45,19 @@ struct user_fpregs
   unsigned int init_flag;
 };
 
+#include <linux/version.h>
+
+/* What PTRACE_GETREGSET and core dumps hand out.  Mainline (nds32 came
+   with 4.17): struct user_pt_regs, $r0-$r25, fp, gp, lp, sp, ipc, lb, le,
+   lc, syscallno.  The Andes BSP kernels before it: struct pt_regs, 44
+   words, $r25 at word 38.  */
 struct user_regs
 {
-  unsigned long int uregs[18];
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 17, 0)
+  unsigned long int uregs[35];
+#else
+  unsigned long int uregs[44];
+#endif
 };
 
 struct user
