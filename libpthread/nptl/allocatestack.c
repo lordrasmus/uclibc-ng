@@ -453,6 +453,26 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 	size += pagesize_m1 + 1;
 #endif
 
+      /* The static TLS block and the thread descriptor at the top of
+	 the mapping come on top of the requested stack too, so that the
+	 thread gets the stack it asked for (as musl does).  */
+      size_t tls_cost = __static_tls_size
+#if defined(TLS_DTV_AT_TP) && !defined(_STACK_GROWS_UP)
+			/* The descriptor lies below the TLS block, and
+			   the stack ends one descriptor below that again
+			   (stacktop = pd - 1).  Not 2 * TLS_PRE_TCB_SIZE:
+			   on riscv that macro carries an aligned
+			   tcbhead_t as well.  */
+			+ TLS_PRE_TCB_SIZE + sizeof (struct pthread)
+#elif defined(TLS_DTV_AT_TP)
+			+ TLS_PRE_TCB_SIZE
+#endif
+			+ __static_tls_align_m1;
+      if (size + tls_cost + __static_tls_align_m1 < size)
+	/* Arithmetic overflow, the rounding below counted in.  */
+	return EINVAL;
+      size += tls_cost;
+
       /* Adjust the stack size for alignment -- up, not down.  The
 	 descriptor's address is rounded down to the static TLS
 	 alignment below, which takes up to that much less one from the
