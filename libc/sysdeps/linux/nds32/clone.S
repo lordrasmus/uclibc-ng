@@ -141,13 +141,9 @@ ENTRY(__clone)
 	addi	$sp, $sp, 24
 #endif /* !defined(__NDS32_ABI_2__) && !defined(__NDS32_ABI_2FP_PLUS__)  */
 
-	! use $r15 in case _exit is PIC
-#ifdef PIC
-	la	$r15, C_SYMBOL_NAME(_exit@PLT)
-#else /* ! PIC  */
-	la	$r15, C_SYMBOL_NAME(_exit)
-#endif /* ! PIC  */
-	jr	$r15
+	/* Leave only this thread: _exit is exit_group.  $r0 holds fn's
+	   return value, the status.  */
+	__do_syscall(exit)
 
 
 PSEUDO_END (__clone)
