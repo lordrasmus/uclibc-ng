@@ -453,6 +453,19 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 	size += pagesize_m1 + 1;
 #endif
 
+      /* The static TLS block and the thread descriptor at the top of
+	 the mapping come on top of the requested stack too, so that the
+	 thread gets the stack it asked for (as musl does).  */
+      size_t tls_cost = __static_tls_size
+#if defined(TLS_DTV_AT_TP)
+			+ TLS_PRE_TCB_SIZE
+#endif
+			+ __static_tls_align_m1;
+      if (size + tls_cost < size)
+	/* Arithmetic overflow.  */
+	return EINVAL;
+      size += tls_cost;
+
       /* Adjust the stack size for alignment.  */
       size &= ~__static_tls_align_m1;
       assert (size != 0);
