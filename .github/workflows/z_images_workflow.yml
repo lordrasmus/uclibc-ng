@@ -232,12 +232,22 @@ jobs:
           # slot (the cpio hack, ~17 MB); the -O2 twins roughly double the test
           # binaries and overflow it. O2_TWINS=0 on the make command line
           # overrides the per-directory O2_TWINS:=1 and skips the twins there.
+          # gcc keeps the search paths of the prefix it was configured with as
+          # a fallback behind the relocated ones, and the isolation step
+          # above empties the relocated <target>/lib on purpose.  Where the
+          # toolchain was built -- the runner host itself -- that fallback
+          # exists: gcc 4.2 (metag) then took crt1.o and the old libc.so
+          # linker script from the openadk build tree, and every link failed
+          # with "cannot find /lib/libc.so.1".  Newer gcc put the sysroot
+          # first by themselves; for the others say it: -B for the crt files,
+          # -L for libc.  The .so rule in Test.mak links with CFLAGS only.
+          SR_FLAGS="-B$(pwd)/sysroot/usr/lib/ -L$(pwd)/sysroot/usr/lib -L$(pwd)/sysroot/lib"
           MK_FLAGS=""
           case "$CONFIG_KERNEL_ARCH" in
             xtensa|kvx|csky|arc) MK_FLAGS="O2_TWINS=0" ;;
           esac
-          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_CFLAGS $CF_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_LDFLAGS $STATIC_LDFLAGS $CF_CFLAGS"   nice -n 19 make -C uclibc-ng-test -j20 $MK_FLAGS 2>&1  | tee  testsuite_build.log
-          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_CFLAGS $CF_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $FLAT_CFLAGS $PIE_LDFLAGS $STATIC_LDFLAGS $CF_CFLAGS"   make -C uclibc-ng-test install DESTDIR=../rootfs $MK_FLAGS > /dev/null 2>&1
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $SR_FLAGS $FLAT_CFLAGS $PIE_CFLAGS $CF_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $SR_FLAGS $FLAT_CFLAGS $PIE_LDFLAGS $STATIC_LDFLAGS $CF_CFLAGS"   nice -n 19 make -C uclibc-ng-test -j20 $MK_FLAGS 2>&1  | tee  testsuite_build.log
+          CROSS_COMPILE=$CONFIG_GCC_PREFIX CFLAGS="--sysroot=$(pwd)/sysroot/ $SR_FLAGS $FLAT_CFLAGS $PIE_CFLAGS $CF_CFLAGS" LDFLAGS="--sysroot=$(pwd)/sysroot/ $SR_FLAGS $FLAT_CFLAGS $PIE_LDFLAGS $STATIC_LDFLAGS $CF_CFLAGS"   make -C uclibc-ng-test install DESTDIR=../rootfs $MK_FLAGS > /dev/null 2>&1
           echo "### Disabled Tests :bulb:" >> $GITHUB_STEP_SUMMARY
           grep -m1 "disabled by get_disabled_tests.py:" testsuite_build.log >> "$GITHUB_STEP_SUMMARY" || true
           find rootfs -type f -name '*.gdb' -exec rm {} \;
@@ -294,6 +304,9 @@ jobs:
           # a terminal the build would otherwise stop and ask.
           yes '' | make -C busybox-1.36.1 oldconfig > /dev/null
           grep -E "^CONFIG_(SH_IS_|NOMMU|STATIC|LFS)" busybox-1.36.1/.config
+          # crt files and libc from our sysroot first, see the testsuite step.
+          SR="$(pwd)/sysroot"
+          sed -i 's|^CONFIG_EXTRA_LDFLAGS="\(.*\)"$|CONFIG_EXTRA_LDFLAGS="\1 -B'"$SR"'/usr/lib/ -L'"$SR"'/usr/lib -L'"$SR"'/lib"|' busybox-1.36.1/.config
 
           # ColdFire: large GOT model, see the testsuite step. Separate shell
           # step, so the probe has to be repeated here.
