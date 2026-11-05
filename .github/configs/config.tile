@@ -47,10 +47,10 @@ TARGET_SUBARCH=""
 #
 # Using ELF file format
 #
-ARCH_BIG_ENDIAN=y
+ARCH_LITTLE_ENDIAN=y
 
 #
-# Using Big Endian
+# Using Little Endian
 #
 ARCH_HAS_MMU=y
 ARCH_USE_MMU=y
