@@ -76,12 +76,13 @@ enum
 };
 
 /* Structure to describe FPU registers.  */
+/* As the kernel's asm/ucontext.h: the three control registers first.  */
 typedef struct fpregset
 {
-  int f_fpregs[8][3];
   int f_pcr;
   int f_psr;
   int f_fpiaddr;
+  int f_fpregs[8][3];
 } fpregset_t;
 
 /* Context to describe whole processor state.  */
@@ -94,15 +95,16 @@ typedef struct
 
 #define MCONTEXT_VERSION 2
 
-/* Userlevel context.  */
+/* Userlevel context, laid out as the kernel's struct ucontext that a
+   signal handler gets: the signal mask comes last.  */
 typedef struct ucontext
 {
   unsigned long int uc_flags;
   struct ucontext *uc_link;
-  __sigset_t uc_sigmask;
   stack_t uc_stack;
   mcontext_t uc_mcontext;
-  long int uc_filler[174];
+  unsigned long int uc_filler[80];
+  __sigset_t uc_sigmask;
 } ucontext_t;
 
 #endif /* sys/ucontext.h */
