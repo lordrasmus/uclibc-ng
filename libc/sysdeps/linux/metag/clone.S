@@ -59,13 +59,11 @@ __clone:
 	ADD	D1RtP, D1RtP, #8
 	MOV	PC, D0Ar2
 
-	! and we are done, passing the return value D0Re0 through D1Ar1
+	! and we are done, passing the return value D0Re0 through D1Ar1;
+	! exit, not _exit, which is exit_group and ends the whole group
 	MOV	D1Ar1, D0Re0
-#ifdef __PIC__
-	B	_exit@PLT
-#else
-	B	_exit
-#endif
+	MOV	D1Re0, #__NR_exit
+	SWITCH	#0x440001
 
 ___error:
 	MOV	D1Ar1, D0Re0
