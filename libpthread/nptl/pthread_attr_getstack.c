@@ -32,7 +32,11 @@ __pthread_attr_getstack (
   iattr = (struct pthread_attr *) attr;
 
   /* Store the result.  */
+#ifdef _STACK_GROWS_UP
+  *stackaddr = (char *) iattr->stackaddr;
+#else
   *stackaddr = (char *) iattr->stackaddr - iattr->stacksize;
+#endif
   *stacksize = iattr->stacksize;
 
   return 0;

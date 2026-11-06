@@ -358,6 +358,13 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
   if (__builtin_expect (attr->flags & ATTR_FLAG_STACKADDR, 0))
     {
       uintptr_t adj;
+      char *stackaddr = (char *) attr->stackaddr;
+
+#ifdef _STACK_GROWS_UP
+      /* The attribute holds the bottom of the stack there; take the same
+	 layout as below, with struct pthread at the top of the block.  */
+      stackaddr += attr->stacksize;
+#endif
 
       /* If the user also specified the size of the stack make sure it
 	 is large enough.  */
@@ -367,11 +374,11 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 
       /* Adjust stack size for alignment of the TLS block.  */
 #if defined(TLS_TCB_AT_TP)
-      adj = ((uintptr_t) attr->stackaddr - TLS_TCB_SIZE)
+      adj = ((uintptr_t) stackaddr - TLS_TCB_SIZE)
 	    & __static_tls_align_m1;
       assert (size > adj + TLS_TCB_SIZE);
 #elif defined(TLS_DTV_AT_TP)
-      adj = ((uintptr_t) attr->stackaddr - __static_tls_size)
+      adj = ((uintptr_t) stackaddr - __static_tls_size)
 	    & __static_tls_align_m1;
       assert (size > adj);
 #endif
@@ -381,10 +388,10 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 	 the stack.  It is the user's responsibility to do this if it
 	 is wanted.  */
 #if defined(TLS_TCB_AT_TP)
-      pd = (struct pthread *) ((uintptr_t) attr->stackaddr
+      pd = (struct pthread *) ((uintptr_t) stackaddr
 			       - TLS_TCB_SIZE - adj);
 #elif defined(TLS_DTV_AT_TP)
-      pd = (struct pthread *) (((uintptr_t) attr->stackaddr
+      pd = (struct pthread *) (((uintptr_t) stackaddr
 			        - __static_tls_size - adj)
 			       - TLS_PRE_TCB_SIZE);
 #endif
@@ -396,7 +403,7 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
       pd->specific[0] = pd->specific_1stblock;
 
       /* Remember the stack-related values.  */
-      pd->stackblock = (char *) attr->stackaddr - size;
+      pd->stackblock = (char *) stackaddr - size;
       pd->stackblock_size = size;
 
       /* This is a user-provided stack.  It will not be queued in the
