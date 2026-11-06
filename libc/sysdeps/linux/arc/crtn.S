@@ -1,29 +1,6 @@
-/*
- * Copyright (C) 2013 Synopsys, Inc. (www.synopsys.com)
- *
- * Licensed under the LGPL v2.1 or later, see the file COPYING.LIB in this tarball.
- */
+/* Dummy crtn file.
 
-___gnu_compiled_c:
-
-	.section .init
-	.align 4
-	.global	_init
-	.type	 _init,@function
-	; EPILOGUE
-	ld.ab fp,[sp,4]
-	ld blink,[sp,0]
-	j.d [blink]
-	add sp,sp,4
-;	.size	 _init,.-_init
-
-	.section .fini
-	.align 4
-	.global	_fini
-	.type	 _fini,@function
-	; EPILOGUE
-	ld.ab fp,[sp,4]
-	ld blink,[sp,0]
-	j.d [blink]
-	add sp,sp,4
-;	.size	 _fini,.-_fini
+   Empty, as glibc's sysdeps/generic/crti.S for its newer ports: gcc's
+   crtbegin.o and crtend.o on arc run constructors and destructors from
+   .init_array/.fini_array, and crt1.S references _init and _fini only
+   weakly, so __uClibc_main gets NULL when nothing defines them.  */
