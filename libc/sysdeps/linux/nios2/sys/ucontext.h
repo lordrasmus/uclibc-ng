@@ -20,84 +20,31 @@
 
 #include <features.h>
 #include <signal.h>
-/*
- * Location of the users' stored registers relative to R0.
- * Usage is as an index into a gregset_t array or as u.u_ar0[XX].
- */
-#define REG_PSR (0)
-#define REG_PC  (1)
-#define REG_SPARE   (2)
-#define REG_WVALID  (3)
-#define REG_G1  (4)
-#define REG_G2  (5)
-#define REG_G3  (6)
-#define REG_G4  (7)
-#define REG_G5  (8)
-#define REG_G6  (9)
-#define REG_G7  (10)
-#define REG_O0  (11)
-#define REG_O1  (12)
-#define REG_O2  (13)
-#define REG_O3  (14)
-#define REG_O4  (15)
-#define REG_O5  (16)
-#define REG_O6  (17)
-#define REG_O7  (18)
-#define REG_GLOBALS (19)
 
-/*
- * A gregset_t is defined as an array type for compatibility with the reference
- * source. This is important due to differences in the way the C language
- * treats arrays and structures as parameters.
- *
- * Note that NGREG is really (sizeof (struct regs) / sizeof (greg_t)),
- * but that the ABI defines it absolutely to be 21 (resp. 19).
- */
+/* The layout of the kernel's struct ucontext and struct sigcontext
+   (arch/nios2/include/uapi/asm/sigcontext.h, asm-generic/ucontext.h),
+   as glibc had it.  regs[i] holds r(i+1); regs[23] is ra, regs[24] fp,
+   regs[25] gp, regs[27] ea (the PC) and regs[28] sp.  */
 
-#define NGREG   20
-typedef int greg_t;
+#ifdef __USE_MISC
+# define MCONTEXT_VERSION 2
+#endif
 
-typedef greg_t  gregset_t[NGREG];
-
-/*
- * The following structures define how a register window can appear on the
- * stack. This structure is available (when required) through the `gwins'
- * field of an mcontext (nested within ucontext). NIOS_MAXWINDOW is the
- * maximum number of outstanding register windows defined in the NIOS
- * architecture (*not* implementation).
- */
-#define NIOS_MAXREGWINDOW	31	/* max windows in NIOS arch. */
-struct  rwindow
-  {
-    greg_t rw_local[8];			/* locals */
-    greg_t rw_in[8];			/* ins */
-  };
-
-#define rw_fp   rw_in[6]		/* frame pointer */
-#define rw_rtn  rw_in[7]		/* return address */
-
-typedef struct gwindows
-  {
-    int            wbcnt;
-    int           *spbuf[NIOS_MAXREGWINDOW];
-    struct rwindow wbuf[NIOS_MAXREGWINDOW];
-  } gwindows_t;
-
+/* Context to describe whole processor state.  */
 typedef struct
   {
-    gregset_t   gregs;		/* general register set */
-    gwindows_t  *gwins;		/* POSSIBLE pointer to register windows */
+    int version;
+    unsigned long regs[32];
   } mcontext_t;
-
 
 /* Userlevel context.  */
 typedef struct ucontext
   {
-    unsigned long   uc_flags;
+    unsigned long uc_flags;
     struct ucontext *uc_link;
-    __sigset_t	    uc_sigmask;
-    stack_t         uc_stack;
-    mcontext_t      uc_mcontext;
+    stack_t uc_stack;
+    mcontext_t uc_mcontext;
+    __sigset_t uc_sigmask;
   } ucontext_t;
 
 #endif /* sys/ucontext.h */
