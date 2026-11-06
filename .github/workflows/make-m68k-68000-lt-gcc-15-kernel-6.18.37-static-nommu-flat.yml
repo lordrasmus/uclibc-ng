@@ -38,8 +38,10 @@ jobs:
       qemu_kernel: kernel-m68k-68000.img
       # The m68328 machine of the qemu fork: a 68000 with the MC68328's
       # interrupt controller and timer. The rootfs goes in uncompressed,
-      # without an MMU the kernel cannot allocate the xz dictionary.
-      qemu_cmd: qemu-system-m68k -M m68328 -nographic -kernel kernel.img -initrd rootfs.img -append console=ttyS0,115200
+      # without an MMU the kernel cannot allocate the xz dictionary. The
+      # kernel is built for 512 MiB (CONFIG_RAMSIZE), the machine has 128 by
+      # default.
+      qemu_cmd: qemu-system-m68k -M m68328 -m 512M -nographic -kernel kernel.img -initrd rootfs.img -append console=ttyS0,115200
 
   # What this target is for: the 68000 and 68010 have no CAS, so they take the
   # kernel helper path in bits/atomic.h that ColdFire uses. That path had no
