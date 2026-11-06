@@ -93,6 +93,10 @@ libc_hidden_proto(waitpid)
 /* CLONE_BACKWARDS2: the stack pointer comes first.  */
 # define FORK() \
   INLINE_SYSCALL (clone, 3, 0, CLONE_PARENT_SETTID | SIGCHLD, &pid)
+#elif defined __microblaze__
+/* CLONE_BACKWARDS3: a stack size comes before the parent TID pointer.  */
+# define FORK() \
+  INLINE_SYSCALL (clone, 4, CLONE_PARENT_SETTID | SIGCHLD, 0, 0, &pid)
 #else
 # define FORK() \
   INLINE_SYSCALL (clone, 3, CLONE_PARENT_SETTID | SIGCHLD, 0, &pid)
