@@ -29,7 +29,9 @@
 typedef unsigned long greg_t;
 
 /* Number of general registers.  */
-#define NGREG	(10+2+64)
+/* As the kernel's struct user_int_regs: 10 registers, gner[2], the 64-bit
+   iacc0 in two slots, then gr[64].  */
+#define NGREG	(10+2+2+64)
 
 /* Container for all general registers.  */
 typedef greg_t gregset_t[NGREG];
@@ -62,133 +64,135 @@ enum
 #define REG_GNER0	REG_GNER0
   REG_GNER1 = 11,
 #define REG_GNER1	REG_GNER1
-  REG_GR0 = 12,
+  REG_IACC0 = 12,	/* 64 bits, slots 12 and 13 */
+#define REG_IACC0	REG_IACC0
+  REG_GR0 = 14,
 #define REG_GR0	REG_GR0
-  REG_GR1 = 13,
+  REG_GR1 = 15,
 #define REG_GR1	REG_GR1
-  REG_GR2 = 14,
+  REG_GR2 = 16,
 #define REG_GR2	REG_GR2
-  REG_GR3 = 15,
+  REG_GR3 = 17,
 #define REG_GR3	REG_GR3
-  REG_GR4 = 16,
+  REG_GR4 = 18,
 #define REG_GR4	REG_GR4
-  REG_GR5 = 17,
+  REG_GR5 = 19,
 #define REG_GR5	REG_GR5
-  REG_GR6 = 18,
+  REG_GR6 = 20,
 #define REG_GR6	REG_GR6
-  REG_GR7 = 19,
+  REG_GR7 = 21,
 #define REG_GR7	REG_GR7
-  REG_GR8 = 20,
+  REG_GR8 = 22,
 #define REG_GR8	REG_GR8
-  REG_GR9 = 21,
+  REG_GR9 = 23,
 #define REG_GR9	REG_GR9
-  REG_GR10 = 22,
+  REG_GR10 = 24,
 #define REG_GR10	REG_GR10
-  REG_GR11 = 23,
+  REG_GR11 = 25,
 #define REG_GR11	REG_GR11
-  REG_GR12 = 24,
+  REG_GR12 = 26,
 #define REG_GR12	REG_GR12
-  REG_GR13 = 25,
+  REG_GR13 = 27,
 #define REG_GR13	REG_GR13
-  REG_GR14 = 26,
+  REG_GR14 = 28,
 #define REG_GR14	REG_GR14
-  REG_GR15 = 27,
+  REG_GR15 = 29,
 #define REG_GR15	REG_GR15
-  REG_GR16 = 28,
+  REG_GR16 = 30,
 #define REG_GR16	REG_GR16
-  REG_GR17 = 29,
+  REG_GR17 = 31,
 #define REG_GR17	REG_GR17
-  REG_GR18 = 30,
+  REG_GR18 = 32,
 #define REG_GR18	REG_GR18
-  REG_GR19 = 31,
+  REG_GR19 = 33,
 #define REG_GR19	REG_GR19
-  REG_GR20 = 32,
+  REG_GR20 = 34,
 #define REG_GR20	REG_GR20
-  REG_GR21 = 33,
+  REG_GR21 = 35,
 #define REG_GR21	REG_GR21
-  REG_GR22 = 34,
+  REG_GR22 = 36,
 #define REG_GR22	REG_GR22
-  REG_GR23 = 35,
+  REG_GR23 = 37,
 #define REG_GR23	REG_GR23
-  REG_GR24 = 36,
+  REG_GR24 = 38,
 #define REG_GR24	REG_GR24
-  REG_GR25 = 37,
+  REG_GR25 = 39,
 #define REG_GR25	REG_GR25
-  REG_GR26 = 38,
+  REG_GR26 = 40,
 #define REG_GR26	REG_GR26
-  REG_GR27 = 39,
+  REG_GR27 = 41,
 #define REG_GR27	REG_GR27
-  REG_GR28 = 40,
+  REG_GR28 = 42,
 #define REG_GR28	REG_GR28
-  REG_GR29 = 41,
+  REG_GR29 = 43,
 #define REG_GR29	REG_GR29
-  REG_GR30 = 42,
+  REG_GR30 = 44,
 #define REG_GR30	REG_GR30
-  REG_GR31 = 43,
+  REG_GR31 = 45,
 #define REG_GR31	REG_GR31
-  REG_GR32 = 44,
+  REG_GR32 = 46,
 #define REG_GR32	REG_GR32
-  REG_GR33 = 45,
+  REG_GR33 = 47,
 #define REG_GR33	REG_GR33
-  REG_GR34 = 46,
+  REG_GR34 = 48,
 #define REG_GR34	REG_GR34
-  REG_GR35 = 47,
+  REG_GR35 = 49,
 #define REG_GR35	REG_GR35
-  REG_GR36 = 48,
+  REG_GR36 = 50,
 #define REG_GR36	REG_GR36
-  REG_GR37 = 49,
+  REG_GR37 = 51,
 #define REG_GR37	REG_GR37
-  REG_GR38 = 50,
+  REG_GR38 = 52,
 #define REG_GR38	REG_GR38
-  REG_GR39 = 51,
+  REG_GR39 = 53,
 #define REG_GR39	REG_GR39
-  REG_GR40 = 52,
+  REG_GR40 = 54,
 #define REG_GR40	REG_GR40
-  REG_GR41 = 53,
+  REG_GR41 = 55,
 #define REG_GR41	REG_GR41
-  REG_GR42 = 54,
+  REG_GR42 = 56,
 #define REG_GR42	REG_GR42
-  REG_GR43 = 55,
+  REG_GR43 = 57,
 #define REG_GR43	REG_GR43
-  REG_GR44 = 56,
+  REG_GR44 = 58,
 #define REG_GR44	REG_GR44
-  REG_GR45 = 57,
+  REG_GR45 = 59,
 #define REG_GR45	REG_GR45
-  REG_GR46 = 58,
+  REG_GR46 = 60,
 #define REG_GR46	REG_GR46
-  REG_GR47 = 59,
+  REG_GR47 = 61,
 #define REG_GR47	REG_GR47
-  REG_GR48 = 60,
+  REG_GR48 = 62,
 #define REG_GR48	REG_GR48
-  REG_GR49 = 61,
+  REG_GR49 = 63,
 #define REG_GR49	REG_GR49
-  REG_GR50 = 62,
+  REG_GR50 = 64,
 #define REG_GR50	REG_GR50
-  REG_GR51 = 63,
+  REG_GR51 = 65,
 #define REG_GR51	REG_GR51
-  REG_GR52 = 64,
+  REG_GR52 = 66,
 #define REG_GR52	REG_GR52
-  REG_GR53 = 65,
+  REG_GR53 = 67,
 #define REG_GR53	REG_GR53
-  REG_GR54 = 66,
+  REG_GR54 = 68,
 #define REG_GR54	REG_GR54
-  REG_GR55 = 67,
+  REG_GR55 = 69,
 #define REG_GR55	REG_GR55
-  REG_GR56 = 68,
+  REG_GR56 = 70,
 #define REG_GR56	REG_GR56
-  REG_GR57 = 69,
+  REG_GR57 = 71,
 #define REG_GR57	REG_GR57
-  REG_GR58 = 70,
+  REG_GR58 = 72,
 #define REG_GR58	REG_GR58
-  REG_GR59 = 71,
+  REG_GR59 = 73,
 #define REG_GR59	REG_GR59
-  REG_GR60 = 72,
+  REG_GR60 = 74,
 #define REG_GR60	REG_GR60
-  REG_GR61 = 73,
+  REG_GR61 = 75,
 #define REG_GR61	REG_GR61
-  REG_GR62 = 74,
+  REG_GR62 = 76,
 #define REG_GR62	REG_GR62
-  REG_GR63 = 75,
+  REG_GR63 = 77,
 #define REG_GR63	REG_GR63
 };
 #endif
@@ -392,6 +396,7 @@ struct kernel_user_int_regs
   unsigned long		syscallno;	/* syscall number or -1 */
   unsigned long		orig_gr8;	/* original syscall arg #1 */
   unsigned long		gner[2];
+  unsigned long long	iacc[1];
 
   union {
     unsigned long	tbr;
