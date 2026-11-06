@@ -40,7 +40,7 @@ jobs:
       # -m 64M: the rootfs is unpacked into tmpfs, which gets half of the
       # memory, and the test rootfs does not fit into half of the board's
       # 32 MiB.
-      qemu_cmd: qemu-system-avr32 -M atngw100 -m 64M -nographic -kernel kernel.img -initrd rootfs.img.xz -append console=ttyS0
+      qemu_cmd: qemu-system-avr32 -M atngw100 -m 64M -nographic -kernel kernel.img -drive if=none,id=hd,format=raw,file=rootfs.ext2 -device virtio-blk-device,drive=hd -append "console=ttyS0 root=/dev/vda rootfstype=ext2 rw virtio_mmio.device=0x200@0xfc000000:32"
 
 
   call_images:
