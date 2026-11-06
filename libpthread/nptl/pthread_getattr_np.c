@@ -62,8 +62,12 @@ pthread_getattr_np (
       /* The stack size reported to the user does not include the
 	 guard.  */
       iattr->stacksize = thread->stackblock_size - thread->guardsize;
+#ifdef _STACK_GROWS_UP
+      iattr->stackaddr = (char *) thread->stackblock;
+#else
       iattr->stackaddr = (char *) thread->stackblock
 			 + thread->stackblock_size;
+#endif
     }
   else
     {
@@ -117,12 +121,25 @@ pthread_getattr_np (
 			 fixed contiguous allocation.  */
 		      iattr->stacksize = to - from;
 #endif
+#ifdef _STACK_GROWS_UP
+		      /* The stack grows up from the bottom of the mapping,
+			 which is the address the attribute holds there.  */
+		      iattr->stackaddr = (void *) from;
+
+		      /* The limit might be too low, or beyond the end of the
+			 address space.  */
+		      if ((size_t) iattr->stacksize < to - from)
+			iattr->stacksize = to - from;
+		      if ((size_t) iattr->stacksize > -from)
+			iattr->stacksize = -from;
+#else
 		      iattr->stackaddr = (void *) to;
 
 		      /* The limit might be too high.  */
 		      if ((size_t) iattr->stacksize
 			  > (size_t) iattr->stackaddr - last_to)
 			iattr->stacksize = (size_t) iattr->stackaddr - last_to;
+#endif
 
 		      /* We succeed and no need to look further.  */
 		      ret = 0;

@@ -42,7 +42,11 @@ __pthread_attr_setstack (
 #endif
 
   iattr->stacksize = stacksize;
+#ifdef _STACK_GROWS_UP
+  iattr->stackaddr = (char *) stackaddr;
+#else
   iattr->stackaddr = (char *) stackaddr + stacksize;
+#endif
   iattr->flags |= ATTR_FLAG_STACKADDR;
 
   return 0;
