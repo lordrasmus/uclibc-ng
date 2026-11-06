@@ -8,11 +8,6 @@
 
 .text
 
-#ifndef __UCLIBC_CTOR_DTOR__
-	.weak	_init
-	.weak	_fini
-#endif
-
 /* Stick in a dummy reference to main(), so that if an application
  * is linking when the main() function is in a static library (.a)
  * we can be sure that main() actually gets linked in
@@ -45,13 +40,13 @@ __start:
 	add	r2, sp, 4	; argv
 #ifdef L_Scrt1
 	ld	r0, [pcl, @main@gotpc]
-	ld	r3, [pcl, @_init@gotpc]
-	ld	r4, [pcl, @_fini@gotpc]
 #else
 	mov_s	r0, main
-	mov_s	r3, _init
-	mov	r4, _fini
 #endif
+	/* No _init or _fini: constructors and destructors run from
+	   .init_array/.fini_array only, and crti.o is empty.  */
+	mov	r3, 0
+	mov	r4, 0
 	and	sp, sp, -8
 	mov	r6, sp
 
