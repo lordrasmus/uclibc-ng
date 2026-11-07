@@ -13,8 +13,8 @@
  * Andes BSP reads the SWID, and gcc's unwinder expects SWID == nr. $ta (r15)
  * is the assembler temporary, so it is loaded inside the asm and clobbered
  * rather than bound to a register variable. A non-constant number (NCS) cannot
- * be an immediate and modern nds32 has no indirect syscall, so it travels in
- * $ta only.
+ * be an immediate: mainline takes it in $ta, the Andes BSP (recognised by
+ * __NR_SYSCALL_BASE) through its indirect __NR_syscall.
  */
 
 #ifndef _BITS_SYSCALLS_H
@@ -48,6 +48,15 @@
          __set_errno (INTERNAL_SYSCALL_ERRNO (result_var, err));	\
          result_var = -1 ;						\
        }								\
+     result_var;							\
+  })
+
+/* The generic form goes through INTERNAL_SYSCALL_NCS; keep the immediate. */
+#undef INLINE_SYSCALL_NOERR
+#define INLINE_SYSCALL_NOERR(name, nr, args...)				\
+  ({									\
+     INTERNAL_SYSCALL_DECL (err);					\
+     long result_var = INTERNAL_SYSCALL (name, err, nr, args);		\
      result_var;							\
   })
 
@@ -198,8 +207,66 @@
        ___res;								\
   })
 
-/* Non-constant number: it cannot be a SWID immediate, so pass it in $ta
-   only (mainline; modern nds32 has no indirect syscall). */
+#ifdef __NR_SYSCALL_BASE
+
+/* Andes BSP: sys_syscall takes the number in $r0, the arguments in $r1..$r5
+   and the sixth from [$sp]. */
+
+#define internal_syscall_ncs0(name, err, dummy...)			\
+  internal_syscall_ncs5(name, err, 0, 0, 0, 0, 0)
+#define internal_syscall_ncs1(name, err, arg1)				\
+  internal_syscall_ncs5(name, err, arg1, 0, 0, 0, 0)
+#define internal_syscall_ncs2(name, err, arg1, arg2)			\
+  internal_syscall_ncs5(name, err, arg1, arg2, 0, 0, 0)
+#define internal_syscall_ncs3(name, err, arg1, arg2, arg3)		\
+  internal_syscall_ncs5(name, err, arg1, arg2, arg3, 0, 0)
+#define internal_syscall_ncs4(name, err, arg1, arg2, arg3, arg4)	\
+  internal_syscall_ncs5(name, err, arg1, arg2, arg3, arg4, 0)
+
+#define internal_syscall_ncs5(name, err, arg1, arg2, arg3, arg4, arg5)	\
+  ({									\
+       register long ___res  __asm__("$r0");				\
+       register long __nr    __asm__("$r0") = (long) (name);		\
+       register long __arg1  __asm__("$r1") = (long) (arg1);		\
+       register long __arg2  __asm__("$r2") = (long) (arg2);		\
+       register long __arg3  __asm__("$r3") = (long) (arg3);		\
+       register long __arg4  __asm__("$r4") = (long) (arg4);		\
+       register long __arg5  __asm__("$r5") = (long) (arg5);		\
+       __asm__ volatile (						\
+       "syscall " Y(__NR_syscall) "\n\t"				\
+       : "=r" (___res)							\
+       : "r" (__nr), "r" (__arg1), "r" (__arg2), "r" (__arg3),		\
+         "r" (__arg4), "r" (__arg5)					\
+       : __SYSCALL_CLOBBERS);						\
+       ___res;								\
+  })
+
+#define internal_syscall_ncs6(name, err, arg1, arg2, arg3, arg4, arg5, arg6) \
+  ({									\
+       register long ___res  __asm__("$r0");				\
+       register long __nr    __asm__("$r0") = (long) (name);		\
+       register long __arg1  __asm__("$r1") = (long) (arg1);		\
+       register long __arg2  __asm__("$r2") = (long) (arg2);		\
+       register long __arg3  __asm__("$r3") = (long) (arg3);		\
+       register long __arg4  __asm__("$r4") = (long) (arg4);		\
+       register long __arg5  __asm__("$r5") = (long) (arg5);		\
+       __asm__ volatile (						\
+       "addi10.sp\t #-8\n\t"						\
+       CFI_ADJUST_CFA_OFFSET(8)"\n\t"					\
+       "swi\t %[a6], [$sp]\n\t"					\
+       "syscall " Y(__NR_syscall) "\n\t"				\
+       "addi10.sp\t #8\n\t"						\
+       CFI_ADJUST_CFA_OFFSET(-8)"\n\t"					\
+       : "=r" (___res)							\
+       : "r" (__nr), "r" (__arg1), "r" (__arg2), "r" (__arg3),		\
+         "r" (__arg4), "r" (__arg5), [a6] "r" ((long) (arg6))		\
+       : __SYSCALL_CLOBBERS);						\
+       ___res;								\
+  })
+
+#else /* !__NR_SYSCALL_BASE */
+
+/* Mainline: a non-constant number travels in $ta only. */
 
 #define internal_syscall_ncs0(name, err, dummy...)			\
   ({									\
@@ -309,6 +376,8 @@
        : __SYSCALL_CLOBBERS);						\
        ___res;								\
   })
+
+#endif /* __NR_SYSCALL_BASE */
 
 #endif /* ! __ASSEMBLER__  */
 #endif /* _BITS_SYSCALLS_H */
