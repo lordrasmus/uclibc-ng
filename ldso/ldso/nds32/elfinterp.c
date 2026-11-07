@@ -305,6 +305,13 @@ _dl_do_lazy_reloc (struct elf_resolve *tpnt, struct r_scope_elem *scope,
 			case R_NDS32_JMP_SLOT:
 				*reloc_addr += (unsigned long) tpnt->loadaddr;
 				break;
+#if defined USE_TLS && USE_TLS
+			case R_NDS32_TLS_DESC:
+				/* No lazy TLS descriptor resolver: bind it now. */
+				return _dl_do_reloc(tpnt,
+						    &_dl_loaded_modules->symbol_scope,
+						    rpnt, symtab, strtab);
+#endif
 			default:
 				return -1; /*call _dl_exit(1) */
 		}
