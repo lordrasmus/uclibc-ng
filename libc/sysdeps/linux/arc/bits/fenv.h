@@ -19,9 +19,10 @@
 # error "Never use <bits/fenv.h> directly; include <fenv.h> instead."
 #endif
 
-#if !defined(__ARC_FPU_SP__) && !defined(__ARC_FPU_DP__)
+#ifndef __ARC_FPU_DP_DIV__
 
-/* No FPU (arc700, or ARC HS built without one).  */
+/* No FPU, or one that leaves double operations or divisions to libgcc
+   (fpus, fpud), whose software arithmetic keeps no environment.  */
 #include <bits/fenv-sw.h>
 
 #else
@@ -81,4 +82,4 @@ typedef unsigned int femode_t;
 /* Default floating-point control modes.  */
 # define FE_DFL_MODE	((const femode_t *) -1L)
 
-#endif /* __ARC_FPU_SP__ || __ARC_FPU_DP__ */
+#endif /* __ARC_FPU_DP_DIV__ */

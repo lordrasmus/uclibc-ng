@@ -24,7 +24,7 @@
 static inline int
 get_rounding_mode (void)
 {
-#if defined(__ARC_FPU_SP__) ||  defined(__ARC_FPU_DP__)
+#ifdef __ARC_FPU_DP_DIV__
   unsigned int fpcr;
   _FPU_GETCW (fpcr);
 
