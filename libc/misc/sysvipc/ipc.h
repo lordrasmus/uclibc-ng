@@ -7,7 +7,10 @@
 #include <sgidefs.h>
 #endif
 
-#ifndef __ARCH_HAS_DEPRECATED_SYSCALLS__
+#if defined __nds32__ && defined __NR_SYSCALL_BASE
+/* The Andes BSP kernel (Linux 3.4) parses IPC_64 out of cmd. */
+#  define __IPC_64	0x100
+#elif !defined __ARCH_HAS_DEPRECATED_SYSCALLS__
 #  define __IPC_64	0x0
 #elif defined __mips__ && _MIPS_SIM != _ABIO32
 /* n32/n64 route the *ctl syscalls through sys_old_*ctl (n32: the compat_
