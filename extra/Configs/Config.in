@@ -700,6 +700,22 @@ config PTHREADS_STACK_DEFAULT_SIZE
 	  systems where the stack size is fixed and the default stack size may
 	  be excessively large and waste memory.
 
+config PTHREADS_STACK_SIZE_FROM_ELF
+	bool "Take the default thread stack size from the program"
+	depends on UCLIBC_HAS_THREADS_NATIVE
+	default n
+	help
+	  If the program carries a stack size in its PT_GNU_STACK program
+	  header (linked with -Wl,-z,stack-size=SIZE), use it as the default
+	  size of its thread stacks, larger or smaller than the one above.
+	  Without such a size nothing changes.
+
+	  musl does the same, but only to raise its small default.  Note that
+	  binutils writes 128 KiB there by itself for some MMU-less ELF
+	  targets (c6x DSBT, frv FDPIC), where the kernel already takes it as
+	  the size of the main stack; their threads then get 128 KiB too.
+	  FLAT programs have no program headers and keep the default.
+
 config UCLIBC_HAS_SYSLOG
 	bool "Syslog support"
 	default y

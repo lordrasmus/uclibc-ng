@@ -24,6 +24,10 @@
 #include <unistd.h>
 #include <sys/param.h>
 #include <sys/resource.h>
+#ifdef __PTHREADS_STACK_SIZE_FROM_ELF__
+# include <link.h>
+# include <sys/auxv.h>
+#endif
 #include <pthreadP.h>
 #include <atomic.h>
 #include <ldsodefs.h>
@@ -202,6 +206,25 @@ __pthread_initialize_minimal_internal (void)
   /* Do not exceed the user-specified or architecture-specific default */
   if (limit.rlim_cur > __PTHREADS_STACK_DEFAULT_SIZE__)
     limit.rlim_cur = __PTHREADS_STACK_DEFAULT_SIZE__;
+
+#ifdef __PTHREADS_STACK_SIZE_FROM_ELF__
+  /* A stack size the program was linked with (-z stack-size) wins, in
+     either direction.  No auxiliary vector (FLAT) gives no headers.  */
+  {
+    const ElfW(Phdr) *ph = (const ElfW(Phdr) *) getauxval (AT_PHDR);
+    unsigned long int n = getauxval (AT_PHNUM);
+
+    for (; ph != NULL && n > 0; ph++, n--)
+      if (ph->p_type == PT_GNU_STACK)
+	{
+	  if (ph->p_memsz != 0)
+	    limit.rlim_cur = ph->p_memsz;
+	  break;
+	}
+    if (limit.rlim_cur < PTHREAD_STACK_MIN)
+      limit.rlim_cur = PTHREAD_STACK_MIN;
+  }
+#endif
 
   /* Make sure it meets the minimum size that allocate_stack
      (allocatestack.c) will demand, which depends on the page size.  */
