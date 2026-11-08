@@ -21,7 +21,5 @@ Upstream Links
 
 https://uclibc-ng.org/
 
-https://cgit.uclibc-ng.org/cgi/cgit/uclibc-ng.git/
-
 |Arch  |Status|Testsuite Image|Test Result|
 |------|------|------|------|

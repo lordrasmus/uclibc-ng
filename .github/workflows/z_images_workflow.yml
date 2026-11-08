@@ -154,7 +154,6 @@ jobs:
           echo "root:x:0:"                        > rootfs/etc/group
           echo "root:x:0:0:root:/root:/bin/sh"    > rootfs/etc/passwd
           
-          #git clone https://cgit.uclibc-ng.org/cgi/cgit/uclibc-ng-test.git/
           # per-Runner-Cache: Repo einmal klonen, danach nur Deltas fetchen statt
           # bei jedem Job komplett ueber die GitHub-Leitung neu zu klonen. In den
           # Workspace kopieren, damit "make install DESTDIR=../rootfs" relativ stimmt
