@@ -483,12 +483,15 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
       if (guardsize < attr->guardsize || size + guardsize < guardsize)
 	/* Arithmetic overflow.  */
 	return EINVAL;
-      reported_guardsize = guardsize;
 #ifndef __ARCH_USE_MMU__
-      /* Nothing can protect a guard without an MMU; it would only take
-	 memory, and contiguous memory is what a noMMU system lacks.  */
-      guardsize = 0;
+      /* Nothing can protect a guard without an MMU, it is only a cushion
+	 for a small overflow.  Keep it to one page -- a large one would
+	 take contiguous memory, which a noMMU system lacks -- and report
+	 the page, not the request.  */
+      if (guardsize > pagesize_m1 + 1)
+	guardsize = pagesize_m1 + 1;
 #endif
+      reported_guardsize = guardsize;
       /* The guard comes on top of the requested stack, not out of it.  */
       size += guardsize;
       if (__builtin_expect (size < ((guardsize + __static_tls_size
