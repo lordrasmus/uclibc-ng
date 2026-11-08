@@ -447,7 +447,7 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
   else
     {
       /* Allocate some anonymous memory.  If possible use the cache.  */
-      size_t guardsize;
+      size_t guardsize, reported_guardsize;
       size_t reqsize;
       void *mem = 0;
       const int prot = (PROT_READ | PROT_WRITE);
@@ -483,6 +483,12 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
       if (guardsize < attr->guardsize || size + guardsize < guardsize)
 	/* Arithmetic overflow.  */
 	return EINVAL;
+      reported_guardsize = guardsize;
+#ifndef __ARCH_USE_MMU__
+      /* Nothing can protect a guard without an MMU; it would only take
+	 memory, and contiguous memory is what a noMMU system lacks.  */
+      guardsize = 0;
+#endif
       /* The guard comes on top of the requested stack, not out of it.  */
       size += guardsize;
       if (__builtin_expect (size < ((guardsize + __static_tls_size
@@ -690,7 +696,7 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
       /* The pthread_getattr_np() calls need to get passed the size
 	 requested in the attribute, regardless of how large the
 	 actually used guardsize is.  */
-      pd->reported_guardsize = guardsize;
+      pd->reported_guardsize = reported_guardsize;
     }
 
   /* Initialize the lock.  We have to do this unconditionally since the
