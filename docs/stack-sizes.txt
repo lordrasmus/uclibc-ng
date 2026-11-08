@@ -1,0 +1,566 @@
+Thread stacks and TLS in uClibc-ng
+==================================
+
+This file describes what can be set in uClibc-ng about thread stacks and
+thread-local storage (TLS), and what each setting does, with and without
+an MMU.  Part 2 explains the background: how the main stack and the
+thread blocks of NPTL are laid out, and how TLS variables find their
+place.  It covers the NPTL thread library.
+
+"Thread descriptor" and "descriptor" mean struct pthread, the per-thread
+control block NPTL keeps at the top of every thread block; the pictures
+call it by that name.
+
+  Part 1  Settings
+    1.1  PTHREADS_STACK_DEFAULT_SIZE
+    1.2  PTHREADS_STACK_SIZE_FROM_ELF
+    1.3  UCLIBC_DLOPEN_STATIC_TLS and LD_STATIC_TLS_EXTRA
+    1.4  UCLIBC_STATIC_TLS_RESERVE_SIZE
+    1.5  What uClibc-ng does differently without an MMU
+    1.6  Settings outside uClibc-ng
+  Part 2  Background
+    2.1  Layouts
+    2.2  The main thread
+    2.3  Thread stacks
+    2.4  The static TLS block
+    2.5  TLS models and dlopen()
+    2.6  Memory cost
+    2.7  Other C libraries
+
+
+Part 1  Settings
+================
+
+1.1 PTHREADS_STACK_DEFAULT_SIZE
+-------------------------------
+
+Kconfig, "Default thread stack size".  2 MiB, 4 MiB on alpha and powerpc.
+
+The stack size of a thread for which the program does not call
+pthread_attr_setstacksize().  It is determined once, when libpthread
+starts:
+
+  1. RLIMIT_STACK ("ulimit -s"), or this option if the limit is unlimited
+     or cannot be read;
+  2. no larger than this option, no smaller than PTHREAD_STACK_MIN;
+  3. replaced by the program's own size if PTHREADS_STACK_SIZE_FROM_ELF
+     is set and the program carries one (1.2).
+
+So the option is both the default and the upper limit of the default; a
+lower "ulimit -s" lowers it per process, a higher one does not raise it.
+
+With an MMU
+    Only address space is reserved up front; memory is used for the pages
+    a thread touches.  The descriptor, static TLS and guard come on top of
+    the default, so a default thread has the full default as stack.
+
+Without an MMU
+    Every byte is memory from the start, and contiguous.  The default is
+    the size of the whole thread block; the descriptor, static TLS and
+    guard come out of it (1.5).  This option is the main lever for the
+    memory threads take on such a system.
+
+A size set with pthread_attr_setstacksize() is not affected by any of
+this: it is always usable in full, with everything else on top (2.3).
+
+
+1.2 PTHREADS_STACK_SIZE_FROM_ELF
+--------------------------------
+
+Kconfig, "Take the default thread stack size from the program".  Off.
+
+When set, a program linked with -Wl,-z,stack-size=SIZE gets SIZE as the
+default thread stack size, larger or smaller than
+PTHREADS_STACK_DEFAULT_SIZE, but not below PTHREAD_STACK_MIN.  The size
+is read from the program's PT_GNU_STACK header at start.  Programs
+without a size there keep the default of 1.1; FLAT programs have no
+program headers and always keep it.
+
+On noMMU FDPIC the kernel already takes the same header as the size of
+the main stack, so one link option sets the main stack and, with this
+option, the thread stacks.
+
+Off by default because binutils writes 128 KiB into the header by itself
+on some noMMU targets (c6x DSBT, frv FDPIC): with the option on, their
+threads get 128 KiB instead of the default without anyone asking.
+
+glibc does not look at the header for thread stacks.  musl does, but
+only to raise its small default (2.7).
+
+
+1.3 UCLIBC_DLOPEN_STATIC_TLS and LD_STATIC_TLS_EXTRA
+----------------------------------------------------
+
+Kconfig, "Static TLS kept for libraries loaded by dlopen".  2048 bytes.
+Requires UCLIBC_HAS_TLS.
+
+The number of bytes every thread's static TLS block keeps free for
+libraries loaded later with dlopen() whose TLS has to lie in that block.
+
+Which libraries need the room
+    Libraries built with the initial-exec TLS model (they carry the
+    DF_STATIC_TLS flag), and on architectures with TLS descriptors
+    (aarch64, nds32, xtensa) other libraries too, as long as there is room
+    -- for them it is the fast path, not a requirement.  Libraries loaded
+    at program start and libraries using the general-dynamic model never
+    need it.  2.5 explains why.
+
+    A real example: Mesa picks initial-exec for its TLS when __GLIBC__ is
+    defined, and uClibc-ng defines __GLIBC__.  A Mesa driver loaded with
+    dlopen() therefore relies on this room.
+
+What happens when the room is too small
+    dlopen() of such a library fails: it returns NULL and dlerror() says
+    "Cannot allocate memory in static TLS block".  The program keeps
+    running.
+
+What the room costs
+    The room is part of every thread's static TLS block, and so of every
+    thread block:
+
+    With an MMU
+        Address space in every thread, on top of the stack; memory only
+        once a library puts its TLS there.
+
+    Without an MMU
+        Real memory in every thread from the start.  For a default thread
+        it comes out of the stack (1.5), so a larger room means a slightly
+        smaller usable stack; for a thread with an explicit stack size it
+        comes on top.
+
+    Static programs keep the room only if they call dlopen().
+
+LD_STATIC_TLS_EXTRA
+    Raises the room at run time, without rebuilding uClibc-ng: a decimal
+    number of bytes, taken when it is larger than the configured size
+    (it never lowers it).  Read by ld.so for dynamic programs and by
+    libdl for static programs with dlopen().  Ignored for setuid and
+    setgid programs.
+
+        LD_STATIC_TLS_EXTRA=16384 ./program
+
+When to change it
+    Raise it when dlopen() fails with the message above, either here or
+    for one program with LD_STATIC_TLS_EXTRA.  Lower it, down to 0, on a
+    system with many threads and no dlopen() of initial-exec libraries.
+
+glibc keeps 1664 bytes by default; 2048 is at least as much, so what
+fits there fits here.  musl keeps no room and refuses initial-exec TLS
+in a library loaded with dlopen().
+
+
+1.4 UCLIBC_STATIC_TLS_RESERVE_SIZE
+----------------------------------
+
+Kconfig, "Room for thread-local variables in a static program".  128
+bytes, 0 to 65536.  Requires UCLIBC_HAS_TLS.  Static programs only.
+
+The main thread does not get its TLS block on its stack: it is a block of
+its own, set up before main() (2.2).  A static program keeps that block
+-- the thread descriptor plus the program's __thread variables -- in a
+reserve in its bss, as long as the variables fit into this many bytes.
+Otherwise the block comes from sbrk() at start, or from mmap() without an
+MMU.  uClibc-ng itself uses 8 of the bytes; 0 leaves the reserve out.
+
+Every static program carries the reserve, so a larger value only pays
+off if the programs have more thread-local data.  It has no effect on
+dynamic programs, whose main thread TLS block ld.so allocates, and none
+on the blocks of other threads.
+
+
+1.5 What uClibc-ng does differently without an MMU
+--------------------------------------------------
+
+Not an option, but chosen by ARCH_HAS_NO_MMU; listed here because it
+changes what the options above do.
+
+The default stack is the whole block
+    The kernel rounds every noMMU mapping up to a power of two.  Anything
+    on top of a 2 MiB default would ask for 4 MiB of contiguous memory per
+    thread, and with many threads that fails as soon as memory is
+    fragmented.  So for a default thread the descriptor, static TLS and
+    guard come out of the default, and the usable stack is a few KiB
+    smaller than PTHREADS_STACK_DEFAULT_SIZE.  An explicit stack size is
+    still usable in full.
+
+The guard is at most one page and not protected
+    Nothing can protect a guard without an MMU.  uClibc-ng keeps it to
+    one page as a cushion that takes a small overflow instead of the
+    memory below; nothing reports such an overflow.  pthread_getattr_np()
+    reports the page; pthread_attr_getguardsize() still returns what the
+    attribute holds.
+
+The main stack does not come from uClibc-ng
+    Its size is set when the program is linked (2.2).
+
+
+1.6 Settings outside uClibc-ng
+------------------------------
+
+When the program is linked:
+
+  -Wl,-z,stack-size=SIZE
+      The size in PT_GNU_STACK: the main stack on noMMU FDPIC, and the
+      thread default with PTHREADS_STACK_SIZE_FROM_ELF (1.2).
+
+  -Wl,-elf2flt=-sSIZE, or flthdr -s SIZE afterwards
+      The main stack of a FLAT program (2.2).
+
+  __thread variables
+      Make up the static TLS block, which every thread carries (2.4).
+
+  -ftls-model=, __attribute__((tls_model("...")))
+      The TLS model of a library, which decides whether it needs the room
+      of 1.3 when loaded with dlopen() (2.5).
+
+At run time:
+
+  ulimit -s (RLIMIT_STACK)
+      Limit of the main stack with an MMU, and the thread default, never
+      above PTHREADS_STACK_DEFAULT_SIZE (1.1).
+
+  LD_STATIC_TLS_EXTRA
+      More room for dlopen() (1.3).
+
+In the program:
+
+  pthread_attr_setstacksize()
+      Stack size of one thread, usable in full (2.3).
+
+  pthread_attr_setguardsize()
+      Guard of one thread (2.3).
+
+  pthread_attr_setstack()
+      The thread runs on memory the program provides (2.3).
+
+
+Part 2  Background
+==================
+
+2.1 Layouts
+-----------
+
+Addresses grow upwards in the pictures; stacks grow down, except on hppa.
+
+Main thread, with an MMU (set up by the kernel):
+
+    high  +---------------------------+
+          | argv/envp strings, auxv   |  written by execve()
+          | argc, argv[], envp[]      |
+          +---------------------------+ <- sp at program start
+          | stack, grows down         |
+          |   on demand, page by page |
+          |   up to RLIMIT_STACK      |
+          +- - - - - - - - - - - - - -+
+          | guard gap (kernel)        |
+    low   +---------------------------+
+
+Main thread, noMMU FDPIC/ELF: one fixed block of the PT_GNU_STACK size
+(128 KiB if none), separate from the program's text and data:
+
+    high  +---------------------------+
+          | argv/envp strings, argc...|
+          +---------------------------+ <- sp at program start
+          | stack, fixed size,        |
+          |   no growth, no guard     |
+    low   +---------------------------+  an overflow runs on below
+
+Main thread, noMMU FLAT: one mapping for the whole program, the stack
+(bFLT header size, 4 KiB by default) on top:
+
+    high  +---------------------------+
+          | stack, fixed size         |
+          +---------------------------+
+          | bss                       |  an overflow lands here first
+          | data                      |
+          | text                      |
+    low   +---------------------------+
+
+The main thread's TLS block and descriptor are not on its stack.  They
+are a block of their own, set up before main() and laid out like the top
+of a thread block below (descriptor and static TLS):
+
+    static program
+        A reserve in bss (UCLIBC_STATIC_TLS_RESERVE_SIZE), or sbrk() --
+        mmap() without an MMU -- at start if the variables do not fit.
+
+    dynamic program
+        Allocated by ld.so at start.
+
+Thread created by pthread_create(), one mmap() block.  Where the static
+TLS block sits relative to the thread descriptor (struct pthread) depends
+on the TLS variant of the architecture.
+
+TLS_TCB_AT_TP (TLS variant II: i386, x86_64, sparc, s390, ...):
+
+    high  +---------------------------+ <- end of the mmap() block
+          | struct pthread (TCB)      |
+          +---------------------------+ <- thread pointer
+          | static TLS block          |  below the thread pointer
+          +---------------------------+ <- sp at thread start
+          | stack, grows down         |
+          |                           |
+          +---------------------------+
+          | guard                     |  PROT_NONE with an MMU
+    low   +---------------------------+ <- start of the block
+
+TLS_DTV_AT_TP (TLS variant I: arm, aarch64, mips, riscv, powerpc, ...):
+
+    high  +---------------------------+ <- end of the mmap() block
+          | static TLS block          |  above the thread pointer
+          +---------------------------+ <- thread pointer (plus an offset
+          | tcbhead_t                 |    on some architectures)
+          | struct pthread            |  together TLS_PRE_TCB_SIZE
+          +---------------------------+ <- sp at thread start
+          | stack, grows down         |
+          |                           |
+          +---------------------------+
+          | guard                     |  PROT_NONE with an MMU
+    low   +---------------------------+ <- start of the block
+
+The static TLS block, in detail (variant II shown), with one library
+loaded at start and one initial-exec library loaded with dlopen():
+
+          +---------------------------+ <- thread pointer
+          | TLS of the program        | \
+          | TLS of libc, libfoo.so    |  | laid out at program start,
+          | TLS of libbar.so (dlopen, |  | the same in every thread
+          |   initial-exec)           |  |
+          | free room                 |  | UCLIBC_DLOPEN_STATIC_TLS,
+          +---------------------------+ /  minus what libbar.so took
+
+    elsewhere (malloc):  TLS of libbaz.so (dlopen, general-dynamic),
+                         one block per thread that used it
+
+What counts as the "stack size" of a thread:
+
+          +---------------------------+
+          | struct pthread +          | \
+          |   static TLS              |  |
+          +---------------------------+  |  on top of an explicit size,
+          | usable stack              |  |  and of the default with an
+          |   = pthread_attr_setstack-|  |  MMU; out of the default
+          |     size() request        |  |  without an MMU (1.5)
+          +---------------------------+  |
+          | guard                     | /
+          +---------------------------+
+
+Two architectures differ.  hppa, whose stack grows up: the descriptor and
+TLS stay at the top, the stack starts at the bottom, and the guard sits
+right below the descriptor.
+
+    high  +---------------------------+ <- end of the mmap() block
+          | struct pthread +          |
+          |   static TLS              |
+          +---------------------------+
+          | guard                     |
+          +---------------------------+
+          | stack, grows up           |
+          +---------------------------+ <- sp at thread start
+    low                                  <- start of the block
+
+ia64, with its separate register stack: the memory stack grows down from
+below the descriptor, the register backing store grows up from the
+bottom, and the guard is in the middle, where the two would meet.
+
+    high  +---------------------------+ <- end of the mmap() block
+          | struct pthread +          |
+          |   static TLS              |
+          +---------------------------+ <- sp at thread start
+          | memory stack, grows down  |
+          +---------------------------+
+          | guard                     |
+          +---------------------------+
+          | register stack, grows up  |
+    low   +---------------------------+ <- start of the block
+
+
+2.2 The main thread
+-------------------
+
+The kernel sets up the main thread's stack before the program starts.
+uClibc-ng does not size it.  The main thread's TLS block and descriptor
+are separate from that stack: a static program keeps them in a reserve in
+its bss when the __thread variables fit (1.4), or takes them from sbrk()
+-- mmap() without an MMU -- at start; in a dynamic program ld.so
+allocates them.  Like every thread, the main thread has the static TLS
+block of 2.4, dlopen() room included.
+
+With an MMU
+    The stack starts small and grows on demand, page by page, up to
+    RLIMIT_STACK ("ulimit -s", usually 8 MiB).  Pages are only backed by
+    memory once they are touched.  Running past the limit, or into the
+    guard gap the kernel keeps below the stack, gives SIGSEGV.
+
+Without an MMU
+    The stack is a fixed block allocated at exec time.  It never grows,
+    and nothing catches an overflow: it runs on into whatever lies below.
+
+    FDPIC/ELF (binfmt_elf_fdpic)
+        The size is p_memsz of the program's PT_GNU_STACK header, set at
+        link time with -Wl,-z,stack-size=SIZE.  If that is 0, the kernel
+        takes 128 KiB.  binutils writes 128 KiB into the header by itself
+        on some targets (c6x DSBT, frv FDPIC).
+
+    FLAT (binfmt_flat)
+        The size is in the bFLT header, set with elf2flt -s SIZE
+        (-Wl,-elf2flt=-sSIZE when linking through gcc) or afterwards with
+        flthdr -s SIZE.  The default is 4 KiB.  Text, data, bss and stack
+        share one mapping with the stack on top, so an overflow silently
+        overwrites bss and data first.
+
+
+2.3 Thread stacks
+-----------------
+
+pthread_create() allocates the block of a new thread with mmap(), unless
+the program hands it memory with pthread_attr_setstack().  The block
+holds, from top to bottom: the thread descriptor and the static TLS
+block, the stack proper, and at the far end, where an overflow arrives,
+the guard (2.1).
+
+Explicit size (pthread_attr_setstacksize)
+    The requested size is usable stack in full.  The guard, the
+    descriptor and the static TLS block come on top of it.  POSIX calls
+    stacksize the minimum size of the stack and describes the guard as
+    extra memory.
+
+Default size
+    See 1.1 and 1.2 for how it is chosen, and 1.5 for how it counts
+    without an MMU.
+
+Guard (pthread_attr_setguardsize)
+    With an MMU the guard has the requested size, rounded up to whole
+    pages (one page by default), and is mapped PROT_NONE, so an overflow
+    into it gives SIGSEGV.  Without an MMU it is at most one page and
+    unprotected (1.5).  pthread_attr_getguardsize() returns what was
+    stored in the attribute; pthread_getattr_np() returns the guard the
+    thread really has.
+
+Memory of the program (pthread_attr_setstack)
+    The thread runs on exactly that memory.  No guard is added, and the
+    descriptor and TLS are taken from the top of it.
+
+
+2.4 The static TLS block
+------------------------
+
+Every thread block carries, besides the stack, the thread descriptor
+(struct pthread, on the order of one or two KiB depending on the
+architecture) and a copy of the static TLS block.  The static TLS block
+is laid out once at program start and has the same size in every thread:
+
+  - the __thread variables of the program and of the libraries loaded at
+    start, each aligned as its variables demand -- one variable with
+    aligned(4096) adds up to a page;
+  - the room for libraries loaded later with dlopen() (1.3).
+
+A new thread gets a fresh copy of the initial values.  A large static TLS
+block therefore costs in every thread: on top of the stack with an MMU
+and for explicit sizes, out of the default stack without an MMU.
+
+
+2.5 TLS models and dlopen()
+---------------------------
+
+The compiler accesses a __thread variable in one of four ways.  gcc picks
+one from how the code is built; -ftls-model= or
+__attribute__((tls_model("..."))) overrides it.
+
+  local-exec
+      The program's own variables, and all of them in a static program.
+      A fixed offset from the thread pointer, known at link time.
+
+  initial-exec
+      Variables of libraries loaded at program start.  A fixed offset
+      from the thread pointer, filled in by the loader.
+
+  local-dynamic, general-dynamic
+      Code that may be loaded with dlopen() (the -fPIC default).  The
+      address comes from __tls_get_addr(module, offset) at run time.
+
+  TLS descriptor
+      Like general-dynamic, but through a function pointer the loader
+      chooses.  aarch64 always, x86_64 with -mtls-dialect=gnu2.
+
+The first two need the variable at a fixed distance from the thread
+pointer, so it has to be in the static TLS block.  The dynamic models
+find it through the thread's DTV (dynamic thread vector), wherever it is.
+That is the trade-off:
+
+  local-exec, initial-exec
+      Fast: an access is the thread pointer plus a constant, no call.
+      But the variable must have a place in the static TLS block.
+
+  local-dynamic, general-dynamic
+      A call to __tls_get_addr() for every access (local-dynamic: once
+      per function for the module's block).  The variable can be
+      anywhere, so these never need room in the static TLS block.
+
+  TLS descriptor
+      A call through the descriptor for every access.  If the loader
+      could put the variable into the static TLS block, the function it
+      installs only returns a constant offset, which costs little more
+      than initial-exec; otherwise it does what __tls_get_addr() does.
+
+Where each module's TLS ends up:
+
+  The program and the libraries loaded at start
+      In the static TLS block, laid out before the first thread exists.
+      Every new thread gets a copy.  The room of 1.3 plays no part here.
+
+  A library loaded with dlopen(), dynamic model
+      In a separate block per thread, allocated by the loader with malloc
+      the first time that thread touches the variable, and freed when the
+      thread exits.  Not in the thread block.
+
+  A library loaded with dlopen(), initial-exec model (DF_STATIC_TLS)
+      Has to go into the static TLS block, into the room of 1.3.
+      dlopen() copies its initial image into the block of every thread
+      already running.  If the room is used up, dlopen() fails (1.3).
+
+  A library loaded with dlopen(), TLS descriptors (aarch64, nds32,
+  xtensa)
+      The loader puts it into the static TLS block while there is room
+      (the fast path), otherwise into a separate block like the dynamic
+      model.
+
+So the size of a thread block depends on the static TLS of the program
+and its startup libraries plus the room of 1.3 -- not on what is loaded
+later with the dynamic model.
+
+
+2.6 Memory cost
+---------------
+
+With an MMU a thread block costs address space up front, and memory only
+for the pages it touches; touched pages stay until the thread exits.  The
+size matters for the address space of 32-bit processes with many threads,
+and under strict overcommit (vm.overcommit_memory=2), where the whole
+mapping counts.
+
+Without an MMU every byte of a thread block is memory from the start, and
+it has to be contiguous.  To keep threads small on such a system:
+
+  - set PTHREADS_STACK_DEFAULT_SIZE lower when building uClibc-ng (1.1),
+  - start the program with a lower "ulimit -s" (1.1),
+  - link the program with -Wl,-z,stack-size=SIZE and build uClibc-ng with
+    PTHREADS_STACK_SIZE_FROM_ELF (1.2),
+  - lower UCLIBC_DLOPEN_STATIC_TLS if no initial-exec library is loaded
+    with dlopen() (1.3), or
+  - call pthread_attr_setstacksize() in the program.
+
+
+2.7 Other C libraries
+---------------------
+
+glibc takes the thread stack default from RLIMIT_STACK and ignores the
+size in PT_GNU_STACK.  It keeps 1664 bytes of static TLS for dlopen(),
+adjustable with GLIBC_TUNABLES=glibc.rtld.optional_static_tls.  It has
+no noMMU support.
+
+musl uses 128 KiB as thread stack default and raises it, never lowers
+it, to a larger PT_GNU_STACK size.  It keeps no static TLS room for
+dlopen() and refuses initial-exec TLS in a library loaded that way.  On
+noMMU it allocates the full guard without protecting it, and reports
+it.
