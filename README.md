@@ -21,8 +21,6 @@ Upstream Links
 
 https://uclibc-ng.org/
 
-https://cgit.uclibc-ng.org/cgi/cgit/uclibc-ng.git/
-
 |Arch  |Status|Testsuite Image|Test Result|
 |------|------|------|------|
 |aarch64-be-npt-gcc-15-kernel-6.5.10-shared-elf|[![aarch64-be-npt-gcc-15-kernel-6.5.10-shared-elf](https://img.shields.io/github/actions/workflow/status/lordrasmus/uclibc-ng/make-aarch64-be-npt-gcc-15-kernel-6.5.10-shared-elf.yml?style=flat)](https://github.com/lordrasmus/uclibc-ng/actions/workflows/make-aarch64-be-npt-gcc-15-kernel-6.5.10-shared-elf.yml)|:white_check_mark:|[![aarch64-be-npt-gcc-15-kernel-6.5.10-shared-elftest](https://uclibc-ng.tangotanzen.de/tests/aarch64-be-npt-gcc-15-kernel-6.5.10-shared-elf_test_result.svg?v=2)](https://uclibc-ng.tangotanzen.de/tests/aarch64-be-npt-gcc-15-kernel-6.5.10-shared-elf_test_result.html)
