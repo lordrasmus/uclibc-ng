@@ -468,6 +468,16 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 			+ TLS_PRE_TCB_SIZE
 #endif
 			+ __static_tls_align_m1;
+#ifndef __ARCH_USE_MMU__
+      /* Without an MMU the kernel rounds every mapping up to a power of
+	 two, so anything on top of a power-of-two default asks for twice
+	 as much contiguous memory per thread.  Keep the default the size
+	 of the whole block; a size the program asks for stays usable in
+	 full.  */
+      const int whole_block = attr->stacksize == 0;
+      if (whole_block)
+	tls_cost = 0;
+#endif
       if (size + tls_cost < size)
 	/* Arithmetic overflow.  */
 	return EINVAL;
@@ -493,7 +503,10 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 #endif
       reported_guardsize = guardsize;
       /* The guard comes on top of the requested stack, not out of it.  */
-      size += guardsize;
+#ifndef __ARCH_USE_MMU__
+      if (!whole_block)
+#endif
+	size += guardsize;
       if (__builtin_expect (size < ((guardsize + __static_tls_size
 				     + MINIMAL_REST_STACK + pagesize_m1)
 				    & ~pagesize_m1),
