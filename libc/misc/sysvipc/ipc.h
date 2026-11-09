@@ -21,7 +21,7 @@
 #  define __IPC_64	0x100
 #elif defined __m68k__ || defined __i386__ || defined __mips__ \
    || defined __sh__ || defined __powerpc__ || defined __sparc__ \
-   || defined __hppa__
+   || defined __hppa__ || defined __lm32__
 /* A direct semctl/msgctl/shmctl pointing at sys_*ctl sets IPC_64 in the
    kernel and rejects a cmd that carries the bit; without such a number the
    call goes through ipc(), which reads it out of cmd.  arm, xtensa,
