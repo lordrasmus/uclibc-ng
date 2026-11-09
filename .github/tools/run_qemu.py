@@ -136,21 +136,30 @@ while True:
         if rlist:
             # Wenn Daten verfügbar sind, lesen Sie sie aus der Pipe
             pipe_data = os.read(pipe_out, 4096)  # Sie können die Puffergröße anpassen
-            
-            
-            log_file.write( pipe_data )
-            log_file.flush()
-            
-            # errors="replace": nie einen Chunk verwerfen -- sonst koennte die
-            # tests_end-Marke (oder Ausgabe ueberhaupt) durch nicht-UTF8-Bytes
-            # verloren gehen, sodass die Schleife trotz fertigem Test endlos
-            # weiterlaeuft und der GitHub-Log leer bleibt.
-            out_txt = pipe_data.decode(errors="replace")
-            consecutive_timeouts = 0
 
-            test_log += out_txt
-            sys.stdout.write( out_txt )
-            sys.stdout.flush()
+            # Leerer Read = EOF: kein Schreiber mehr am FIFO. Ist qemu tot
+            # (Absturz, Abbruch per assert), meldet select ab jetzt jedes Mal
+            # "lesbar" und die Schleife drehte bis zur Gesamtfrist leer
+            # (h8300, 2026-11-09: 34 min nach "Exit-Code 134").
+            if not pipe_data:
+                if qemu_proc is not None and qemu_proc.poll() is not None:
+                    print("Qemu-Prozess ist beendet, breche Lese-Schleife ab.")
+                    break
+                time.sleep( 0.1 )
+            else:
+                log_file.write( pipe_data )
+                log_file.flush()
+
+                # errors="replace": nie einen Chunk verwerfen -- sonst koennte die
+                # tests_end-Marke (oder Ausgabe ueberhaupt) durch nicht-UTF8-Bytes
+                # verloren gehen, sodass die Schleife trotz fertigem Test endlos
+                # weiterlaeuft und der GitHub-Log leer bleibt.
+                out_txt = pipe_data.decode(errors="replace")
+                consecutive_timeouts = 0
+
+                test_log += out_txt
+                sys.stdout.write( out_txt )
+                sys.stdout.flush()
         else:
             consecutive_timeouts += 1
             print("Timeout: Keine Daten verfügbar. timeout : {0} (#{1})".format( read_pipe_timeout, consecutive_timeouts ) )
