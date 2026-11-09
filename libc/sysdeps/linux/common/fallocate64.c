@@ -25,8 +25,10 @@ int attribute_hidden __libc_fallocate64(int fd, int mode, __off64_t offset,
 {
 	int ret;
 	INTERNAL_SYSCALL_DECL(err);
-#  ifdef __TMS320C6X__
-	/* The kernel's sys_fallocate_c6x wants the high word first.  */
+#  if defined __TMS320C6X__ || defined __metag__
+	/* The kernel's sys_fallocate_c6x wants the high word first.  So
+	   does metag's plain sys_fallocate: gcc passes a long long there in
+	   a register pair with the high word in the first register.  */
 	ret = (int) (INTERNAL_SYSCALL(fallocate, err, 6, fd, mode,
 		OFF64_HI (offset), OFF64_LO (offset),
 		OFF64_HI (len), OFF64_LO (len)));
