@@ -37,12 +37,13 @@ jobs:
       kernel_arch: arc
       config_file: config.arc
       qemu_kernel: kernel-arc-archs.img
-      # Die virt-Maschine hat kein -initrd; das Rootfs geht ueber den
-      # cpio-Platzhalter ins Image (siehe z_qemu_test_run.yml). Das -m ist
-      # nicht optional: haps_hs.dts meldet 1 GB Low-Mem, mit weniger vergibt
-      # der Kernel Speicher ausserhalb des abgebildeten Bereichs und stirbt
-      # beim Auspacken des Geraetebaums.
-      qemu_cmd: qemu-system-arc -M virt -cpu archs -m 1G -nographic -kernel kernel.img
+      # Das Rootfs ist eine ext2-Platte auf virtio-mmio; die Slots stehen im
+      # eingebauten haps_hs-Geraetebaum, -append wird an dessen bootargs
+      # (Konsole, print-fatal-signals) angehaengt. Das -m ist nicht optional:
+      # haps_hs.dts meldet 1 GB Low-Mem, mit weniger vergibt der Kernel
+      # Speicher ausserhalb des abgebildeten Bereichs und stirbt beim
+      # Auspacken des Geraetebaums.
+      qemu_cmd: qemu-system-arc -M virt -cpu archs -m 1G -nographic -kernel kernel.img -drive if=none,id=hd,format=raw,file=rootfs.ext2 -device virtio-blk-device,drive=hd -append "root=/dev/vda rootfstype=ext2 rw"
 
 
   call_images:
