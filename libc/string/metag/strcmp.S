@@ -29,20 +29,14 @@ $Lstrcmp4_loop:
 	ANDSZ	D0Ar6,D0Re0,D0FrT	! D0FrT = 0x80808080
 	GETD	D1Ar5,[D0Ar2+#4++]      ! Load 32-bits from s2
 	BZ	$Lstrcmp4_loop
-	AND	D0Ar6, D0Re0, D0FrT	! D0FrT = 0x80808080
 !
-! Either they are different or they both contain a NULL + junk
+! The word just compared holds a difference or a NULL.  Both pointers are
+! two words past its start; let the byte loop find the result, which has
+! to compare the bytes as unsigned char.
 !
-$Lstrcmp4_end:
-	LSLS	D0Re0,D0Ar4,#24		! Was Byte[0] the same?
-	LSLSZ	D0Ar2,D0Ar6,#24		! Yes: AND they where not zero?
-	LSLSZ	D0Re0,D0Ar4,#16		! Yes: Was Byte[1] the same?
-	LSLSZ	D0Ar2,D0Ar6,#16		! Yes: AND they where not zero?
-	LSLSZ	D0Re0,D0Ar4,#8		! Tes: Was Byte[2] the same?
-	LSLSZ	D0Ar2,D0Ar6,#8		! Yes: AND they where not zero?
-	MOVZ	D0Re0,D0Ar4		! Yes: Must by Byte[3] thats the result
-	ASR	D0Re0,D0Re0,#24		! Sign extend result to integer
-	MOV	PC,D1RtP
+	SUB	D1Ar1,D1Ar1,#8
+	SUB	D0Ar2,D0Ar2,#8
+	B	$Lstrcmp_slow
 !
 ! Misaligned case, byte at a time
 !
