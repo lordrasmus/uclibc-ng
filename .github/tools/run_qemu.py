@@ -45,12 +45,7 @@ log_file = open("log.txt","wb")
 #pipe_in = open("guest_pipe.in", "w")
 pipe_out = os.open("guest_pipe.out", os.O_RDONLY | os.O_NONBLOCK)
 
-if not os.path.exists( "qemu-inst.tar.xz" ):
-    os.system('wget -nv  "https://github.com/lordrasmus/uclibc-ng-qemu-imgs/blob/main/qemu-inst.tar.xz?raw=true" -O qemu-inst.tar.xz')
-    os.system("tar -xaf qemu-inst.tar.xz")
-
-
-ret = subprocess.getstatusoutput("./qemu-inst/bin/" + cmd.split(" ")[0] + " --version")
+ret = subprocess.getstatusoutput("./qemu-bin/" + cmd.split(" ")[0] + " --version")
 
 print( "Qemu Command : " + cmd )
 print( "Qemu Version : " + ret[1] )
@@ -64,7 +59,7 @@ qemu_proc = None
 
 def run_command(command):
     global qemu_proc
-    command ="./qemu-inst/bin/" + command
+    command ="./qemu-bin/" + command
     print("thread starting")
     sys.stdout.flush()
     # start_new_session: eigene Prozessgruppe, damit am Ende NUR dieses Job-Qemu

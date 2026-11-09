@@ -83,17 +83,14 @@ jobs:
   
       - name: install Qemu
         run: |
-          wget -nv  "https://github.com/lordrasmus/uclibc-ng-qemu-imgs/blob/main/qemu-inst.tar.xz?raw=true" -O qemu-inst.tar.xz
-          nice -n 19 tar -xaf qemu-inst.tar.xz
-          # A single, statically linked binary in qemu-bin/ replaces the one
-          # from the tarball, so one machine can change without rebuilding
-          # all of them.  Most have none, and then the tarball's stays.
+          # One statically linked binary from qemu-bin/, with the firmware
+          # it needs built in -- no pc-bios or share/qemu directory.
           bin=${CONFIG_QEMU_CMD%% *}
-          if wget -nv "https://raw.githubusercontent.com/lordrasmus/uclibc-ng-qemu-imgs/main/qemu-bin/$bin.xz" -O "$bin.xz" && [ -s "$bin.xz" ] ; then
-            xz -d -c "$bin.xz" > "qemu-inst/bin/$bin"
-            chmod +x "qemu-inst/bin/$bin"
-            echo "$bin from qemu-bin/"
-          fi
+          mkdir -p qemu-bin
+          wget -nv "https://raw.githubusercontent.com/lordrasmus/uclibc-ng-qemu-imgs/main/qemu-bin/$bin.xz" -O "$bin.xz"
+          [ -s "$bin.xz" ] || { echo "no qemu-bin/$bin.xz"; exit 1; }
+          xz -d -c "$bin.xz" > "qemu-bin/$bin"
+          chmod +x "qemu-bin/$bin"
           rm -f "$bin.xz"
       
           
