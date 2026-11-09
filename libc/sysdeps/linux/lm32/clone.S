@@ -14,6 +14,8 @@ clone:
 	be	r1, r0, 2f
 	be	r2, r0, 2f
 
+	/* the child gets all registers but r1 back: keep fn in r9 */
+	mv	r9, r1
 	mvi	r8, __NR_clone
 	scall
 
@@ -26,9 +28,12 @@ clone:
 
 __thread_start:
 	mvi	fp, 0
-	call	r2
+	mv	r1, r4
+	call	r9
 
-	calli HIDDEN_JUMPTARGET(_exit)
+	/* exit, not _exit, which is exit_group and ends the whole group */
+	mvi	r8, __NR_exit
+	scall
 
     /* Stop the unstoppable.  */
 9:
