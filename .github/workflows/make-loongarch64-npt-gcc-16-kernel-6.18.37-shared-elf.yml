@@ -46,7 +46,7 @@ jobs:
   # The config is riscv64_shared with the target swapped: 64 bit, NPTL,
   # shared, so a failure has the arch as its first suspect.
   #
-  # qemu-system-loongarch64 in qemu-inst.tar.xz is 11.1.0. The 8.1.2 one
+  # qemu-system-loongarch64 is 11.1 or later. The 8.1.2 one used
   # before it needed edk2 firmware and took 69 s to boot with more than one
   # CPU; 11.1.0 boots the EFI zboot image directly. That image has to be
   # gzip, qemu's loader refuses zboot with zstd.
