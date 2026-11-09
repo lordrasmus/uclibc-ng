@@ -105,10 +105,6 @@ jobs:
           if [[ $CONFIG_KERNEL_ARCH == "xtensa" ]] ;  then python3 .github/tools/xtensa-cpio-hack.py; fi
           if [[ $CONFIG_KERNEL_ARCH == "kvx" ]] ;     then python3 .github/tools/xtensa-cpio-hack.py; fi
           if [[ $CONFIG_KERNEL_ARCH == "csky" ]] ;    then python3 .github/tools/xtensa-cpio-hack.py; fi
-          # arc: die ARCv2-Images tragen das Rootfs im Platzhalter, aus der
-          # Zeit, als die virt-Maschine kein -initrd kannte. arc700 nimmt
-          # -initrd und hat keinen Platzhalter, deshalb an -cpu archs gebunden.
-          if [[ $CONFIG_QEMU_CMD == *"-cpu archs"* ]] ; then python3 .github/tools/xtensa-cpio-hack.py; fi
           # leon3_generic kennt kein -initrd. Hier geht das *gepackte* Rootfs in
           # den Platzhalter: der Kernel erkennt die Kompression des eingebauten
           # Blobs selbst, deshalb reichen 16M statt der 80M, die das rohe cpio
