@@ -37,7 +37,7 @@ jobs:
       kernel_arch: microblaze
       config_file: config.microblazeel
       qemu_kernel: kernel-microblazeel.img
-      qemu_cmd: qemu-system-microblazeel -M petalogix-s3adsp1800 -nographic -kernel kernel.img -initrd rootfs.img.xz
+      qemu_cmd: qemu-system-microblaze -M petalogix-s3adsp1800,endianness=little -nographic -kernel kernel.img -initrd rootfs.img.xz
 
 
   call_images:
