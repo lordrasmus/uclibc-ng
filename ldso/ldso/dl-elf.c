@@ -282,7 +282,8 @@ struct elf_resolve *_dl_load_shared_library(unsigned int rflags, struct dyn_elf 
             if (pnt) {
                     pnt += (unsigned long) _dl_loaded_modules->dynamic_info[DT_STRTAB];
                     _dl_if_debug_dprint("\tsearching exe's RPATH='%s'\n", pnt);
-                    if ((tpnt1 = search_for_named_library(libname, rflags, pnt, rpnt, NULL)) != NULL)
+                    if ((tpnt1 = search_for_named_library(libname, rflags, pnt, rpnt,
+                                                          _dl_loaded_modules->libname)) != NULL)
                             return tpnt1;
             }
         }
@@ -369,14 +370,16 @@ struct elf_resolve *_dl_load_shared_library(unsigned int rflags, struct dyn_elf 
         if (pnt) {
             pnt += (unsigned long) _dl_loaded_modules->dynamic_info[DT_STRTAB];
             _dl_if_debug_dprint("\tsearching exe's RUNPATH='%s'\n", pnt);
-            if ((tpnt1 = search_for_named_library(libname, rflags, pnt, rpnt, NULL)) != NULL)
+            if ((tpnt1 = search_for_named_library(libname, rflags, pnt, rpnt,
+                                                  _dl_loaded_modules->libname)) != NULL)
                 return tpnt1;
         }
         pnt = (char *) _dl_loaded_modules->dynamic_info[DT_RPATH];
         if (pnt) {
             pnt += (unsigned long) _dl_loaded_modules->dynamic_info[DT_STRTAB];
             _dl_if_debug_dprint("\tsearching exe's RPATH='%s'\n", pnt);
-            if ((tpnt1 = search_for_named_library(libname, rflags, pnt, rpnt, NULL)) != NULL)
+            if ((tpnt1 = search_for_named_library(libname, rflags, pnt, rpnt,
+                                                  _dl_loaded_modules->libname)) != NULL)
                 return tpnt1;
         }
     }
