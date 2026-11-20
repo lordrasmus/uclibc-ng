@@ -51,7 +51,7 @@ ENTRY(__clone)
 	mov	#+SYS_ify(clone), r3
 	trapa	#(__SH_SYSCALL_TRAP_BASE + 5)
 	mov     r0, r1
-#ifdef __sh2__
+#if defined(__sh2__) || defined(__CONFIG_J2__)
 /* 12 arithmetic shifts for the sh2, because shad doesn't exist! */
         shar    r1
         shar    r1
@@ -73,7 +73,14 @@ ENTRY(__clone)
 	tst	r1, r1			// i.e. error in linux
 	bf	.Lclone_end
 .Lsyscall_error:
+#ifdef __SH_FDPIC__
+	/* SYSCALL_ERROR_HANDLER has no FDPIC variant; this one takes
+	   __errno_location's descriptor from the GOT in r12 */
+	bra	__syscall_error
+	 mov	r0, r4
+#else
 	SYSCALL_ERROR_HANDLER
+#endif
 .Lclone_end:
 	tst	r0, r0
 	bt	2f
@@ -86,6 +93,11 @@ ENTRY(__clone)
 
 	/* thread starts */
 	mov.l	@r15, r1
+#ifdef __SH_FDPIC__
+	/* fn is a function descriptor: entry point and GOT */
+	mov.l	@(4,r1), r12
+	mov.l	@r1, r1
+#endif
 	jsr	@r1
 	 mov.l	@(4,r15), r4
 
@@ -96,3 +108,7 @@ ENTRY(__clone)
 
 PSEUDO_END (__clone)
 weak_alias (__clone, clone)
+
+#ifdef __SH_FDPIC__
+#include "syscall_error.S"
+#endif

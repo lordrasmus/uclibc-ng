@@ -40,6 +40,20 @@ CFLAGS-y-libm/complex := $(CFLAGS-y-libm/optimized)
 CFLAGS-e_sqrt.c := -frounding-math
 CFLAGS-s_fma.c := -frounding-math
 
+# -fexcess-precision=standard for the imported implementations only: they are
+# written for a double that is a double, which on x87 the compiler otherwise
+# breaks by keeping intermediates 80 bits wide.  fdlibm must not get it -- it
+# lives off that extra width, and rounding it away costs an ulp in cos, sinh and
+# tanh on i686.  libm/accurate does not need it either, since x87-precision.h
+# puts the FPU itself at 53 bits, which is stronger.  check_gcc because gcc
+# learned the option in 4.5 and the avr32 toolchain predates that.
+CFLAGS-y-libm/optimized := $(call check_gcc,-fexcess-precision=standard,)
+# sqrt and fma have to round in the current mode; without this gcc
+# folds the expressions that find it out as if it were to nearest (musl
+# and glibc build all of libm so).
+CFLAGS-e_sqrt.c := -frounding-math
+CFLAGS-s_fma.c := -frounding-math
+
 libm_DIR:=$(top_srcdir)libm
 libm_OUT:=$(top_builddir)libm
 
