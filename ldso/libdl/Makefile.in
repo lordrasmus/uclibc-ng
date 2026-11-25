@@ -16,6 +16,9 @@ CFLAGS-libdl += -DUCLIBC_RUNTIME_PREFIX=\"$(RUNTIME_PREFIX)\"
 CFLAGS-$(SUPPORT_LD_DEBUG)-ldso/libdl := -D__SUPPORT_LD_DEBUG__
 
 CFLAGS-libdl.c := -DLDSO_ELFINTERP=\"$(TARGET_ARCH)/elfinterp.c\"
+# static_tls_surplus runs from __libc_setup_tls, before the thread
+# pointer: a canary read from the TCB would fault.
+CFLAGS-libdl.c += $(SSP_DISABLE_FLAGS)
 
 LDFLAGS-$(UCLIBC_FORMAT_DSBT_ELF)-libdl.so := -Wl,--dsbt-index=3
 LDFLAGS-libdl.so := $(LDFLAGS)

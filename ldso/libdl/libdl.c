@@ -125,11 +125,33 @@ struct r_debug *_dl_debug_addr = NULL;
  */
 #include <stdlib.h>
 #include <unistd.h>
+/* Not getenv: that goes through strlen and strncmp, and this runs
+   before the thread pointer, where a stack protector would read its
+   canary from a TCB that is not there yet.  The file is built without
+   one, so everything it calls has to be built without one too.  */
+static const char *early_getenv (const char *name)
+{
+	size_t len = 0;
+	char **e;
+
+	while (name[len] != '\0')
+		len++;
+	for (e = __environ; e != NULL && *e != NULL; e++) {
+		size_t i;
+
+		for (i = 0; i < len && (*e)[i] == name[i]; i++)
+			;
+		if (i == len && (*e)[i] == '=')
+			return *e + len + 1;
+	}
+	return NULL;
+}
+
 static size_t static_tls_surplus (void)
 {
 	if (getuid() != geteuid() || getgid() != getegid())
 		return _dl_static_tls_surplus(NULL);
-	return _dl_static_tls_surplus(getenv("LD_STATIC_TLS_EXTRA"));
+	return _dl_static_tls_surplus(early_getenv("LD_STATIC_TLS_EXTRA"));
 }
 /* Data, not the function: libc-tls.c refers to it weakly, and a weak
    call would cost every static program a PLT entry.  */

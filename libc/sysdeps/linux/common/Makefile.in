@@ -149,6 +149,13 @@ CFLAGS-brk.c := $(SSP_DISABLE_FLAGS)
 CFLAGS-__init_brk.c := $(SSP_DISABLE_FLAGS)
 CFLAGS-mmap.c := $(SSP_DISABLE_FLAGS)
 CFLAGS-mmap64.c := $(SSP_DISABLE_FLAGS)
+# A static program that links dlopen asks for its own identity before
+# the thread pointer too, to see whether to trust LD_STATIC_TLS_EXTRA;
+# see static_tls_surplus in ldso/libdl/libdl.c.
+CFLAGS-getuid.c := $(SSP_DISABLE_FLAGS)
+CFLAGS-geteuid.c := $(SSP_DISABLE_FLAGS)
+CFLAGS-getgid.c := $(SSP_DISABLE_FLAGS)
+CFLAGS-getegid.c := $(SSP_DISABLE_FLAGS)
 CFLAGS-ssp.c := $(SSP_DISABLE_FLAGS)
 CFLAGS-ssp-local.c := $(SSP_DISABLE_FLAGS)
 
