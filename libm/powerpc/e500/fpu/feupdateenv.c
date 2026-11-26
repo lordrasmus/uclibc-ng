@@ -21,7 +21,7 @@
 #include <sys/prctl.h>
 
 int
-__feupdateenv (const fenv_t *envp)
+feupdateenv (const fenv_t *envp)
 {
   unsigned long fpescr, old, new, pflags;
   fenv_union_t u;

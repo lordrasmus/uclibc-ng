@@ -18,7 +18,7 @@
 #include "fenv_libc.h"
 
 int
-__fesetexceptflag (const fexcept_t *flagp, int excepts)
+fesetexceptflag (const fexcept_t *flagp, int excepts)
 {
   unsigned long spefscr;
   fexcept_t flag;

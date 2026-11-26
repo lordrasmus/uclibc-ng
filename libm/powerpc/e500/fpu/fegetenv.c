@@ -21,7 +21,7 @@
 #include <sys/prctl.h>
 
 int
-__fegetenv (fenv_t *envp)
+fegetenv (fenv_t *envp)
 {
   fenv_union_t u;
   INTERNAL_SYSCALL_DECL (err);

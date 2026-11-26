@@ -19,7 +19,7 @@
 #include "fenv_libc.h"
 
 int
-__fegetexceptflag (fexcept_t *flagp, int excepts)
+fegetexceptflag (fexcept_t *flagp, int excepts)
 {
   unsigned long fpescr;
 
