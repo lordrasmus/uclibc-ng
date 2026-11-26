@@ -1,6 +1,5 @@
 /* Set given exception flags.  e500 version.
    Copyright (C) 2016-2019 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -16,13 +15,22 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
+
 #include "fenv_libc.h"
 
-/* The FE_* values are the sticky bits of the SPEFSCR: set them, raise no
-   trap.  */
 int
 fesetexcept (int excepts)
 {
-  fesetenv_register (fegetenv_register () | (excepts & FE_ALL_EXCEPT));
+  unsigned int old_spefscr, spefscr;
+
+  old_spefscr = fegetenv_register ();
+  spefscr = old_spefscr | (excepts & FE_ALL_EXCEPT);
+  fesetenv_register (spefscr);
+
+  /* If the state of the "invalid" or "underflow" flag has changed,
+     inform the kernel.  */
+  if (((spefscr ^ old_spefscr) & (SPEFSCR_FINVS | SPEFSCR_FUNFS)) != 0)
+    __fe_note_change ();
+
   return 0;
 }
