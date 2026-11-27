@@ -7,6 +7,7 @@
  */
 #include <sched.h>
 #include <errno.h>
+#include <stdarg.h>
 #include <sys/syscall.h>
 #include <unistd.h>
 
@@ -19,24 +20,32 @@ int clone(int (*fn)(void *arg), void *child_stack, int flags, void *arg, ...)
 {
 	register int (*_fn)(void *arg) = fn;
 	register void *_arg = arg;
-	int err;
+	int *ptid, *ctid;
+	void *tls;
+	va_list ap;
+	int ret;
 
-	/* Sanity check the arguments */
-	err = -EINVAL;
-	if (!fn)
-		goto syscall_error;
-	if (!child_stack)
-		goto syscall_error;
+	if (!fn || !child_stack) {
+		__set_errno(EINVAL);
+		return -1;
+	}
 
-	err = INLINE_SYSCALL(clone, 2, flags, child_stack);
-	if (err < 0)
-		goto syscall_error;
-	else if (err != 0)
-		return err;
+	va_start(ap, arg);
+	ptid = va_arg(ap, int *);
+	tls = va_arg(ap, void *);
+	ctid = va_arg(ap, int *);
+	va_end(ap);
 
-	_exit(_fn(_arg));
+	ret = INLINE_SYSCALL(clone, 5, flags, child_stack, ptid, ctid, tls);
+	if (ret != 0)
+		return ret;	/* parent: the child's id, or -1 with errno set */
 
-syscall_error:
-	__set_errno (-err);
-	return -1;
+	/* The exit system call, not _exit: that is exit_group with threads
+	   and would end every thread of a CLONE_THREAD child.  Call fn
+	   first: as an argument of INLINE_SYSCALL the call would clobber
+	   the syscall number already loaded into r8.  */
+	ret = _fn(_arg);
+	INLINE_SYSCALL(exit, 1, ret);
+	for (;;)
+		;
 }
