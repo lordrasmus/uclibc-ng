@@ -27,16 +27,15 @@
 	.global	clone
 	.global	__errno_location
 
- ;Currently supports only
- ;int clone(int (*fn)(void *arg), void *child_stack, int flags, void *arg)
- ;
- ;Requires update for supporting
  ; int clone(int (*fn)(void *arg), void *child_stack, int flags, void *arg,
- ;	    int *parent_tidptr, struct user_desc *newtls, int *child_pidptr)
+ ;	    int *parent_tidptr, void *newtls, int *child_tidptr)
+ ; arg and the variable arguments are on the stack.
 
 __clone:
-	; index 1 points to the forth argument and is to be moved to B6
-	LDW .D2T2	*+B15[1],B5
+	LDW .D2T2	*+B15[1],B7	; arg, kept in B7 across the syscall
+	LDW .D2T1	*+B15[2],A7	; parent_tidptr
+	LDW .D2T1	*+B15[3],A8	; newtls
+	LDW .D2T2	*+B15[4],B6	; child_tidptr
 	NOP     4
 	MV .L2X	A4,B1		; sanity check arguments, no NULL function
 ||	MV .S2	B4,B2		; or stack pointer
@@ -53,7 +52,7 @@ __clone:
 
 	; do the system call
 ||	MVK .S2	__NR_clone,B0
-||	MV .L2  B5,B6
+	MV .D1	A7,A6		; clone (flags, sp, ptid, ctid, tls)
 0:
 #ifndef	_TMS320C6400_PLUS
   	MVC .S2     CSR,B2
@@ -76,13 +75,25 @@ __clone:
    [B2]	B .S2	__syscall_error	; if syscall < 0, it is an error
 	NOP	5
    [A2] B .S2X	A9		; branch to function
-|| [A2] MV .D1X	B6,A4		; set arg (B6 is preserved by syscall)
+|| [A2] MV .D1X	B7,A4		; set arg (B7 is preserved by syscall)
   [!A2] B .S2	B3		; otherwise (syscall result > 0) returns directly
    [A2]	ADDKPC .S2	__return_thread,B3, 4
 
 __return_thread:
-	b	.s2	HIDDEN_JUMPTARGET(_exit)
-	nop	5
+	; exit only this thread; _exit is exit_group
+	MVK .S2	__NR_exit,B0
+#ifndef	_TMS320C6400_PLUS
+	MVC .S2     CSR,B2
+	CLR .S2     B2,0,0,B1
+	MVC .S2     B1,CSR
+	MVC .S2     IFR,B1
+	SET .S2     B1,6,6,B1
+	MVC .S2     B1,ISR
+	MVC .S2     B2,CSR
+	NOP
+#else
+	SWE
+#endif
 
 __syscall_error:
 	; B14 is still the caller's; the PLT call needs libc's
