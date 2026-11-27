@@ -8,12 +8,23 @@
 
 #include <sched.h>
 #include <errno.h>
+#include <stdarg.h>
 #include <sys/syscall.h>
 
 int
 clone (int (*fn)(void *arg), void *child_stack, int flags, void *arg, ...)
 {
 	long rval = -1;
+	int *ptid, *ctid;
+	void *tls;
+	va_list ap;
+
+	va_start(ap, arg);
+	ptid = va_arg(ap, int *);
+	tls = va_arg(ap, void *);
+	ctid = va_arg(ap, int *);
+	va_end(ap);
+
 
 	if (fn && child_stack) {
 
@@ -35,9 +46,13 @@ clone (int (*fn)(void *arg), void *child_stack, int flags, void *arg, ...)
 			"excpt 0;"	/* Call sys_exit */
 			"1: nop;"
 			: "=q0" (rval)
-			: "qA" (__NR_clone), "q1" (child_stack), "q0" (flags), "a" (arg), "a" (fn), "i" (__NR_exit)
+			: "qA" (__NR_clone), "q1" (child_stack), "q0" (flags), "a" (arg), "a" (fn), "i" (__NR_exit),
+			  "q2" (ptid), "q3" (ctid), "q4" (tls)
 			: "CC");
-
+		if ((unsigned long) rval >= -4095UL) {
+			__set_errno(-rval);
+			rval = -1;
+		}
 	} else
 		__set_errno(EINVAL);
 
