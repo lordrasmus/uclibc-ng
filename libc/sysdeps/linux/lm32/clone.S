@@ -16,6 +16,9 @@ clone:
 
 	/* the child gets all registers but r1 back: keep fn in r9 */
 	mv	r9, r1
+	/* ptid is in r5 already; the kernel takes ctid in r6, as r7
+	   carries its pt_regs pointer */
+	mv	r6, r7
 	mvi	r8, __NR_clone
 	scall
 
