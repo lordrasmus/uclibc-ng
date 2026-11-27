@@ -129,7 +129,20 @@ jobs:
              [ "$LOCAL_SHA" = "none" ] \
                && echo "toolchain: kein Cache -> download" \
                || echo "toolchain: sha mismatch -> download"
-             wget -nv "https://github.com/lordrasmus/toolchains/blob/main/$CONFIG_TOOLCHAIN.tar.xz?raw=true" -O "$TC.part" && mv "$TC.part" "$TC"
+             # Scheitert der Download, abbrechen statt mit dem alten Cache
+             # weiterzubauen: "wget && mv" loest bash -e nicht aus, nach einem
+             # 503 lief der Bau sonst still mit der veralteten Toolchain.
+             if ! wget -nv --tries=5 --waitretry=30 --retry-on-http-error=429,500,502,503,504 \
+                  "https://github.com/lordrasmus/toolchains/blob/main/$CONFIG_TOOLCHAIN.tar.xz?raw=true" -O "$TC.part"; then
+               rm -f "$TC.part"
+               echo "toolchain: download fehlgeschlagen"; exit 1
+             fi
+             GOT_SHA=$(git hash-object "$TC.part")
+             if [ -n "$REMOTE_SHA" ] && [ "$GOT_SHA" != "$REMOTE_SHA" ]; then
+               rm -f "$TC.part"
+               echo "toolchain: geladene sha $GOT_SHA != $REMOTE_SHA"; exit 1
+             fi
+             mv "$TC.part" "$TC"
            fi
            cp "$TC" $CONFIG_TOOLCHAIN.tar.xz
            nice -n 19 tar -xaf $CONFIG_TOOLCHAIN.tar.xz
